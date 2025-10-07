@@ -1,51 +1,37 @@
-## Hito 1 — Definición del proyecto
+# HITO 1:
 
-## Título del proyecto
-CompraSmart
+==================================================================================================================================================================================================
 
-## Autor
-- Anas Tahir
+Proyecto: CompraSmart 🛒
+Autor: Anas Tahir ✍️
+Contacto: anasstahir4@gmail.com 📧
 
-## Descripción del Proyecto
-- CompraSmart es una aplicación web desarrollada con React (frontend), Node.js (backend) y MongoDB (base de datos).
-- Permite a los usuarios comparar el precio de los productos entre diferentes supermercados de Granada o de toda España.
-- La aplicación ayuda a los usuarios a encontrar el supermercado con el precio más barato para cada producto.
-- Al final la aplicación se desplegará en una plataforma en la nube para hacerla accesible en línea y escalable.
+Resumen:
+En este Hito 1 se establece la definición inicial del proyecto, incluyendo los objetivos principales, la estructura del repositorio y el flujo de trabajo de Git utilizado para comenzar el proyecto. Este hito refleja el punto de partida del desarrollo de CompraSmart.
 
-## Objetivos
-- Ayudar a las personas que llegan por primera vez a Granada o España a encontrar fácilmente los productos más baratos.
-- Permitir a todos, especialmente a los estudiantes, comprar lo que necesitan al precio más bajo posible.
-- Construir una aplicación web funcional utilizando tecnologías modernas (React, Node.js, MongoDB).
-- Aprender y aplicar técnicas de despliegue en la nube para hacerla accesible en Internet.
+Objetivos del Hito 1:
 
-## Requisitos Funcionales (RF)
-- Los usuarios pueden buscar un producto y ver los precios en varios supermercados.
-- La aplicación muestra qué supermercado ofrece el precio más bajo para el producto elegido.
-- Los usuarios pueden filtrar por ubicación o por supermercado para obtener resultados más específicos.
-- En el futuro, el sistema podrá ampliarse para incluir más supermercados a nivel nacional, no solo unos pocos.
+Configurar correctamente el repositorio Git y GitHub 🗂️
 
-## Requisitos No Funcionales (RNF)
-- La aplicación debe ser responsiva y funcionar correctamente tanto en ordenadores como en dispositivos móviles.
-- Tiempos de carga rápidos, incluso al comparar muchos productos y supermercados.
-- Manejo seguro de los datos de los usuarios (en caso de que se agreguen cuentas de usuario más adelante).
-- La aplicación se desplegará en una plataforma en la nube para asegurar su disponibilidad y accesibilidad.
+Documentar el proyecto y su alcance inicial 📝
 
-## Tecnologías Propuestas
-- **Frontend:** React.js  
-- **Backend:** Node.js con Express.js  
-- **Base de Datos:** MongoDB  
-- **Despliegue:** Plataforma en la nube (por definir)  
-- **Control de Versiones:** Git y GitHub  
+Preparar los archivos necesarios para futuras etapas 🚀
 
-## Arquitectura Inicial
-- Los usuarios interactúan con la aplicación web desde un navegador (frontend en React).  
-- El frontend se comunica con el backend (Node.js + Express) mediante peticiones API.  
-- El backend obtiene los datos de productos y supermercados desde MongoDB.  
-- La aplicación se desplegará en una plataforma en la nube para hacerla accesible y escalable.
+==================================================================================================================================================================================================
 
-## Hitos del Proyecto
-- **Hito 1:** Creación del repositorio y definición del proyecto  
-- **Hito 2:** Configuración de integración continua y estructura básica del frontend/backend  
-- **Hito 3:** Diseño e implementación de microservicios para productos y supermercados  
-- **Hito 4:** Composición de servicios y pruebas de integración  
-- **Hito 5:** Despliegue de la aplicación en una plataforma en la nube
+Project: CompraSmart 🛒
+Author: Anas Tahir ✍️
+Contact: anasstahir4@gmail.com 📧
+
+Summary:
+This Hito 1 focuses on the initial project setup, defining main objectives, the repository structure, and the Git workflow used to start the project. This milestone represents the starting point of CompraSmart’s development.
+
+Hito 1 Goals:
+
+Set up Git and GitHub repository properly 🗂️
+
+Document the project and initial scope 📝
+
+Prepare necessary files for future milestones 🚀
+
+==================================================================================================================================================================================================
