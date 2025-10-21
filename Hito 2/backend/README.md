@@ -2,8 +2,6 @@
 
 ##  English Version
 
-### 📘 Project Overview
-
 This is the backend for my CC-25-26 project. It includes two services: **product-service** for comparing product prices, and **auth-service** for user registration and login. All routes are fully tested and secured.
 
 ---
@@ -65,6 +63,8 @@ This is the backend for my CC-25-26 project. It includes two services: **product
 ----------------------------------------------------------------------------------------------------
 
 # 🛒 CC-25-26 Backend — Hito 2
+
+##  Spanish Version
 
 Este archivo README documenta el backend de mi proyecto CC-25-26. Incluye dos servicios: **product-service** para comparar precios de productos, y **auth-service** para el registro e inicio de sesión de usuarios. Todas las rutas están completamente probadas y aseguradas.
 
