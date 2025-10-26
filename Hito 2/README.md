@@ -1,6 +1,6 @@
 ##  Versión en Español
 
-###  Biblioteca de Aserciones: Jest
+###  Biblioteca de Aserciones:Jest
 
 Para los servicios backend de CompraSmart, elegí **Jest** como biblioteca de aserciones porque ofrece una solución completa de pruebas desde el primer momento. Sus ventajas incluyen:
 
@@ -13,7 +13,7 @@ Jest sigue el enfoque TDD (Desarrollo Guiado por Pruebas), lo cual se alinea per
 
 ---
 
-###  Framework de Pruebas: Jest
+###  Framework de Pruebas:Jest
 
 Como framework de pruebas, Jest actúa como test runner: detecta y ejecuta automáticamente los archivos de prueba, mostrando los resultados de forma clara. Las razones de esta elección son:
 
@@ -38,7 +38,7 @@ Jest facilita el mantenimiento de una alta calidad del código y se adapta perfe
 
 ##  English Version
 
-###  Assertion Library: Jest
+###  Assertion Library:Jest
 
 For the backend services of CompraSmart, I chose **Jest** as the assertion library because it provides a complete testing solution out of the box. Key benefits include:
 
@@ -51,7 +51,7 @@ Jest follows the TDD (Test-Driven Development) approach, which aligns perfectly 
 
 ---
 
-###  Test Framework: Jest
+###  Test Framework:Jest
 
 As a test runner, Jest automatically detects and executes test files, providing clear and detailed results. Reasons for choosing Jest include:
 
