@@ -1,3 +1,4 @@
+# main
 # CompraSmart 🛒💰
 
 ## Hito 1 — Definición del proyecto

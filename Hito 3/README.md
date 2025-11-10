@@ -1,4 +1,6 @@
-# Fullstack Microservices Project (Hito 3)
+# Hito 3
+
+# Fullstack Microservices Project 
 
 This project implements a **microservices architecture** with separate backend services for authentication, products, and comments, and a React frontend. Each backend service is independently deployable, containerized, and logs its activity using Winston. The frontend communicates with these microservices via REST APIs.
 
