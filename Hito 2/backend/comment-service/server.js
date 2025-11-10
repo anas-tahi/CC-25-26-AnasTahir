@@ -2,11 +2,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
-const logger = require('./logger'); 
+const logger = require('./logger'); // ✅ Winston logger
 
 const app = express();
-
-// ✅ Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -17,11 +15,8 @@ app.use((req, res, next) => {
 });
 
 // ✅ Routes
-const productRoutes = require("./routes/products");
-app.use("/products", productRoutes);
-
-const wishlistRoutes = require("./routes/wishlist");
-app.use("/wishlist", wishlistRoutes);
+const commentRoutes = require("./routes/comment");
+app.use("/comments", commentRoutes);
 
 // ✅ MongoDB Connection
 mongoose
@@ -30,5 +25,5 @@ mongoose
   .catch(err => logger.error(`❌ MongoDB connection error: ${err.message}`));
 
 // ✅ Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => logger.info(`🚀 Product service running on port ${PORT}`));
+const PORT = process.env.PORT || 6000;
+app.listen(PORT, () => logger.info(`🚀 Comment service running on port ${PORT}`));

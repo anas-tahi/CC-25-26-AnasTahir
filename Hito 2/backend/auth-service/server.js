@@ -1,22 +1,34 @@
-const express = require("express");
+const express = require("express");     
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const authRoutes = require("./routes/auth");
+const logger = require('./logger');  
 
 dotenv.config();
 
 const app = express();
-app.use(express.json());
+
+// ✅ Middleware
 app.use(cors());
+app.use(express.json());
 
-// connect to MongoDB
+// ✅ Log every request with Winston
+app.use((req, res, next) => {
+  logger.info(`[${req.method}] ${req.url}`);
+  next();
+});
+
+// ✅ Routes
+const authRoutes = require("./routes/auth");
+app.use("/auth", authRoutes);
+
+// ✅ MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch(err => console.error(err));
+  .then(() => logger.info("✅ Connected to MongoDB"))
+  .catch((err) => logger.error(`❌ MongoDB connection error: ${err.message}`));
 
-// routes
-app.use("/", authRoutes);
-
+// ✅ Start Server
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Auth service running on port ${PORT}`));
+app.listen(PORT, () => {
+  logger.info(`🚀 Auth service running on port ${PORT}`);
+});

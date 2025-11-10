@@ -1,0 +1,42 @@
+services:
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend/auth-service:/app
+    restart: unless-stopped
+
+  product-service:
+    build:
+      context: ./backend/product-service
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend/product-service:/app
+    restart: unless-stopped
+
+  comment-service:
+    build:
+      context: ./backend/comment-service
+      dockerfile: Dockerfile
+    ports:
+      - "6000:6000"
+    volumes:
+      - ./backend/comment-service:/app
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    restart: unless-stopped
+    environment:
+      BROWSER: chrome  # auto launch Chrome when frontend starts
