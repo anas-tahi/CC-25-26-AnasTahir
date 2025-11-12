@@ -21,6 +21,7 @@ test('registers a new user successfully', async () => {
   User.findOne.mockResolvedValue(null);
 
   const res = await request(app).post('/auth/register').send({
+    name: 'Test User',              // ADDED name field
     email: 'test@example.com',
     password: 'secure123'
   });
@@ -31,6 +32,7 @@ test('registers a new user successfully', async () => {
 
 test('fails if email is missing', async () => {
   const res = await request(app).post('/auth/register').send({
+    name: 'Test User',
     password: 'secure123'
   });
 
@@ -39,6 +41,7 @@ test('fails if email is missing', async () => {
 
 test('fails if password is missing', async () => {
   const res = await request(app).post('/auth/register').send({
+    name: 'Test User',
     email: 'test@example.com'
   });
 
@@ -49,6 +52,7 @@ test('fails if email already exists', async () => {
   User.findOne.mockResolvedValue({ email: 'test@example.com' });
 
   const res = await request(app).post('/auth/register').send({
+    name: 'Test User',
     email: 'test@example.com',
     password: 'secure123'
   });

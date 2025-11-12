@@ -28,17 +28,24 @@ router.get("/names", async (req, res) => {
 router.get("/compare/:name", auth, async (req, res) => {
   try {
     const rawName = req.params.name;
-    const normalizedQuery = rawName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const normalizedQuery = rawName
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
 
     const products = await Product.find({});
     const filtered = products.filter(p => {
-      const normalizedName = p.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      const normalizedName = p.name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
       return normalizedName.includes(normalizedQuery);
     });
 
     if (filtered.length === 0) {
       return res.status(404).json({ message: "No matching products found." });
     }
+
     const cheapest = filtered.reduce((min, p) => (p.price < min.price ? p : min), filtered[0]);
 
     res.json({
@@ -53,12 +60,13 @@ router.get("/compare/:name", auth, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 // ✅ Get product names that start with a given prefix
 router.get("/names/:prefix", async (req, res) => {
   try {
     const prefix = req.params.prefix.toLowerCase();
     const products = await Product.find({
-      name: { $regex: `^${prefix}`, $options: 'i' }
+      name: { $regex: `^${prefix}`, $options: "i" }
     });
     const uniqueNames = [...new Set(products.map(p => p.name))];
     res.json(uniqueNames);
@@ -67,5 +75,65 @@ router.get("/names/:prefix", async (req, res) => {
   }
 });
 
+// ✅ Compare all products (for test compare-all)
+router.get("/compare-all", async (req, res) => {
+  try {
+    const products = await Product.find({});
+
+    // Group by normalized name
+    const grouped = {};
+    products.forEach(p => {
+      const normalizedName = p.name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+      if (!grouped[normalizedName]) grouped[normalizedName] = [];
+      grouped[normalizedName].push(p);
+    });
+
+    // Get cheapest for each group
+    const result = Object.keys(grouped).map(name => {
+      const items = grouped[name];
+      const cheapest = items.reduce((min, p) => (p.price < min.price ? p : min), items[0]);
+      return {
+        product: name,
+        cheapest: {
+          supermarket: cheapest.supermarket,
+          price: cheapest.price
+        }
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ✅ Get products by name (for test /products/:name)
+router.get("/:name", async (req, res) => {
+  try {
+    const nameParam = req.params.name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
+    const products = await Product.find({});
+    const filtered = products.filter(
+      p =>
+        p.name
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase() === nameParam
+    );
+
+    if (filtered.length === 0)
+      return res.status(404).json({ message: "No products found" });
+
+    res.json(filtered);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 module.exports = router;
