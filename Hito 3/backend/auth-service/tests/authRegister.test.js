@@ -3,7 +3,7 @@ const express = require('express');
 const authRoutes = require('../routes/auth');
 
 // Mock User model
-jest.mock('../models/User', () => {
+jest.mock('../models/user', () => {
   const actual = jest.requireActual('mongoose');
   return Object.assign(function () {
     return { save: jest.fn().mockResolvedValue() };
@@ -11,7 +11,7 @@ jest.mock('../models/User', () => {
     findOne: jest.fn()
   });
 });
-const User = require('../models/User');
+const User = require('../models/user');
 
 const app = express();
 app.use(express.json());

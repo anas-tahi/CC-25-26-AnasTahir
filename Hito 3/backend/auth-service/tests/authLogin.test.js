@@ -4,10 +4,10 @@ const authRoutes = require('../routes/auth');
 const bcrypt = require('bcryptjs');
 
 // Mock User model
-jest.mock('../models/User', () => ({
+jest.mock('../models/user', () => ({
   findOne: jest.fn()
 }));
-const User = require('../models/User');
+const User = require('../models/user');
 
 const app = express();
 app.use(express.json());
