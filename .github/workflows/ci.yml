@@ -14,10 +14,6 @@ jobs:
       matrix:
         service: [auth-service, product-service, comment-service]
 
-    defaults:
-      run:
-        working-directory: backend/${{ matrix.service }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -29,6 +25,8 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: backend/${{ matrix.service }}
 
       - name: Run tests
         run: npm test
+        working-directory: backend/${{ matrix.service }}
