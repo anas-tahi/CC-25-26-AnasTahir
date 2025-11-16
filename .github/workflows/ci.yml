@@ -24,9 +24,11 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
-        working-directory: backend/${{ matrix.service }}
+        run: |
+          cd Hito3/backend/${{ matrix.service }}
+          npm install
 
       - name: Run tests
-        run: npm test
-        working-directory: backend/${{ matrix.service }}
+        run: |
+          cd Hito3/backend/${{ matrix.service }}
+          npm test
