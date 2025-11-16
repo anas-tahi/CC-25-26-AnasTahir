@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        service: [auth-service, product-service]
+        service: [auth-service, product-service, comment-service]
 
     defaults:
       run:
@@ -32,6 +32,3 @@ jobs:
 
       - name: Run tests
         run: npm test
-
-
-        
