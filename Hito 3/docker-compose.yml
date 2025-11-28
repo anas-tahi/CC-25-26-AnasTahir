@@ -1,4 +1,14 @@
+version: "3.9"
 services:
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
   auth-service:
     build:
       context: ./backend/auth-service
@@ -24,10 +34,14 @@ services:
       context: ./backend/comment-service
       dockerfile: Dockerfile
     ports:
-      - "6000:6000"
+      - "6060:6000"  # ✅ Changed host port to safe browser port
     volumes:
       - ./backend/comment-service:/app
     restart: unless-stopped
+    env_file:
+      - ./backend/comment-service/.env
+    depends_on:
+      - mongo
 
   frontend:
     build:
@@ -39,4 +53,7 @@ services:
       - ./frontend:/app
     restart: unless-stopped
     environment:
-      BROWSER: chrome  # auto launch Chrome when frontend starts
+      BROWSER: chrome
+
+volumes:
+  mongo-data:

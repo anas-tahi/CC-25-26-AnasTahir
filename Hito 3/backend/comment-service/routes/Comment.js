@@ -1,17 +1,20 @@
-const express = require("express");
-const router = express.Router();
+const router = require("express").Router();
 const Comment = require("../models/Comment");
 
-// ✅ POST /comments
+// POST /comments
 router.post("/", async (req, res) => {
   try {
     const { name, message } = req.body;
-    const comment = new Comment({ name, message });
-    await comment.save();
-    res.status(201).json({ message: "Comment saved successfully." });
-  } catch (err) {
-    console.error("❌ Failed to save comment:", err);
-    res.status(500).json({ message: "Server error." });
+    if (!name || !message) {
+      return res.status(400).json({ message: "Name and message are required" });
+    }
+
+    const newComment = new Comment({ name, message });
+    await newComment.save();
+
+    res.json({ message: "Comment saved successfully." });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
   }
 });
 

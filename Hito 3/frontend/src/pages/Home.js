@@ -28,7 +28,7 @@ const Home = () => {
 
     const fetchRecommendations = async () => {
       try {
-        const res = await axios.get('http://localhost:4000/products/recommendations', {
+        const res = await axios.get('http://localhost:5000/products/recommendations', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setRecommended(res.data);
@@ -48,9 +48,15 @@ const Home = () => {
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:6000/comments', comment, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.post(
+        'http://localhost:6060/comments', // ✅ Changed to safe port
+        comment,
+        {
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
       alert('✅ Comment submitted!');
       setComment({ name: user?.name || '', message: '' });
     } catch (err) {
@@ -69,7 +75,6 @@ const Home = () => {
         <Link to="/compare" style={styles.heroButton}>Start Comparing →</Link>
       </div>
 
-      {/* Supermarket Logos */}
       <div style={styles.logoRow}>
         {[mercadonaLogo, carrefourLogo, lidlLogo, diaLogo].map((logo, i) => (
           <div
@@ -83,7 +88,6 @@ const Home = () => {
         ))}
       </div>
 
-      {/* Cards Section */}
       <div style={styles.grid}>
         <Link to="/compare" style={styles.card}>
           <h3>🔍 Search Products</h3>
@@ -101,7 +105,6 @@ const Home = () => {
         </a>
       </div>
 
-      {/* Comment Section */}
       <div style={styles.commentSection}>
         <h3>💬 Leave a Comment</h3>
         <form onSubmit={handleCommentSubmit} style={styles.form}>
@@ -125,7 +128,6 @@ const Home = () => {
         </form>
       </div>
 
-      {/* Social Icons */}
       <div style={styles.socialRow}>
         <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
           <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" style={styles.socialIcon} />
@@ -145,131 +147,27 @@ const Home = () => {
   );
 };
 
-// ✨ Styles
 const styles = {
-  page: {
-    background: 'linear-gradient(180deg, #f9fafc 0%, #f0f7ff 100%)',
-    minHeight: '100vh',
-    padding: '2rem',
-    fontFamily: 'Poppins, sans-serif',
-    textAlign: 'center',
-  },
-  hero: {
-    animation: 'fadeIn 1.5s ease-in-out',
-    marginBottom: '3rem',
-  },
-  title: {
-    fontSize: '2.8rem',
-    fontWeight: '700',
-    color: '#222',
-    marginBottom: '1rem',
-  },
-  subtitle: {
-    fontSize: '1.2rem',
-    color: '#555',
-    maxWidth: '700px',
-    margin: 'auto',
-    marginBottom: '2rem',
-    lineHeight: '1.6',
-  },
-  heroButton: {
-    display: 'inline-block',
-    padding: '0.8rem 1.8rem',
-    background: 'linear-gradient(90deg, #007bff, #00d4ff)',
-    color: '#fff',
-    borderRadius: '12px',
-    textDecoration: 'none',
-    fontWeight: '600',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  },
-  logoRow: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: '2rem',
-    marginBottom: '3rem',
-    flexWrap: 'wrap',
-  },
-  logoContainer: {
-    transition: 'transform 0.4s ease',
-  },
-  logo: {
-    height: '100px',
-    objectFit: 'contain',
-    filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.15))',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '2rem',
-    marginBottom: '4rem',
-  },
-  card: {
-    padding: '1.8rem',
-    borderRadius: '16px',
-    backgroundColor: '#fff',
-    boxShadow: '0 6px 16px rgba(0,0,0,0.1)',
-    textDecoration: 'none',
-    color: '#333',
-    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  },
-  commentSection: {
-    marginTop: '3rem',
-    background: '#fff',
-    borderRadius: '16px',
-    padding: '2rem',
-    boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
-    maxWidth: '600px',
-    marginInline: 'auto',
-    textAlign: 'left',
-  },
+  page: { background: 'linear-gradient(180deg, #f9fafc 0%, #f0f7ff 100%)', minHeight: '100vh', padding: '2rem', fontFamily: 'Poppins, sans-serif', textAlign: 'center' },
+  hero: { animation: 'fadeIn 1.5s ease-in-out', marginBottom: '3rem' },
+  title: { fontSize: '2.8rem', fontWeight: '700', color: '#222', marginBottom: '1rem' },
+  subtitle: { fontSize: '1.2rem', color: '#555', maxWidth: '700px', margin: 'auto', marginBottom: '2rem', lineHeight: '1.6' },
+  heroButton: { display: 'inline-block', padding: '0.8rem 1.8rem', background: 'linear-gradient(90deg, #007bff, #00d4ff)', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: '600', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', transition: 'transform 0.3s ease, box-shadow 0.3s ease' },
+  logoRow: { display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '3rem', flexWrap: 'wrap' },
+  logoContainer: { transition: 'transform 0.4s ease' },
+  logo: { height: '100px', objectFit: 'contain', filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.15))' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', marginBottom: '4rem' },
+  card: { padding: '1.8rem', borderRadius: '16px', backgroundColor: '#fff', boxShadow: '0 6px 16px rgba(0,0,0,0.1)', textDecoration: 'none', color: '#333', transition: 'transform 0.3s ease, box-shadow 0.3s ease' },
+  commentSection: { marginTop: '3rem', background: '#fff', borderRadius: '16px', padding: '2rem', boxShadow: '0 4px 14px rgba(0,0,0,0.1)', maxWidth: '600px', marginInline: 'auto', textAlign: 'left' },
   form: { display: 'flex', flexDirection: 'column', gap: '1rem' },
-  input: {
-    padding: '0.8rem',
-    borderRadius: '8px',
-    border: '1px solid #ccc',
-    fontSize: '1rem',
-    transition: 'box-shadow 0.3s ease',
-  },
-  textarea: {
-    padding: '0.8rem',
-    borderRadius: '8px',
-    border: '1px solid #ccc',
-    fontSize: '1rem',
-    transition: 'box-shadow 0.3s ease',
-  },
-  submitButton: {
-    background: 'linear-gradient(90deg, #28a745, #85e085)',
-    color: '#fff',
-    border: 'none',
-    padding: '0.8rem 1.6rem',
-    borderRadius: '8px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    alignSelf: 'flex-start',
-    transition: 'transform 0.2s ease',
-  },
-  socialRow: {
-    marginTop: '4rem',
-    display: 'flex',
-    justifyContent: 'center',
-    gap: '2rem',
-  },
-  socialIcon: {
-    width: '48px',
-    height: '48px',
-    transition: 'transform 0.3s ease, filter 0.3s ease',
-    cursor: 'pointer',
-    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
-  },
-  footer: {
-    marginTop: '3rem',
-    fontSize: '0.9rem',
-    color: '#666',
-  },
+  input: { padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc', fontSize: '1rem', transition: 'box-shadow 0.3s ease' },
+  textarea: { padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc', fontSize: '1rem', transition: 'box-shadow 0.3s ease' },
+  submitButton: { background: 'linear-gradient(90deg, #28a745, #85e085)', color: '#fff', border: 'none', padding: '0.8rem 1.6rem', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', alignSelf: 'flex-start', transition: 'transform 0.2s ease' },
+  socialRow: { marginTop: '4rem', display: 'flex', justifyContent: 'center', gap: '2rem' },
+  socialIcon: { width: '48px', height: '48px', transition: 'transform 0.3s ease, filter 0.3s ease', cursor: 'pointer', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' },
+  footer: { marginTop: '3rem', fontSize: '0.9rem', color: '#666' },
 };
 
-// Add animation globally (optional)
 document.head.insertAdjacentHTML(
   'beforeend',
   `<style>
