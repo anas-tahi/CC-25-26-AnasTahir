@@ -25,10 +25,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd "Hito 3/backend/${{ matrix.service }}"
+          cd "Hito 4/backend/${{ matrix.service }}"
           npm install
 
       - name: Run tests
         run: |
-          cd "Hito 3/backend/${{ matrix.service }}"
+          cd "Hito 4/backend/${{ matrix.service }}"
           npm test
