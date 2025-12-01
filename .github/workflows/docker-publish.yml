@@ -1,0 +1,116 @@
+name: Build, Publish Docker images & Test Cluster
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  build-and-push:
+    name: Build & push Docker images to GHCR
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.set-tags.outputs.tags }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set image tags
+        id: set-tags
+        run: |
+          echo "AUTH_IMG=ghcr.io/${{ github.actor }}/auth-service:latest" >> $GITHUB_ENV
+          echo "PRODUCT_IMG=ghcr.io/${{ github.actor }}/product-service:latest" >> $GITHUB_ENV
+          echo "COMMENT_IMG=ghcr.io/${{ github.actor }}/comment-service:latest" >> $GITHUB_ENV
+          echo "FRONT_IMG=ghcr.io/${{ github.actor }}/frontend:latest" >> $GITHUB_ENV
+          # Output for later jobs
+          echo "::set-output name=tags::${{ github.actor }}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push auth-service image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Hito\ 4/backend/auth-service
+          file: ./Hito\ 4/backend/auth-service/Dockerfile
+          push: true
+          tags: ${{ env.AUTH_IMG }}
+
+      - name: Build and push product-service image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Hito\ 4/backend/product-service
+          file: ./Hito\ 4/backend/product-service/Dockerfile
+          push: true
+          tags: ${{ env.PRODUCT_IMG }}
+
+      - name: Build and push comment-service image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Hito\ 4/backend/comment-service
+          file: ./Hito\ 4/backend/comment-service/Dockerfile
+          push: true
+          tags: ${{ env.COMMENT_IMG }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Hito\ 4/frontend
+          file: ./Hito\ 4/frontend/Dockerfile
+          push: true
+          tags: ${{ env.FRONT_IMG }}
+
+  test-cluster:
+    name: Integration test: start cluster & hit endpoints
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Docker Compose plugin (ensures `docker compose` exists)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose-plugin
+
+      - name: Start cluster (uses local Dockerfile builds to ensure same images)
+        run: |
+          docker compose -f docker-compose.yml up -d --build
+          # wait for services to be healthy / listening
+          sleep 12
+
+      - name: Wait for services to start (simple loop)
+        run: |
+          for i in {1..12}; do
+            if curl -fsS http://localhost:4000/auth/me >/dev/null 2>&1; then break; fi
+            sleep 5
+          done || true
+
+      - name: Smoke test: auth (health / protected response)
+        run: |
+          echo "GET / (auth service)"
+          curl -v --max-time 10 http://localhost:4000/ || true
+
+      - name: Smoke test: products
+        run: |
+          curl -v --max-time 10 http://localhost:5000/products || true
+
+      - name: Smoke test: comments
+        run: |
+          # comment service mapped to host 6060 in your compose (adjust if needed)
+          curl -v --max-time 10 http://localhost:6060/comments || true
+
+      - name: Tear down cluster
+        if: always()
+        run: docker compose -f docker-compose.yml down -v

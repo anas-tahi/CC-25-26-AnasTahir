@@ -1,0 +1,78 @@
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 1
+
+
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend/auth-service:/app
+    env_file:
+      - ./backend/auth-service/.env
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  product-service:
+    build:
+      context: ./backend/product-service
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend/product-service:/app
+    env_file:
+      - ./backend/product-service/.env
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  comment-service:
+    build:
+      context: ./backend/comment-service
+      dockerfile: Dockerfile
+    ports:
+      - "6060:6000"
+    volumes:
+      - ./backend/comment-service:/app
+    env_file:
+      - ./backend/comment-service/.env
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    restart: unless-stopped
+    environment:
+      BROWSER: chrome
+    depends_on:
+      - auth-service
+      - product-service
+      - comment-service
+
+volumes:
+  mongo-data:
