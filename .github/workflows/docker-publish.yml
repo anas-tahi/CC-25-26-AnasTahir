@@ -42,32 +42,32 @@ jobs:
       - name: Build and push auth-service image
         uses: docker/build-push-action@v4
         with:
-          context: ./Hito\ 4/backend/auth-service
-          file: ./Hito\ 4/backend/auth-service/Dockerfile
+          context: "./Hito 4/backend/auth-service"
+          file: "./Hito 4/backend/auth-service/Dockerfile"
           push: true
           tags: ${{ env.AUTH_IMG }}
 
       - name: Build and push product-service image
         uses: docker/build-push-action@v4
         with:
-          context: ./Hito\ 4/backend/product-service
-          file: ./Hito\ 4/backend/product-service/Dockerfile
+          context: "./Hito 4/backend/product-service"
+          file: "./Hito 4/backend/product-service/Dockerfile"
           push: true
           tags: ${{ env.PRODUCT_IMG }}
 
       - name: Build and push comment-service image
         uses: docker/build-push-action@v4
         with:
-          context: ./Hito\ 4/backend/comment-service
-          file: ./Hito\ 4/backend/comment-service/Dockerfile
+          context: "./Hito 4/backend/comment-service"
+          file: "./Hito 4/backend/comment-service/Dockerfile"
           push: true
           tags: ${{ env.COMMENT_IMG }}
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v4
         with:
-          context: ./Hito\ 4/frontend
-          file: ./Hito\ 4/frontend/Dockerfile
+          context: "./Hito 4/frontend"
+          file: "./Hito 4/frontend/Dockerfile"
           push: true
           tags: ${{ env.FRONT_IMG }}
 
