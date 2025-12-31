@@ -12,7 +12,6 @@ services:
       timeout: 10s
       retries: 1
 
-
   auth-service:
     build:
       context: ./backend/auth-service

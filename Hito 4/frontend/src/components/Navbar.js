@@ -7,11 +7,12 @@ import { MdCompareArrows, MdLanguage } from 'react-icons/md';
 import { BsMoon, BsSun } from 'react-icons/bs';
 import mainLogo from './mainlogo.png';
 import { FavoritesContext } from '../context/FavoritesContext';
+import { LanguageContext } from '../context/LanguageContext';
 
 const Navbar = ({ theme, setTheme, setToken }) => {
+  const { lang, toggleLanguage } = useContext(LanguageContext);
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
-  const [lang, setLang] = useState('en');
   const [userData, setUserData] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
   const { favoritesCount } = useContext(FavoritesContext);
@@ -36,8 +37,7 @@ const Navbar = ({ theme, setTheme, setToken }) => {
     navigate('/login');
   };
 
-  const toggleLang = () => setLang(lang === 'en' ? 'es' : 'en');
-  const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
+  const toggleThemeHandler = () => setTheme(theme === 'light' ? 'dark' : 'light');
   const toggleProfile = () => setShowProfile(!showProfile);
 
   const labels = {
@@ -48,6 +48,8 @@ const Navbar = ({ theme, setTheme, setToken }) => {
       settings: 'Settings',
       favorites: 'My Favorites',
       logout: 'Logout',
+      wishlist: 'Wishlist',
+      viewProfile: 'View Profile',
     },
     es: {
       home: 'Inicio',
@@ -56,6 +58,8 @@ const Navbar = ({ theme, setTheme, setToken }) => {
       settings: 'Ajustes',
       favorites: 'Mis Favoritos',
       logout: 'Salir',
+      wishlist: 'Lista de Deseos',
+      viewProfile: 'Ver Perfil',
     },
   };
   const t = labels[lang];
@@ -87,11 +91,7 @@ const Navbar = ({ theme, setTheme, setToken }) => {
             <Link to="/favorites" style={styles.link}>
               <FiHeart style={styles.iconMargin} /> {t.favorites}
             </Link>
-            {favoritesCount > 0 && (
-              <span style={styles.badge}>
-                {favoritesCount}
-              </span>
-            )}
+            {favoritesCount > 0 && <span style={styles.badge}>{favoritesCount}</span>}
           </div>
         )}
         <Link to="/settings" style={styles.link}>
@@ -105,21 +105,28 @@ const Navbar = ({ theme, setTheme, setToken }) => {
             <button onClick={toggleProfile} style={styles.profileButton}>
               <FiUser style={styles.iconMargin} /> {userData.name} ⏷
             </button>
-
             {showProfile && (
               <div style={styles.dropdownMenu}>
-                <button onClick={() => navigate('/profile')} style={styles.dropdownItem}>View Profile</button>
-                <button onClick={() => navigate('/Favorites')} style={styles.dropdownItem}>Wishlist</button>
-                <button onClick={() => navigate('/settings')} style={styles.dropdownItem}>Settings</button>
-                <button onClick={handleLogout} style={{ ...styles.dropdownItem, color: '#dc3545' }}>Logout</button>
+                <button onClick={() => navigate('/profile')} style={styles.dropdownItem}>
+                  {t.viewProfile}
+                </button>
+                <button onClick={() => navigate('/favorites')} style={styles.dropdownItem}>
+                  {t.wishlist}
+                </button>
+                <button onClick={() => navigate('/settings')} style={styles.dropdownItem}>
+                  {t.settings}
+                </button>
+                <button onClick={handleLogout} style={{ ...styles.dropdownItem, color: '#dc3545' }}>
+                  {t.logout}
+                </button>
               </div>
             )}
           </div>
         )}
-        <button onClick={toggleLang} style={{ ...styles.iconButton, ...styles.icon }}>
+        <button onClick={toggleLanguage} style={{ ...styles.iconButton }}>
           <MdLanguage />
         </button>
-        <button onClick={toggleTheme} style={{ ...styles.iconButton, ...styles.themeIcon(theme) }}>
+        <button onClick={toggleThemeHandler} style={{ ...styles.iconButton, ...styles.themeIcon(theme) }}>
           {theme === 'light' ? <BsMoon /> : <BsSun />}
         </button>
       </div>
@@ -140,109 +147,20 @@ const styles = {
     zIndex: 100,
     transition: 'all 0.3s ease',
   },
-  left: {
-    display: 'flex',
-    gap: '1.5rem',
-    alignItems: 'center',
-  },
-  right: {
-    display: 'flex',
-    gap: '1rem',
-    alignItems: 'center',
-  },
-  logoLink: {
-    display: 'flex',
-    alignItems: 'center',
-    textDecoration: 'none',
-    gap: '0.5rem',
-  },
-  logo: {
-    height: '40px',
-    borderRadius: '6px',
-  },
-  title: {
-    fontSize: '1.3rem',
-    fontWeight: 'bold',
-    color: 'inherit',
-  },
-  link: {
-    textDecoration: 'none',
-    color: 'inherit',
-    fontWeight: '600',
-    padding: '0.5rem 1rem',
-    borderRadius: '8px',
-    display: 'flex',
-    alignItems: 'center',
-    transition: 'background 0.2s ease',
-  },
+  left: { display: 'flex', gap: '1.5rem', alignItems: 'center' },
+  right: { display: 'flex', gap: '1rem', alignItems: 'center' },
+  logoLink: { display: 'flex', alignItems: 'center', textDecoration: 'none', gap: '0.5rem' },
+  logo: { height: '40px', borderRadius: '6px' },
+  title: { fontSize: '1.3rem', fontWeight: 'bold', color: 'inherit' },
+  link: { textDecoration: 'none', color: 'inherit', fontWeight: '600', padding: '0.5rem 1rem', borderRadius: '8px', display: 'flex', alignItems: 'center', transition: 'background 0.2s ease' },
   iconMargin: { marginRight: '0.5rem' },
-  iconButton: {
-    background: 'none',
-    border: 'none',
-    fontSize: '1.3rem',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'transform 0.2s ease, background 0.2s ease',
-    borderRadius: '50%',
-    padding: '0.4rem',
-  },
-  themeIcon: (theme) => ({
-    backgroundColor: theme === 'light' ? '#f0f0f0' : '#222',
-    border: '1px solid #ccc',
-    width: '2.5rem',
-    height: '2.5rem',
-    fontSize: '1.2rem',
-    boxShadow: theme === 'dark' ? '0 0 8px #fff2' : '0 0 6px #0002',
-  }),
-  badge: {
-    position: 'absolute',
-    top: '-6px',
-    right: '-10px',
-    background: '#e74c3c',
-    color: '#fff',
-    borderRadius: '50%',
-    padding: '2px 6px',
-    fontSize: '0.75rem',
-    fontWeight: 'bold',
-    lineHeight: '1',
-  },
-  profileContainer: {
-    position: 'relative',
-  },
-  profileButton: {
-    background: 'none',
-    border: 'none',
-    color: 'inherit',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  dropdownMenu: {
-    position: 'absolute',
-    top: '100%',
-    right: 0,
-    backgroundColor: '#fff',
-    color: '#333',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-    borderRadius: '8px',
-    marginTop: '0.5rem',
-    zIndex: 1000,
-    width: '180px',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  dropdownItem: {
-    padding: '0.75rem 1rem',
-    background: 'none',
-    border: 'none',
-    textAlign: 'left',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'background 0.2s ease',
-  },
+  iconButton: { background: 'none', border: 'none', fontSize: '1.3rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', padding: '0.4rem' },
+  themeIcon: (theme) => ({ backgroundColor: theme === 'light' ? '#f0f0f0' : '#222', border: '1px solid #ccc', width: '2.5rem', height: '2.5rem', fontSize: '1.2rem', boxShadow: theme === 'dark' ? '0 0 8px #fff2' : '0 0 6px #0002' }),
+  badge: { position: 'absolute', top: '-6px', right: '-10px', background: '#e74c3c', color: '#fff', borderRadius: '50%', padding: '2px 6px', fontSize: '0.75rem', fontWeight: 'bold', lineHeight: '1' },
+  profileContainer: { position: 'relative' },
+  profileButton: { background: 'none', border: 'none', color: 'inherit', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center' },
+  dropdownMenu: { position: 'absolute', top: '100%', right: 0, backgroundColor: '#fff', color: '#333', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', borderRadius: '8px', marginTop: '0.5rem', zIndex: 1000, width: '180px', display: 'flex', flexDirection: 'column' },
+  dropdownItem: { padding: '0.75rem 1rem', background: 'none', border: 'none', textAlign: 'left', fontWeight: '500', cursor: 'pointer', transition: 'background 0.2s ease' },
 };
 
 export default Navbar;

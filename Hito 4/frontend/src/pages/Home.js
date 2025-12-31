@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { productAPI, commentAPI, authAPI } from '../services/api';
 import mercadonaLogo from './logos/mercadona.jpeg';
 import carrefourLogo from './logos/carrefour.png';
 import lidlLogo from './logos/lidl.png';
 import diaLogo from './logos/dia.png';
+import { LanguageContext } from '../context/LanguageContext';
 
 const Home = () => {
-  const [recommended, setRecommended] = useState([]); // Using recommended state
+  const { lang } = useContext(LanguageContext);
+  const [recommended, setRecommended] = useState([]);
   const [user, setUser] = useState(null);
   const [comment, setComment] = useState({ name: '', message: '' });
   const navigate = useNavigate();
@@ -23,7 +25,6 @@ const Home = () => {
         console.error('❌ Failed to fetch user:', err);
       }
     };
-
     const fetchRecommendations = async () => {
       try {
         const res = await productAPI.get('/recommendations');
@@ -32,7 +33,6 @@ const Home = () => {
         console.error('❌ Failed to fetch recommendations:', err);
       }
     };
-
     fetchUser();
     fetchRecommendations();
   }, [token]);
@@ -45,32 +45,48 @@ const Home = () => {
     e.preventDefault();
     try {
       await commentAPI.post('/', comment);
-      alert('✅ Comment submitted!');
+      alert(lang === 'es' ? '✅ Comentario enviado!' : '✅ Comment submitted!');
       setComment({ name: user?.name || '', message: '' });
     } catch (err) {
       console.error('❌ Failed to submit comment:', err);
-      alert('❌ Failed to submit comment.');
+      alert(lang === 'es' ? '❌ Error al enviar comentario.' : '❌ Failed to submit comment.');
     }
   };
+
+  const texts = {
+    en: {
+      welcome: `Welcome back, ${user?.name || 'Shopper'} 🛒`,
+      subtitle: 'Compare supermarket prices in Granada and across Spain. Save money, shop smart, and stay informed.',
+      searchProducts: 'Search Products',
+      recommendedProducts: 'Recommended Products',
+      userGuide: 'User Guide',
+      leaveComment: 'Leave a Comment',
+      sendFeedback: '🚀 Send Feedback',
+    },
+    es: {
+      welcome: `¡Bienvenido, ${user?.name || 'Comprador'} 🛒`,
+      subtitle: 'Compara precios de supermercados en Granada y toda España. Ahorra dinero, compra inteligente y mantente informado.',
+      searchProducts: 'Buscar Productos',
+      recommendedProducts: 'Productos Recomendados',
+      userGuide: 'Guía de Usuario',
+      leaveComment: 'Deja un Comentario',
+      sendFeedback: '🚀 Enviar Comentario',
+    },
+  };
+
+  const t = texts[lang];
 
   return (
     <div style={styles.page}>
       <div style={styles.hero}>
-        <h1 style={styles.title}>Welcome back, {user?.name || 'Shopper'} 🛒</h1>
-        <p style={styles.subtitle}>
-          Compare supermarket prices in Granada and across Spain. Save money, shop smart, and stay informed.
-        </p>
+        <h1 style={styles.title}>{t.welcome}</h1>
+        <p style={styles.subtitle}>{t.subtitle}</p>
         <Link to="/compare" style={styles.heroButton}>Start Comparing →</Link>
       </div>
 
       <div style={styles.logoRow}>
         {[mercadonaLogo, carrefourLogo, lidlLogo, diaLogo].map((logo, i) => (
-          <div
-            key={i}
-            style={styles.logoContainer}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2) rotate(3deg)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1.0) rotate(0deg)'}
-          >
+          <div key={i} style={styles.logoContainer}>
             <img src={logo} alt={`Logo ${i}`} style={styles.logo} />
           </div>
         ))}
@@ -78,23 +94,23 @@ const Home = () => {
 
       <div style={styles.grid}>
         <Link to="/compare" style={styles.card}>
-          <h3>🔍 Search Products</h3>
+          <h3>🔍 {t.searchProducts}</h3>
           <p>Find any item and instantly compare prices across supermarkets.</p>
         </Link>
 
         <Link to="/products" style={styles.card}>
-          <h3>⭐ Recommended Products</h3>
+          <h3>⭐ {t.recommendedProducts}</h3>
           <p>See top picks and trending deals curated just for you.</p>
         </Link>
 
-        <a href="/guide.pdf" target="_blank" rel="noopener noreferrer" style={{ ...styles.card, textDecoration: 'none' }}>
-          <h3>📘 User Guide</h3>
+        <Link to="/user-guide" style={{ ...styles.card, textDecoration: 'none' }}>
+          <h3>📘 {t.userGuide}</h3>
           <p>Learn how to use CompraSmart like a pro.</p>
-        </a>
+        </Link>
       </div>
 
       <div style={styles.commentSection}>
-        <h3>💬 Leave a Comment</h3>
+        <h3>💬 {t.leaveComment}</h3>
         <form onSubmit={handleCommentSubmit} style={styles.form}>
           <input
             type="text"
@@ -112,29 +128,14 @@ const Home = () => {
             rows={4}
             style={styles.textarea}
           />
-          <button type="submit" style={styles.submitButton}>🚀 Send Feedback</button>
+          <button type="submit" style={styles.submitButton}>{t.sendFeedback}</button>
         </form>
       </div>
-
-      <div style={styles.socialRow}>
-        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
-          <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" style={styles.socialIcon} />
-        </a>
-        <a href="https://github.com" target="_blank" rel="noopener noreferrer">
-          <img src="https://cdn-icons-png.flaticon.com/512/733/733553.png" alt="GitHub" style={styles.socialIcon} />
-        </a>
-        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
-          <img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" alt="LinkedIn" style={styles.socialIcon} />
-        </a>
-      </div>
-
-      <footer style={styles.footer}>
-        <p>© {new Date().getFullYear()} CompraSmart — Smarter Shopping Made Simple 🛍️</p>
-      </footer>
     </div>
   );
 };
 
+// Keep your styles the same as before (copied from previous Home.js)
 const styles = {
   page: { background: 'linear-gradient(180deg, #f9fafc 0%, #f0f7ff 100%)', minHeight: '100vh', padding: '2rem', fontFamily: 'Poppins, sans-serif', textAlign: 'center' },
   hero: { animation: 'fadeIn 1.5s ease-in-out', marginBottom: '3rem' },
@@ -151,22 +152,6 @@ const styles = {
   input: { padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc', fontSize: '1rem', transition: 'box-shadow 0.3s ease' },
   textarea: { padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc', fontSize: '1rem', transition: 'box-shadow 0.3s ease' },
   submitButton: { background: 'linear-gradient(90deg, #28a745, #85e085)', color: '#fff', border: 'none', padding: '0.8rem 1.6rem', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', alignSelf: 'flex-start', transition: 'transform 0.2s ease' },
-  socialRow: { marginTop: '4rem', display: 'flex', justifyContent: 'center', gap: '2rem' },
-  socialIcon: { width: '48px', height: '48px', transition: 'transform 0.3s ease, filter 0.3s ease', cursor: 'pointer', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' },
-  footer: { marginTop: '3rem', fontSize: '0.9rem', color: '#666' },
 };
-
-document.head.insertAdjacentHTML(
-  'beforeend',
-  `<style>
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    a:hover, button:hover, img:hover {
-      transform: scale(1.05);
-    }
-  </style>`
-);
 
 export default Home;
