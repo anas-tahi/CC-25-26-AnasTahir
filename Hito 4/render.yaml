@@ -1,0 +1,57 @@
+services:
+  - type: web
+    name: frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    repo: https://github.com/anas-tahi/CC-25-26-AnasTahir
+    branch: main
+    rootDir: frontend
+    region: frankfurt
+
+  - type: web
+    name: auth-service
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    repo: https://github.com/anas-tahi/CC-25-26-AnasTahir
+    branch: main
+    rootDir: backend/auth-service
+    region: frankfurt
+    envVars:
+      - key: MONGO_URI
+        value: mongodb+srv://supermerc_user:QWERasdf1622@cluster.pd5bpe8.mongodb.net/supercomp?retryWrites=true&w=majority
+      - key: JWT_SECRET
+        value: supersecret123
+      - key: PORT
+        value: 4000
+
+  - type: web
+    name: product-service
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    repo: https://github.com/anas-tahi/CC-25-26-AnasTahir
+    branch: main
+    rootDir: backend/product-service
+    region: frankfurt
+    envVars:
+      - key: MONGO_URI
+        value: mongodb+srv://supermerc_user:QWERasdf1622@cluster.pd5bpe8.mongodb.net/supercomp?retryWrites=true&w=majority
+      - key: PORT
+        value: 5000
+
+  - type: web
+    name: comment-service
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    repo: https://github.com/anas-tahi/CC-25-26-AnasTahir
+    branch: main
+    rootDir: backend/comment-service
+    region: frankfurt
+    envVars:
+      - key: MONGO_URI
+        value: mongodb+srv://supermerc_user:QWERasdf1622@cluster.pd5bpe8.mongodb.net/supercomp?retryWrites=true&w=majority
+      - key: PORT
+        value: 6060
