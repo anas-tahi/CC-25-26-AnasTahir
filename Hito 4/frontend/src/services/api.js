@@ -1,22 +1,21 @@
-// src/services/api.js
 import axios from 'axios';
 
-
+// PRODUCT SERVICE
 export const productAPI = axios.create({
-  baseURL: 'http://localhost:5000/products',
+  baseURL: 'https://product-service-3lsh.onrender.com/products',
 });
 
+// AUTH SERVICE
 export const authAPI = axios.create({
-  baseURL: 'http://localhost:4000',
+  baseURL: 'https://auth-service-a73r.onrender.com/auth',
 });
 
+// COMMENT SERVICE
 export const commentAPI = axios.create({
-  // comment-service is exposed on host port 6060 via docker-compose
-  baseURL: 'http://localhost:6060/comments',
+  baseURL: 'https://comment-service-f1r6.onrender.com/comments',
 });
 
-
-
+// Attach token to all requests
 const attachToken = (api) => {
   api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
