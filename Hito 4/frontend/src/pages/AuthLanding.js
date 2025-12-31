@@ -31,13 +31,13 @@ const AuthLanding = ({ setToken }) => {
   const handleSubmit = async () => {
     try {
       if (mode === "login") {
-        const res = await authAPI.post("/auth/login", form);
+        const res = await authAPI.post("/login", form);
         localStorage.setItem("token", res.data.token);
         if (setToken) setToken(res.data.token);
         setMessage("✅ Login successful!");
         navigate("/home");
       } else {
-        await authAPI.post("/auth/register", form);
+        await authAPI.post("/register", form);
         setMessage("✅ Registration successful!");
         setMode("login");
       }
@@ -46,6 +46,7 @@ const AuthLanding = ({ setToken }) => {
       console.error("❌ Auth error:", err.response?.data || err.message);
     }
   };
+
 
   const handleGoogleSignIn = () => {
     alert("🔗 Google Sign-In clicked (connect backend to make it live)");
