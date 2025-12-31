@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { FiTag, FiTrash2 } from "react-icons/fi";
 import { FaStore } from "react-icons/fa";
-import Swal from "sweetalert2"; // ✅ Added
+import Swal from "sweetalert2";
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
@@ -12,9 +12,12 @@ const Favorites = () => {
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/wishlist", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await axios.get(
+          "https://product-service-3lsh.onrender.com/wishlist",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setFavorites(res.data);
       } catch (err) {
         console.error("Failed to load favorites:", err);
@@ -38,9 +41,13 @@ const Favorites = () => {
     if (!result.isConfirmed) return;
 
     try {
-      await axios.delete(`http://localhost:5000/wishlist/${productId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(
+        `https://product-service-3lsh.onrender.com/wishlist/${productId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
       setFavorites((prev) => prev.filter((item) => item._id !== productId));
 
       Swal.fire({
@@ -153,9 +160,6 @@ const styles = {
     fontSize: "1.3rem",
     cursor: "pointer",
     transition: "transform 0.2s ease",
-  },
-  deleteBtnHover: {
-    transform: "scale(1.1)",
   },
 };
 

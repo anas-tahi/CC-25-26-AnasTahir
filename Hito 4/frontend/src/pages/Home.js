@@ -18,13 +18,14 @@ const Home = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await authAPI.get('/auth/me');
+        const res = await authAPI.get('/me');
         setUser(res.data);
         setComment(prev => ({ ...prev, name: res.data.name }));
       } catch (err) {
         console.error('❌ Failed to fetch user:', err);
       }
     };
+
     const fetchRecommendations = async () => {
       try {
         const res = await productAPI.get('/recommendations');
@@ -33,6 +34,7 @@ const Home = () => {
         console.error('❌ Failed to fetch recommendations:', err);
       }
     };
+
     fetchUser();
     fetchRecommendations();
   }, [token]);
@@ -135,7 +137,6 @@ const Home = () => {
   );
 };
 
-// Keep your styles the same as before (copied from previous Home.js)
 const styles = {
   page: { background: 'linear-gradient(180deg, #f9fafc 0%, #f0f7ff 100%)', minHeight: '100vh', padding: '2rem', fontFamily: 'Poppins, sans-serif', textAlign: 'center' },
   hero: { animation: 'fadeIn 1.5s ease-in-out', marginBottom: '3rem' },

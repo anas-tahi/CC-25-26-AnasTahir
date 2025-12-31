@@ -1,6 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useContext } from 'react';
-import axios from 'axios';
 import { AiOutlineHome } from 'react-icons/ai';
 import { FiBox, FiSettings, FiUser, FiHeart } from 'react-icons/fi';
 import { MdCompareArrows, MdLanguage } from 'react-icons/md';
@@ -8,6 +7,7 @@ import { BsMoon, BsSun } from 'react-icons/bs';
 import mainLogo from './mainlogo.png';
 import { FavoritesContext } from '../context/FavoritesContext';
 import { LanguageContext } from '../context/LanguageContext';
+import { authAPI } from '../services/api';
 
 const Navbar = ({ theme, setTheme, setToken }) => {
   const { lang, toggleLanguage } = useContext(LanguageContext);
@@ -20,9 +20,7 @@ const Navbar = ({ theme, setTheme, setToken }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await axios.get('http://localhost:4000/auth/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await authAPI.get('/me');
         setUserData(res.data);
       } catch (err) {
         console.error('❌ Failed to fetch user info:', err);

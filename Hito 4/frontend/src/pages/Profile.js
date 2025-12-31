@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { authAPI } from '../services/api';
 
 const Profile = () => {
   const token = localStorage.getItem('token');
@@ -11,9 +11,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await axios.get('http://localhost:4000/auth/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await authAPI.get('/me');
         setUser(res.data);
         setAvatar(res.data.avatar || null);
       } catch (err) {
@@ -21,13 +19,12 @@ const Profile = () => {
       }
     };
     if (token) fetchUser();
-    }, [token]);
+  }, [token]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    window.location.href = '/login'; // force full page reload
-    };
-
+    window.location.href = '/login';
+  };
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
@@ -35,7 +32,7 @@ const Profile = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       setAvatar(reader.result);
-      // You can also send this to the server if needed
+      // Optional: send to backend
     };
     reader.readAsDataURL(file);
   };
@@ -57,22 +54,27 @@ const Profile = () => {
         .pulse { animation: pulseText 2s infinite;}
       `}</style>
 
-      {/* Banner / background visual */}
       <div style={styles.banner}>
         <h1 style={styles.bannerText}>Welcome, {user.name}!</h1>
       </div>
 
-      {/* Main profile section */}
       <div style={styles.profileSection} className="fade-in">
         <div style={styles.left}>
           {avatar ? (
             <img src={avatar} alt="Profile" style={styles.avatarImg} />
           ) : (
-            <div style={styles.avatarFallback}>{user.name.charAt(0).toUpperCase()}</div>
+            <div style={styles.avatarFallback}>
+              {user.name.charAt(0).toUpperCase()}
+            </div>
           )}
           <label style={styles.uploadLabel}>
             🖼️ Upload
-            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleAvatarChange}
+            />
           </label>
         </div>
 
@@ -80,8 +82,12 @@ const Profile = () => {
           <h2 style={{ ...styles.welcome, className: 'pulse' }}>
             👋 Hello, {user.name}!
           </h2>
-          <p style={styles.thank}>Thanks for using our app! We appreciate you being here ❤️</p>
-          <button onClick={handleLogout} style={styles.logout}>🚪 Logout</button>
+          <p style={styles.thank}>
+            Thanks for using our app! We appreciate you being here ❤️
+          </p>
+          <button onClick={handleLogout} style={styles.logout}>
+            🚪 Logout
+          </button>
         </div>
       </div>
     </div>
@@ -118,7 +124,7 @@ const styles = {
     backgroundColor: '#f5f7fa',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    flexWrap: 'wrap', // responsive wrap
+    flexWrap: 'wrap',
   },
   left: {
     flex: '1 1 250px',

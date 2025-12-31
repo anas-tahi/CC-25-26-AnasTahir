@@ -2,18 +2,18 @@ import { useState, useEffect, useContext } from 'react';
 import { productAPI } from '../services/api';
 import { FiTag } from 'react-icons/fi';
 import { FaStore } from 'react-icons/fa';
-import axios from 'axios'; // ✅ For wishlist requests
-import Swal from 'sweetalert2'; // ✅ For styled popups
-import { FavoritesContext } from '../context/FavoritesContext'; // ✅ Context
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import { FavoritesContext } from '../context/FavoritesContext';
 
 const Products = () => {
   const [recommended, setRecommended] = useState([]);
-  const { fetchFavoritesCount } = useContext(FavoritesContext); // ✅ Context integration
+  const { fetchFavoritesCount } = useContext(FavoritesContext);
 
   useEffect(() => {
     const fetchRecommended = async () => {
       try {
-        const res = await productAPI.get('/');
+        const res = await productAPI.get('/recommendations');
         const grouped = groupByName(res.data);
         const limited = Object.entries(grouped).slice(0, 6);
         setRecommended(limited);
@@ -34,24 +34,25 @@ const Products = () => {
     return map;
   };
 
-  // ✅ Wishlist handler with SweetAlert2 + badge update
   const handleAddToWishlist = async (productId) => {
     const token = localStorage.getItem("token");
     try {
       await axios.post(
-        "http://localhost:5000/wishlist",
+        "https://product-service-3lsh.onrender.com/wishlist",
         { productId },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       Swal.fire({
         title: '✅ Added to wishlist!',
         icon: 'success',
         timer: 1500,
         showConfirmButton: false,
       });
-      fetchFavoritesCount(); // ✅ Update badge after adding
+
+      fetchFavoritesCount();
     } catch (err) {
       console.error("❌ Wishlist error:", err.response?.data || err);
 

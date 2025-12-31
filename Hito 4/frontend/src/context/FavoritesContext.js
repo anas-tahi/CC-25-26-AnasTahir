@@ -11,12 +11,15 @@ export const FavoritesProvider = ({ children }) => {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const res = await axios.get("http://localhost:5000/wishlist", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        "https://product-service-3lsh.onrender.com/wishlist",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       const count = res.data.length;
-      setFavoritesCount(count); // ✅ Clean and correct
+      setFavoritesCount(count);
     } catch (err) {
       console.error("Failed to fetch favorites count:", err);
     }

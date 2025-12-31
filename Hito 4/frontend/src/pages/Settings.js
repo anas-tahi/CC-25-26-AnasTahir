@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import Swal from 'sweetalert2';
+import { authAPI } from '../services/api';
 
 const Settings = () => {
   const [user, setUser] = useState(null);
@@ -13,10 +13,7 @@ const Settings = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:4000/auth/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await authAPI.get('/me');
         setUser(res.data);
       } catch (err) {
         console.error('❌ Failed to fetch user info:', err);
@@ -25,15 +22,15 @@ const Settings = () => {
     fetchUser();
   }, []);
 
-  const handleChange = (e) => setUser({ ...user, [e.target.name]: e.target.value });
-  const handlePasswordChange = (e) => setPasswords({ ...passwords, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setUser({ ...user, [e.target.name]: e.target.value });
+
+  const handlePasswordChange = (e) =>
+    setPasswords({ ...passwords, [e.target.name]: e.target.value });
 
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.put('http://localhost:4000/auth/update', user, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await authAPI.put('/update', user);
       Swal.fire('✅ Saved!', 'Your profile has been updated.', 'success');
     } catch (err) {
       console.error('❌ Failed to update user info:', err);
@@ -43,21 +40,31 @@ const Settings = () => {
 
   const handlePasswordSubmit = async () => {
     const { currentPassword, newPassword, confirmPassword } = passwords;
+
     if (!currentPassword || !newPassword || !confirmPassword) {
-      return Swal.fire('⚠️ Missing Fields', 'Please fill out all password fields.', 'warning');
+      return Swal.fire(
+        '⚠️ Missing Fields',
+        'Please fill out all password fields.',
+        'warning'
+      );
     }
+
     if (newPassword !== confirmPassword) {
       return Swal.fire('❌ Mismatch', 'New passwords do not match.', 'error');
     }
+
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(
-        'http://localhost:4000/auth/change-password',
-        { currentPassword, newPassword },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await authAPI.put('/change-password', {
+        currentPassword,
+        newPassword,
+      });
+
       Swal.fire('✅ Password Changed', 'Your password has been updated.', 'success');
-      setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswords({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
     } catch (err) {
       console.error('❌ Failed to change password:', err);
       Swal.fire('❌ Error', 'Could not change password.', 'error');
@@ -78,14 +85,14 @@ const Settings = () => {
     if (!result.isConfirmed) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete('http://localhost:4000/auth/delete', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await authAPI.delete('/delete');
       localStorage.removeItem('token');
-      Swal.fire('✅ Account Deleted', 'Your account has been removed.', 'success').then(() => {
-        window.location.href = '/register';
-      });
+
+      Swal.fire('✅ Account Deleted', 'Your account has been removed.', 'success').then(
+        () => {
+          window.location.href = '/register';
+        }
+      );
     } catch (err) {
       console.error('❌ Failed to delete account:', err);
       Swal.fire('❌ Error', 'Could not delete account.', 'error');
@@ -96,7 +103,6 @@ const Settings = () => {
 
   return (
     <div style={styles.container}>
-      {/* Embedded CSS for animations */}
       <style>{`
         .fade-in {
           opacity: 0;
