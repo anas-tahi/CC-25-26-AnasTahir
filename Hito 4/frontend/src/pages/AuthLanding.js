@@ -44,10 +44,8 @@ const AuthLanding = ({ setToken }) => {
     <div style={styles.wrapper}>
       {/* Animated Background */}
       <div style={styles.gradientBg}></div>
-      <div style={{ ...styles.blob, ...styles.blob1 }}></div>
-      <div style={{ ...styles.blob, ...styles.blob2 }}></div>
 
-      {/* Main Glassmorphic Box */}
+      {/* Main Glassmorphic Card */}
       <div
         style={{
           ...styles.card,
@@ -56,102 +54,149 @@ const AuthLanding = ({ setToken }) => {
       >
         <div
           style={{
-            ...styles.slider,
-            transform:
-              mode === "login"
-                ? "translateX(0%)"
-                : "translateX(-33.33%)",
+            ...styles.inner,
           }}
         >
-          {/* LOGIN PANEL */}
-          <div style={styles.panel}>
-            <h2 style={styles.title}>Welcome Back</h2>
-            <p style={styles.subtitle}>Log in to continue your journey</p>
+          {/* LEFT SIDE (depends on mode) */}
+          <div
+            style={{
+              ...styles.side,
+              ...styles.leftSide,
+              transform:
+                mode === "login"
+                  ? "translateX(0)"
+                  : "translateX(-40px)",
+              opacity: mode === "login" ? 1 : 0,
+              transition: "all 0.6s ease",
+            }}
+          >
+            {mode === "login" && (
+              <div style={styles.formContainer}>
+                <h2 style={styles.title}>Welcome Back</h2>
+                <p style={styles.subtitle}>Log in to continue your journey</p>
 
-            <input
-              name="email"
-              type="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={handleChange}
-              style={styles.input}
-            />
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={handleChange}
-              style={styles.input}
-            />
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="Email"
+                  value={form.email}
+                  onChange={handleChange}
+                  style={styles.input}
+                />
+                <input
+                  name="password"
+                  type="password"
+                  placeholder="Password"
+                  value={form.password}
+                  onChange={handleChange}
+                  style={styles.input}
+                />
 
-            <button onClick={handleSubmit} style={styles.button}>
-              {loading ? <div className="spinner"></div> : "Login"}
-            </button>
+                <button onClick={handleSubmit} style={styles.button}>
+                  {loading ? <div className="spinner"></div> : "Login"}
+                </button>
 
-            <p style={styles.switchText}>
-              New here?{" "}
-              <span
-                onClick={() => setMode("register")}
-                style={styles.switchLink}
+                <p style={styles.switchText}>
+                  New here?{" "}
+                  <span
+                    onClick={() => setMode("register")}
+                    style={styles.switchLink}
+                  >
+                    Create an account
+                  </span>
+                </p>
+              </div>
+            )}
+
+            {mode === "register" && (
+              <div
+                style={{
+                  ...styles.imageWrapper,
+                  transform: "translateX(0)",
+                }}
               >
-                Create an account
-              </span>
-            </p>
+                <img
+                  src={require("./logos/Gemini_Generated_Image_pqac0epqac0epqac.png")}
+                  alt="Gemini"
+                  style={styles.image}
+                />
+              </div>
+            )}
           </div>
 
-          {/* CENTER IMAGE */}
-          <div style={styles.imagePanel}>
-            <img
-              src={require("./logos/Gemini_Generated_Image_pqac0epqac0epqac.png")}
-              alt="Gemini"
-              style={styles.image}
-            />
-          </div>
-
-          {/* REGISTER PANEL */}
-          <div style={styles.panel}>
-            <h2 style={styles.title}>Create Account</h2>
-            <p style={styles.subtitle}>Join us and start saving today</p>
-
-            <input
-              name="name"
-              type="text"
-              placeholder="Full Name"
-              value={form.name}
-              onChange={handleChange}
-              style={styles.input}
-            />
-            <input
-              name="email"
-              type="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={handleChange}
-              style={styles.input}
-            />
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={handleChange}
-              style={styles.input}
-            />
-
-            <button onClick={handleSubmit} style={styles.button}>
-              {loading ? <div className="spinner"></div> : "Register"}
-            </button>
-
-            <p style={styles.switchText}>
-              Already have an account?{" "}
-              <span
-                onClick={() => setMode("login")}
-                style={styles.switchLink}
+          {/* RIGHT SIDE (depends on mode) */}
+          <div
+            style={{
+              ...styles.side,
+              ...styles.rightSide,
+              transform:
+                mode === "login"
+                  ? "translateX(40px)"
+                  : "translateX(0)",
+              opacity: mode === "login" ? 0 : 1,
+              transition: "all 0.6s ease",
+            }}
+          >
+            {mode === "login" && (
+              <div
+                style={{
+                  ...styles.imageWrapper,
+                  transform: "translateX(0)",
+                }}
               >
-                Log in
-              </span>
-            </p>
+                <img
+                  src={require("./logos/Gemini_Generated_Image_pqac0epqac0epqac.png")}
+                  alt="Gemini"
+                  style={styles.image}
+                />
+              </div>
+            )}
+
+            {mode === "register" && (
+              <div style={styles.formContainer}>
+                <h2 style={styles.title}>Create Account</h2>
+                <p style={styles.subtitle}>Join us and start saving today</p>
+
+                <input
+                  name="name"
+                  type="text"
+                  placeholder="Full Name"
+                  value={form.name}
+                  onChange={handleChange}
+                  style={styles.input}
+                />
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="Email"
+                  value={form.email}
+                  onChange={handleChange}
+                  style={styles.input}
+                />
+                <input
+                  name="password"
+                  type="password"
+                  placeholder="Password"
+                  value={form.password}
+                  onChange={handleChange}
+                  style={styles.input}
+                />
+
+                <button onClick={handleSubmit} style={styles.button}>
+                  {loading ? <div className="spinner"></div> : "Register"}
+                </button>
+
+                <p style={styles.switchText}>
+                  Already have an account?{" "}
+                  <span
+                    onClick={() => setMode("login")}
+                    style={styles.switchLink}
+                  >
+                    Log in
+                  </span>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -159,16 +204,14 @@ const AuthLanding = ({ setToken }) => {
       {/* Animations */}
       <style>
         {`
-          @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-            100% { transform: translateY(0px); }
-          }
-
           @keyframes successGlow {
             0% { box-shadow: 0 0 0px rgba(0,255,150,0.0); }
             50% { box-shadow: 0 0 40px rgba(0,255,150,0.6); }
             100% { box-shadow: 0 0 0px rgba(0,255,150,0.0); }
+          }
+
+          @keyframes spin {
+            to { transform: rotate(360deg); }
           }
 
           .spinner {
@@ -178,10 +221,6 @@ const AuthLanding = ({ setToken }) => {
             border-top: 3px solid transparent;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
-          }
-
-          @keyframes spin {
-            to { transform: rotate(360deg); }
           }
         `}
       </style>
@@ -205,67 +244,64 @@ const styles = {
     width: "200%",
     height: "200%",
     background:
-      "linear-gradient(135deg, #4f46e5, #3b82f6, #06b6d4, #10b981, #a855f7)",
+      "linear-gradient(135deg, #0ea5e9, #6366f1, #8b5cf6, #14b8a6)",
     backgroundSize: "400% 400%",
     animation: "gradientMove 12s ease infinite",
     zIndex: -3,
   },
 
-  blob: {
-    position: "absolute",
-    width: "350px",
-    height: "350px",
-    background: "rgba(255,255,255,0.15)",
-    filter: "blur(80px)",
-    borderRadius: "50%",
-    animation: "float 6s ease-in-out infinite",
-    zIndex: -2,
-  },
-
-  blob1: { top: "10%", left: "15%" },
-  blob2: { bottom: "10%", right: "15%" },
-
   card: {
     width: "900px",
     height: "520px",
     backdropFilter: "blur(25px)",
-    background: "rgba(255,255,255,0.15)",
+    background: "rgba(255,255,255,0.12)",
     borderRadius: "20px",
     padding: "1rem",
-    boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+    boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
     overflow: "hidden",
     position: "relative",
   },
 
-  slider: {
+  inner: {
     display: "flex",
-    width: "300%",
+    width: "100%",
     height: "100%",
-    transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
   },
 
-  panel: {
-    width: "33.33%",
-    padding: "2rem",
+  side: {
+    width: "50%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  leftSide: {
+    transformOrigin: "center",
+  },
+
+  rightSide: {
+    transformOrigin: "center",
+  },
+
+  formContainer: {
+    width: "80%",
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
+    gap: "1rem",
+    animation: "fadeScale 0.6s ease",
   },
 
-  imagePanel: {
-    width: "33.33%",
+  imageWrapper: {
+    width: "80%",
     display: "flex",
-    alignItems: "center",
     justifyContent: "center",
+    animation: "fadeScale 0.6s ease",
   },
 
   image: {
-    width: "90%",
-    height: "90%",
-    objectFit: "cover",
+    width: "100%",
     borderRadius: "20px",
-    animation: "float 6s ease-in-out infinite",
     boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
   },
 
@@ -273,27 +309,23 @@ const styles = {
     fontSize: "2rem",
     fontWeight: "700",
     color: "#fff",
-    marginBottom: "0.5rem",
   },
 
   subtitle: {
     fontSize: "1rem",
     color: "#e0e0e0",
-    marginBottom: "2rem",
-    textAlign: "center",
+    marginBottom: "1rem",
   },
 
   input: {
     width: "100%",
     padding: "0.9rem",
-    marginBottom: "1rem",
     borderRadius: "10px",
     border: "1px solid rgba(255,255,255,0.3)",
     background: "rgba(255,255,255,0.2)",
     color: "#fff",
     fontSize: "1rem",
     outline: "none",
-    transition: "0.3s",
   },
 
   button: {
@@ -306,11 +338,10 @@ const styles = {
     fontSize: "1rem",
     fontWeight: "600",
     cursor: "pointer",
-    transition: "0.3s",
   },
 
   switchText: {
-    marginTop: "1rem",
+    marginTop: "0.5rem",
     color: "#e0e0e0",
   },
 
