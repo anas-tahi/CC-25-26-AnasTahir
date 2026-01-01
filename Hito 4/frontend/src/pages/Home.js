@@ -80,18 +80,40 @@ const Home = () => {
 
   return (
     <div style={styles.page}>
+      <style>
+        {`
+          @keyframes scrollLogos {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+
+          .logo-track {
+            display: flex;
+            width: calc(200%);
+            animation: scrollLogos 18s linear infinite;
+          }
+
+          .logo-track:hover {
+            animation-play-state: paused;
+          }
+        `}
+      </style>
+
       <div style={styles.hero}>
         <h1 style={styles.title}>{t.welcome}</h1>
         <p style={styles.subtitle}>{t.subtitle}</p>
         <Link to="/compare" style={styles.heroButton}>Start Comparing →</Link>
       </div>
 
-      <div style={styles.logoRow}>
-        {[mercadonaLogo, carrefourLogo, lidlLogo, diaLogo].map((logo, i) => (
-          <div key={i} style={styles.logoContainer}>
-            <img src={logo} alt={`Logo ${i}`} style={styles.logo} />
-          </div>
-        ))}
+      {/* 🔥 Animated Logo Marquee */}
+      <div style={styles.logoWrapper}>
+        <div className="logo-track">
+          {[mercadonaLogo, carrefourLogo, lidlLogo, diaLogo, mercadonaLogo, carrefourLogo, lidlLogo, diaLogo].map((logo, i) => (
+            <div key={i} style={styles.logoContainer}>
+              <img src={logo} alt={`Logo ${i}`} style={styles.logo} />
+            </div>
+          ))}
+        </div>
       </div>
 
       <div style={styles.grid}>
@@ -143,11 +165,27 @@ const styles = {
   title: { fontSize: '2.8rem', fontWeight: '700', color: '#222', marginBottom: '1rem' },
   subtitle: { fontSize: '1.2rem', color: '#555', maxWidth: '700px', margin: 'auto', marginBottom: '2rem', lineHeight: '1.6' },
   heroButton: { display: 'inline-block', padding: '0.8rem 1.8rem', background: 'linear-gradient(90deg, #007bff, #00d4ff)', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: '600', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', transition: 'transform 0.3s ease, box-shadow 0.3s ease' },
-  logoRow: { display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '3rem', flexWrap: 'wrap' },
-  logoContainer: { transition: 'transform 0.4s ease' },
-  logo: { height: '100px', objectFit: 'contain', filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.15))' },
+
+  /* 🔥 NEW LOGO ANIMATION STYLES */
+  logoWrapper: {
+    width: '100%',
+    overflow: 'hidden',
+    marginBottom: '3rem',
+  },
+  logoContainer: {
+    padding: '0 2rem',
+    transition: 'transform 0.4s ease',
+  },
+  logo: {
+    height: '100px',
+    objectFit: 'contain',
+    filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.15))',
+    transition: 'transform 0.3s ease, filter 0.3s ease',
+  },
+
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', marginBottom: '4rem' },
   card: { padding: '1.8rem', borderRadius: '16px', backgroundColor: '#fff', boxShadow: '0 6px 16px rgba(0,0,0,0.1)', textDecoration: 'none', color: '#333', transition: 'transform 0.3s ease, box-shadow 0.3s ease' },
+
   commentSection: { marginTop: '3rem', background: '#fff', borderRadius: '16px', padding: '2rem', boxShadow: '0 4px 14px rgba(0,0,0,0.1)', maxWidth: '600px', marginInline: 'auto', textAlign: 'left' },
   form: { display: 'flex', flexDirection: 'column', gap: '1rem' },
   input: { padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc', fontSize: '1rem', transition: 'box-shadow 0.3s ease' },

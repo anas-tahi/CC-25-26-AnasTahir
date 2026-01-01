@@ -1,17 +1,16 @@
 import { useState, useEffect, useContext } from 'react';
 import Swal from 'sweetalert2';
 import { authAPI } from '../services/api';
-import { UserContext } from '../context/UserContext';   // ⭐ NEW
+import { UserContext } from '../context/UserContext';
 
 const Settings = () => {
-  const { user, setUser, fetchUser } = useContext(UserContext); // ⭐ NEW
+  const { user, setUser, fetchUser } = useContext(UserContext);
   const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
 
-  // ⭐ Load user from context instead of fetching manually
   useEffect(() => {
     if (!user) fetchUser();
   }, [user, fetchUser]);
@@ -25,8 +24,6 @@ const Settings = () => {
   const handleSave = async () => {
     try {
       const res = await authAPI.put('/update', user);
-
-      // ⭐ Update global user instantly
       setUser(res.data);
 
       Swal.fire('✅ Saved!', 'Your profile has been updated.', 'success');
@@ -40,11 +37,7 @@ const Settings = () => {
     const { currentPassword, newPassword, confirmPassword } = passwords;
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      return Swal.fire(
-        '⚠️ Missing Fields',
-        'Please fill out all password fields.',
-        'warning'
-      );
+      return Swal.fire('⚠️ Missing Fields', 'Please fill out all password fields.', 'warning');
     }
 
     if (newPassword !== confirmPassword) {
@@ -52,45 +45,55 @@ const Settings = () => {
     }
 
     try {
-      await authAPI.put('/change-password', {
-        currentPassword,
-        newPassword,
-      });
+      await authAPI.put('/change-password', { currentPassword, newPassword });
 
       Swal.fire('✅ Password Changed', 'Your password has been updated.', 'success');
-      setPasswords({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      });
+      setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
       console.error('❌ Failed to change password:', err);
       Swal.fire('❌ Error', 'Could not change password.', 'error');
     }
   };
 
+  // ⭐ NEW — Professional Delete Account Flow
   const handleDeleteAccount = async () => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'This will permanently delete your account.',
-      icon: 'warning',
+    const { value: phrase } = await Swal.fire({
+      title: '🗑️ Delete Account',
+      html: `
+        <p style="margin-bottom:10px;">To confirm, type:</p>
+        <b>"delete my account"</b>
+        <input id="confirmInput" class="swal2-input" placeholder="Type here...">
+      `,
+      focusConfirm: false,
       showCancelButton: true,
+      confirmButtonText: 'Delete',
       confirmButtonColor: '#e74c3c',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it',
+      preConfirm: () => {
+        const input = document.getElementById('confirmInput').value;
+        if (input !== 'delete my account') {
+          Swal.showValidationMessage('❌ You must type the exact phrase.');
+          return false;
+        }
+        return input;
+      }
     });
 
-    if (!result.isConfirmed) return;
+    if (!phrase) return;
 
     try {
       await authAPI.delete('/delete');
       localStorage.removeItem('token');
 
-      Swal.fire('✅ Account Deleted', 'Your account has been removed.', 'success').then(
-        () => {
-          window.location.href = '/register';
-        }
-      );
+      Swal.fire({
+        title: '✅ Account Deleted',
+        text: 'Your account has been removed successfully.',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false,
+      }).then(() => {
+        window.location.href = '/';
+      });
+
     } catch (err) {
       console.error('❌ Failed to delete account:', err);
       Swal.fire('❌ Error', 'Could not delete account.', 'error');
@@ -109,21 +112,26 @@ const Settings = () => {
         }
         .delay-1 { animation-delay: 0.2s; }
         .delay-2 { animation-delay: 0.4s; }
+
         @keyframes fadeInUp {
           to { opacity: 1; transform: translateY(0); }
         }
+
         input:focus {
           border-color: #007bff;
           box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
           outline: none;
         }
+
         button:hover {
           transform: translateY(-2px);
           box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
+
         .pulse-danger {
           animation: pulse 1.5s infinite;
         }
+
         @keyframes pulse {
           0% { transform: scale(1); }
           50% { transform: scale(1.05); }
@@ -133,80 +141,43 @@ const Settings = () => {
 
       <h1 style={styles.title}>⚙️ Account Settings</h1>
 
+      {/* Profile */}
       <section style={styles.card} className="fade-in">
         <h2>📝 Profile</h2>
         <div style={styles.form}>
           <label>Name:</label>
-          <input
-            type="text"
-            name="name"
-            value={user.name}
-            onChange={handleChange}
-            style={styles.input}
-          />
+          <input type="text" name="name" value={user.name} onChange={handleChange} style={styles.input} />
 
           <label>Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={user.email}
-            onChange={handleChange}
-            style={styles.input}
-          />
+          <input type="email" name="email" value={user.email} onChange={handleChange} style={styles.input} />
 
           <label>User ID:</label>
-          <input
-            type="text"
-            value={user._id}
-            disabled
-            style={{ ...styles.input, backgroundColor: '#f5f5f5' }}
-          />
+          <input type="text" value={user._id} disabled style={{ ...styles.input, backgroundColor: '#f5f5f5' }} />
 
-          <button onClick={handleSave} style={styles.button}>
-            Save Changes
-          </button>
+          <button onClick={handleSave} style={styles.button}>Save Changes</button>
         </div>
       </section>
 
+      {/* Password */}
       <section style={styles.card} className="fade-in delay-1">
         <h2>🔐 Change Password</h2>
         <div style={styles.form}>
           <label>Current Password:</label>
-          <input
-            type="password"
-            name="currentPassword"
-            value={passwords.currentPassword}
-            onChange={handlePasswordChange}
-            style={styles.input}
-          />
+          <input type="password" name="currentPassword" value={passwords.currentPassword} onChange={handlePasswordChange} style={styles.input} />
 
           <label>New Password:</label>
-          <input
-            type="password"
-            name="newPassword"
-            value={passwords.newPassword}
-            onChange={handlePasswordChange}
-            style={styles.input}
-          />
+          <input type="password" name="newPassword" value={passwords.newPassword} onChange={handlePasswordChange} style={styles.input} />
 
           <label>Confirm New Password:</label>
-          <input
-            type="password"
-            name="confirmPassword"
-            value={passwords.confirmPassword}
-            onChange={handlePasswordChange}
-            style={styles.input}
-          />
+          <input type="password" name="confirmPassword" value={passwords.confirmPassword} onChange={handlePasswordChange} style={styles.input} />
 
-          <button
-            onClick={handlePasswordSubmit}
-            style={{ ...styles.button, backgroundColor: '#28a745' }}
-          >
+          <button onClick={handlePasswordSubmit} style={{ ...styles.button, backgroundColor: '#28a745' }}>
             Update Password
           </button>
         </div>
       </section>
 
+      {/* Danger Zone */}
       <section style={styles.card} className="fade-in delay-2">
         <h2>🗑️ Danger Zone</h2>
         <button
@@ -274,4 +245,3 @@ const styles = {
 };
 
 export default Settings;
-  

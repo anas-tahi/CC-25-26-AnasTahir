@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useContext } from "react";
 import { authAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
@@ -27,7 +27,6 @@ const AuthLanding = ({ setToken }) => {
 
         await fetchUser();
 
-        // Success glow animation
         setSuccessGlow(true);
         setTimeout(() => navigate("/home"), 800);
       } else {
@@ -48,22 +47,24 @@ const AuthLanding = ({ setToken }) => {
       <div style={{ ...styles.blob, ...styles.blob1 }}></div>
       <div style={{ ...styles.blob, ...styles.blob2 }}></div>
 
-      {/* Glass Card */}
+      {/* Main Glassmorphic Box */}
       <div
         style={{
           ...styles.card,
           animation: successGlow ? "successGlow 0.8s ease" : "none",
         }}
       >
-        {/* Slide Container */}
         <div
           style={{
-            ...styles.inner,
-            transform: mode === "login" ? "translateX(0%)" : "translateX(-50%)",
+            ...styles.slider,
+            transform:
+              mode === "login"
+                ? "translateX(0%)"
+                : "translateX(-33.33%)",
           }}
         >
-          {/* LOGIN */}
-          <div style={styles.formSection}>
+          {/* LOGIN PANEL */}
+          <div style={styles.panel}>
             <h2 style={styles.title}>Welcome Back</h2>
             <p style={styles.subtitle}>Log in to continue your journey</p>
 
@@ -99,8 +100,17 @@ const AuthLanding = ({ setToken }) => {
             </p>
           </div>
 
-          {/* REGISTER */}
-          <div style={styles.formSection}>
+          {/* CENTER IMAGE */}
+          <div style={styles.imagePanel}>
+            <img
+              src={require("./logos/Gemini_Generated_Image_pqac0epqac0epqac.png")}
+              alt="Gemini"
+              style={styles.image}
+            />
+          </div>
+
+          {/* REGISTER PANEL */}
+          <div style={styles.panel}>
             <h2 style={styles.title}>Create Account</h2>
             <p style={styles.subtitle}>Join us and start saving today</p>
 
@@ -151,7 +161,7 @@ const AuthLanding = ({ setToken }) => {
         {`
           @keyframes float {
             0% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+            50% { transform: translateY(-15px); }
             100% { transform: translateY(0px); }
           }
 
@@ -195,7 +205,7 @@ const styles = {
     width: "200%",
     height: "200%",
     background:
-      "linear-gradient(135deg, #4f46e5, #3b82f6, #06b6d4, #10b981)",
+      "linear-gradient(135deg, #4f46e5, #3b82f6, #06b6d4, #10b981, #a855f7)",
     backgroundSize: "400% 400%",
     animation: "gradientMove 12s ease infinite",
     zIndex: -3,
@@ -216,31 +226,47 @@ const styles = {
   blob2: { bottom: "10%", right: "15%" },
 
   card: {
-    width: "420px",
+    width: "900px",
     height: "520px",
     backdropFilter: "blur(25px)",
     background: "rgba(255,255,255,0.15)",
     borderRadius: "20px",
-    padding: "2rem",
+    padding: "1rem",
     boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
     overflow: "hidden",
     position: "relative",
   },
 
-  inner: {
+  slider: {
     display: "flex",
-    width: "200%",
+    width: "300%",
     height: "100%",
     transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
   },
 
-  formSection: {
-    width: "50%",
-    padding: "1rem",
+  panel: {
+    width: "33.33%",
+    padding: "2rem",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  imagePanel: {
+    width: "33.33%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  image: {
+    width: "90%",
+    height: "90%",
+    objectFit: "cover",
+    borderRadius: "20px",
+    animation: "float 6s ease-in-out infinite",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
   },
 
   title: {

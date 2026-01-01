@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import { AiOutlineHome } from 'react-icons/ai';
 import { FiBox, FiSettings, FiUser, FiHeart } from 'react-icons/fi';
 import { MdCompareArrows, MdLanguage } from 'react-icons/md';
@@ -8,16 +8,29 @@ import mainLogo from './mainlogo.png';
 
 import { FavoritesContext } from '../context/FavoritesContext';
 import { LanguageContext } from '../context/LanguageContext';
-import { UserContext } from '../context/UserContext';   // ⭐ NEW
+import { UserContext } from '../context/UserContext';
 
 const Navbar = ({ theme, setTheme, setToken }) => {
   const { lang, toggleLanguage } = useContext(LanguageContext);
   const { favoritesCount } = useContext(FavoritesContext);
-  const { user } = useContext(UserContext);              // ⭐ NEW
+  const { user } = useContext(UserContext);
   const token = localStorage.getItem('token');
 
   const navigate = useNavigate();
   const [showProfile, setShowProfile] = useState(false);
+
+  // ⭐ NEW: Detect click outside
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowProfile(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -26,7 +39,7 @@ const Navbar = ({ theme, setTheme, setToken }) => {
   };
 
   const toggleThemeHandler = () => setTheme(theme === 'light' ? 'dark' : 'light');
-  const toggleProfile = () => setShowProfile(!showProfile);
+  const toggleProfile = () => setShowProfile((prev) => !prev);
 
   const labels = {
     en: {
@@ -94,13 +107,17 @@ const Navbar = ({ theme, setTheme, setToken }) => {
 
       <div style={styles.right}>
         {token && user && (
-          <div style={styles.profileContainer}>
+          <div
+            style={styles.profileContainer}
+            ref={dropdownRef}
+            onMouseLeave={() => setShowProfile(false)} // ⭐ NEW: close on mouse leave
+          >
             <button onClick={toggleProfile} style={styles.profileButton}>
               <FiUser style={styles.iconMargin} /> {user.name} ⏷
             </button>
 
             {showProfile && (
-              <div style={styles.dropdownMenu}>
+              <div style={{ ...styles.dropdownMenu, animation: 'fadeIn 0.2s ease' }}>
                 <button onClick={() => navigate('/profile')} style={styles.dropdownItem}>
                   {t.viewProfile}
                 </button>
@@ -132,6 +149,16 @@ const Navbar = ({ theme, setTheme, setToken }) => {
           {theme === 'light' ? <BsMoon /> : <BsSun />}
         </button>
       </div>
+
+      {/* ⭐ Fade animation */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}
+      </style>
     </nav>
   );
 };

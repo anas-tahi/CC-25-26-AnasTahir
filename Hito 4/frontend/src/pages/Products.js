@@ -46,7 +46,7 @@ const Products = () => {
       );
 
       Swal.fire({
-        title: '✅ Added to wishlist!',
+        title: '❤️ Added to wishlist!',
         icon: 'success',
         timer: 1500,
         showConfirmButton: false,
@@ -79,37 +79,56 @@ const Products = () => {
 
   return (
     <div style={styles.container}>
+      <style>
+        {`
+          @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+          }
+
+          @keyframes pulseBadge {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+          }
+        `}
+      </style>
+
       <h2 style={styles.heading}>⭐ Recommended Products</h2>
+
       <div style={styles.grid}>
         {recommended.map(([name, items], index) => {
           const cheapestId = getCheapestProductId(items);
+
           return (
-            <div key={index} style={styles.card}>
+            <div key={index} style={{ ...styles.card, animation: 'fadeInUp 0.6s ease forwards' }}>
+              
+              {/* Animated Badge */}
+              <div style={styles.badge}>🔥 Recommended</div>
+
               <h3 style={styles.cardTitle}>{name}</h3>
+
               <ul style={styles.cardList}>
                 {items.map((item, i) => (
                   <li key={i} style={styles.cardItem}>
-                    <FaStore style={styles.icon} /> {item.supermarket} — 
-                    <span style={styles.priceBadge}>
-                      <FiTag style={styles.iconSmall} /> {item.price.toFixed(2)}€
-                    </span>
-                    {item._id === cheapestId && (
-                      <button
-                        onClick={() => handleAddToWishlist(item._id)}
-                        style={{
-                          marginLeft: '1rem',
-                          padding: '0.3rem 0.6rem',
-                          backgroundColor: '#ff4081',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontWeight: '600',
-                        }}
-                      >
-                        ❤️
-                      </button>
-                    )}
+                    <div style={styles.left}>
+                      <FaStore style={styles.icon} /> {item.supermarket}
+                    </div>
+
+                    <div style={styles.right}>
+                      <span style={styles.priceBadge}>
+                        <FiTag style={styles.iconSmall} /> {item.price.toFixed(2)}€
+                      </span>
+
+                      {item._id === cheapestId && (
+                        <button
+                          onClick={() => handleAddToWishlist(item._id)}
+                          style={styles.heartButton}
+                        >
+                          ❤️
+                        </button>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -126,67 +145,111 @@ const styles = {
     padding: '2rem',
     backgroundColor: '#f5f5f5',
     minHeight: '100vh',
-    transition: 'background 0.3s ease',
   },
+
   heading: {
-    fontSize: '2rem',
+    fontSize: '2.4rem',
     fontWeight: '700',
     marginBottom: '2rem',
     textAlign: 'center',
-    color: '#333',
+    color: '#222',
   },
+
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
     gap: '2rem',
   },
+
   card: {
-    background: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: '16px',
-    padding: '1.5rem',
-    boxShadow: '0 8px 20px rgba(0,0,0,0.1)',
-    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
+    background: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: '18px',
+    padding: '1.8rem',
+    boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
+    border: '2px solid transparent',
+    backgroundClip: 'padding-box',
+    transition: 'transform 0.35s ease, box-shadow 0.35s ease, border 0.35s ease',
+    position: 'relative',
   },
+
+  badge: {
+    position: 'absolute',
+    top: '-12px',
+    right: '12px',
+    background: 'linear-gradient(90deg, #ff7eb3, #ff758c)',
+    padding: '0.3rem 0.8rem',
+    borderRadius: '12px',
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: '0.85rem',
+    animation: 'pulseBadge 2s infinite ease-in-out',
+  },
+
   cardTitle: {
-    fontSize: '1.4rem',
-    fontWeight: '600',
+    fontSize: '1.5rem',
+    fontWeight: '700',
     marginBottom: '1rem',
     color: '#222',
   },
+
   cardList: {
     listStyle: 'none',
     padding: 0,
     margin: 0,
   },
+
   cardItem: {
-    padding: '0.5rem 0',
+    padding: '0.7rem 0',
     borderBottom: '1px solid #eee',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    fontSize: '1rem',
-    color: '#555',
   },
+
+  left: {
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '1rem',
+    color: '#444',
+  },
+
+  right: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.6rem',
+  },
+
   icon: {
     marginRight: '0.5rem',
     color: '#888',
   },
+
   iconSmall: {
     marginRight: '0.3rem',
     verticalAlign: 'middle',
   },
+
   priceBadge: {
-    backgroundColor: '#ffefc1',
-    padding: '0.2rem 0.5rem',
-    borderRadius: '8px',
-    fontWeight: '600',
-    color: '#d67e00',
+    background: 'linear-gradient(90deg, #ffe29f, #ffa99f)',
+    padding: '0.3rem 0.6rem',
+    borderRadius: '10px',
+    fontWeight: '700',
+    color: '#7a3e00',
     display: 'inline-flex',
     alignItems: 'center',
-    fontSize: '0.9rem',
+    fontSize: '0.95rem',
+    boxShadow: '0 3px 8px rgba(255,150,0,0.25)',
+  },
+
+  heartButton: {
+    backgroundColor: '#ff4081',
+    color: '#fff',
+    border: 'none',
+    padding: '0.35rem 0.6rem',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontWeight: '700',
+    transition: 'transform 0.2s ease',
   },
 };
 

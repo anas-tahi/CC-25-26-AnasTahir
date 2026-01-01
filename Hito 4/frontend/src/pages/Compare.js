@@ -26,9 +26,11 @@ const Compare = () => {
   const [addressError, setAddressError] = useState("");
 
   const token = localStorage.getItem("token");
+
   const mapRef = useRef(null);
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
+
   const { fetchFavoritesCount } = useContext(FavoritesContext);
 
   // Get user location
@@ -46,7 +48,7 @@ const Compare = () => {
     }
   }, []);
 
-  // ✅ Wishlist handler with SweetAlert2 + badge update (FIXED URL)
+  // Wishlist handler
   const handleAddToWishlist = async (productId) => {
     try {
       await axios.post(
@@ -56,13 +58,15 @@ const Compare = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       Swal.fire({
         title: "✅ Added to wishlist!",
         icon: "success",
         timer: 1500,
         showConfirmButton: false,
       });
-      fetchFavoritesCount(); // ✅ Update badge after adding
+
+      fetchFavoritesCount();
     } catch (err) {
       console.error("❌ Wishlist error:", err.response?.data || err);
 
@@ -82,7 +86,7 @@ const Compare = () => {
     }
   };
 
-  // ✅ Fetch suggestions while typing (FIXED to use productAPI instead of localhost)
+  // Fetch suggestions while typing
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (!query.trim()) {
@@ -91,11 +95,8 @@ const Compare = () => {
         setMatches([]);
         return;
       }
-
       try {
-        const res = await productAPI.get(
-          `/names/${encodeURIComponent(query)}`
-        );
+        const res = await productAPI.get(`/names/${encodeURIComponent(query)}`);
         setSuggestions(res.data);
         setHighlightIndex(-1);
       } catch (err) {
@@ -110,7 +111,6 @@ const Compare = () => {
     if (!query.trim()) return;
 
     const isExact = suggestions.includes(query.trim());
-
     if (isExact) {
       try {
         const res = await productAPI.get(
@@ -145,7 +145,6 @@ const Compare = () => {
 
   const handleSelectProduct = async (name) => {
     try {
-      // reset map UI state before loading new product
       setMapError("");
       setMapLoading(true);
       setGoogleMapsLink("");
@@ -167,7 +166,6 @@ const Compare = () => {
         `🎉 The cheapest product is in ${res.data.cheapest.supermarket}!`
       );
 
-      // If we don't have a user location, ask for it before showing nearest store
       if (!userLocation) {
         setShowLocationPrompt(true);
       } else {
@@ -177,6 +175,8 @@ const Compare = () => {
       console.error("Compare select error:", err);
       setResult(null);
       setError("Product not found or error fetching data.");
+    } finally {
+      setMapLoading(false);
     }
   };
 
@@ -188,6 +188,7 @@ const Compare = () => {
         `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`
       );
       const data = await res.json();
+
       if (Array.isArray(data) && data.length > 0) {
         const lat = parseFloat(data[0].lat);
         const lon = parseFloat(data[0].lon);
@@ -195,6 +196,7 @@ const Compare = () => {
         setShowLocationPrompt(false);
         return true;
       }
+
       setAddressError("Address not found. Try a different query.");
       return false;
     } catch (err) {
@@ -270,11 +272,12 @@ const Compare = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // Map logic: show cheapest supermarket on map; works with or without geolocation
+  // Map logic
   useEffect(() => {
     if (!result || !mapRef.current) return;
 
     const map = L.map(mapRef.current);
+
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
@@ -296,7 +299,6 @@ const Compare = () => {
         .bindPopup(`${storeName} ✅ Cheapest store`)
         .openPopup();
 
-      // If we have user location, show it
       if (userLocation) {
         L.marker([userLocation.lat, userLocation.lng], {
           icon: L.icon({
@@ -307,7 +309,6 @@ const Compare = () => {
           .addTo(map)
           .bindPopup("You are here");
 
-        // Google Maps link
         setGoogleMapsLink(
           `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${storeLat},${storeLon}`
         );
@@ -320,7 +321,6 @@ const Compare = () => {
           { padding: [50, 50] }
         );
       } else {
-        // No user location: center on store
         map.setView([storeLat, storeLon], 15);
         setGoogleMapsLink(
           `https://www.google.com/maps/search/?api=1&query=${storeLat},${storeLon}`
@@ -334,7 +334,6 @@ const Compare = () => {
       });
     };
 
-    // First try to find the store near the user (if we have userLocation)
     if (userLocation) {
       const viewbox = `${userLocation.lng - 0.05},${
         userLocation.lat + 0.05
@@ -348,7 +347,6 @@ const Compare = () => {
           if (data.length > 0) {
             addStoreMarker(data[0]);
           } else {
-            // fallback to a global search for the store name
             return fetch(
               `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`
             )
@@ -360,7 +358,6 @@ const Compare = () => {
         })
         .catch((err) => console.error("Nominatim error (bounded):", err));
     } else {
-      // No user location: do a global search for the store name
       fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`
       )
@@ -379,27 +376,402 @@ const Compare = () => {
   return (
     <div className="compare-container">
       <style>{`
-        .compare-container { padding: 2rem; max-width: 950px; margin: auto; min-height: 100vh; font-family: 'Inter', sans-serif; background-color: #f5f7fa; }
-        .compare-heading { font-size: 2rem; font-weight: 700; text-align: center; margin-bottom: 2rem; color: #222; }
-        .search-box { position: relative; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 2rem; }
-        .input-wrapper { display: flex; align-items: center; background-color: #fff; border-radius: 8px; padding: 0.4rem 0.6rem; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
-        .search-icon { margin-right: 0.5rem; font-size: 1.2rem; color: #888; }
-        .search-input { flex: 1; border: none; outline: none; font-size: 1rem; padding: 0.4rem; }
-        .compare-button { margin-top: 0.6rem; padding: 0.6rem 1rem; background-color: #007bff; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; align-self: flex-start; transition: all 0.2s ease; }
-        .compare-button:hover { background-color: #0056b3; }
-        .dropdown { position: absolute; top: calc(100% + 0.6rem); left: 0; right: 0; background-color: #fff; border: 1px solid #ddd; border-radius: 8px; max-height: 200px; overflow-y: auto; z-index: 20; box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
-        .suggestion { padding: 0.6rem; cursor: pointer; border-bottom: 1px solid #eee; transition: background 0.2s ease; }
-        .suggestion:hover, .suggestion.active { background-color: #e8f0ff; font-weight: 600; color: #007bff; }
-        #map { width: 100%; height: 400px; margin-top: 1rem; border-radius: 12px; }
-        .popup-msg { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #007bff; color: #fff; padding: 0.8rem 1.2rem; border-radius: 10px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,0.2); animation: slideUp 0.5s ease forwards; z-index: 100; }
-        .wishlist-btn { margin-left: 1rem; padding: 0.3rem 0.6rem; background-color: #ff4081; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: transform 0.1s ease; }
-        .wishlist-btn:hover { transform: scale(1.1); }
-        .google-link { margin-top: 0.5rem; display: inline-block; background-color: #28a745; color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-weight: 600; }
-        .google-link:hover { background-color: #218838; }
-        @keyframes slideUp { from { opacity:0; transform: translate(-50%,20px); } to { opacity:1; transform: translate(-50%,0); } }
+        .compare-container {
+          padding: 2rem;
+          max-width: 1000px;
+          margin: auto;
+          min-height: 100vh;
+          font-family: 'Inter', sans-serif;
+        }
+
+        .compare-heading {
+          font-size: 2.2rem;
+          font-weight: 800;
+          text-align: center;
+          margin-bottom: 2rem;
+        }
+
+        .compare-heading span {
+          background: linear-gradient(90deg, #007bff, #ff4081);
+          -webkit-background-clip: text;
+          color: transparent;
+        }
+
+        .search-box {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          margin-bottom: 2rem;
+        }
+
+        .input-wrapper {
+          display: flex;
+          align-items: center;
+          background-color: var(--card);
+          border-radius: 999px;
+          padding: 0.4rem 0.9rem;
+          box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+          border: 1px solid var(--border);
+          transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .input-wrapper:focus-within {
+          box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+          border-color: #007bff;
+          transform: translateY(-1px);
+        }
+
+        .search-icon {
+          margin-right: 0.5rem;
+          font-size: 1.3rem;
+          color: #888;
+        }
+
+        .search-input {
+          flex: 1;
+          border: none;
+          outline: none;
+          font-size: 1rem;
+          padding: 0.4rem;
+          background: transparent;
+          color: var(--text);
+        }
+
+        .compare-button {
+          margin-top: 0.2rem;
+          padding: 0.6rem 1.4rem;
+          background: linear-gradient(90deg, #007bff, #00b4d8);
+          color: #fff;
+          border: none;
+          border-radius: 999px;
+          cursor: pointer;
+          font-weight: 600;
+          align-self: flex-start;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          box-shadow: 0 6px 14px rgba(0,123,255,0.4);
+        }
+
+        .compare-button:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 10px 20px rgba(0,123,255,0.5);
+        }
+
+        .dropdown {
+          position: absolute;
+          top: calc(100% + 0.6rem);
+          left: 0;
+          right: 0;
+          background-color: var(--card);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          max-height: 220px;
+          overflow-y: auto;
+          z-index: 20;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .suggestion {
+          padding: 0.6rem 0.9rem;
+          cursor: pointer;
+          border-bottom: 1px solid rgba(0,0,0,0.04);
+          transition: background 0.2s ease, color 0.2s ease, font-weight 0.2s ease;
+        }
+
+        .suggestion:last-child {
+          border-bottom: none;
+        }
+
+        .suggestion:hover,
+        .suggestion.active {
+          background-color: rgba(0,123,255,0.07);
+          font-weight: 600;
+          color: #007bff;
+        }
+
+        .did-you-mean {
+          text-align: center;
+          margin-bottom: 1.5rem;
+        }
+
+        .did-you-mean h4 {
+          margin-bottom: 0.5rem;
+        }
+
+        .did-you-mean-buttons {
+          display: flex;
+          gap: 0.6rem;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        .did-you-mean-button {
+          padding: 0.4rem 0.9rem;
+          border-radius: 999px;
+          border: 1px solid var(--border);
+          background: var(--card);
+          cursor: pointer;
+          font-size: 0.95rem;
+          transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .did-you-mean-button:hover {
+          background: rgba(0,123,255,0.08);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+        }
+
+        .location-prompt {
+          margin-top: 0.75rem;
+          background: var(--card);
+          padding: 0.9rem;
+          border-radius: 12px;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        }
+
+        .location-prompt-title {
+          margin: 0 0 0.4rem 0;
+          font-weight: 600;
+        }
+
+        .location-prompt-text {
+          margin: 0 0 0.6rem 0;
+          color: #666;
+          font-size: 0.9rem;
+        }
+
+        .location-controls {
+          display: flex;
+          gap: 0.4rem;
+          margin-bottom: 0.4rem;
+          flex-wrap: wrap;
+        }
+
+        .location-button-primary {
+          padding: 0.5rem 0.8rem;
+          border-radius: 8px;
+          background: #007bff;
+          color: #fff;
+          border: none;
+          cursor: pointer;
+          font-size: 0.9rem;
+        }
+
+        .location-input {
+          flex: 1;
+          min-width: 180px;
+          padding: 0.45rem;
+          border-radius: 8px;
+          border: 1px solid var(--border);
+          font-size: 0.9rem;
+          background: var(--card);
+          color: var(--text);
+        }
+
+        .location-button-secondary {
+          padding: 0.5rem 0.8rem;
+          border-radius: 8px;
+          background: #28a745;
+          color: #fff;
+          border: none;
+          cursor: pointer;
+          font-size: 0.9rem;
+        }
+
+        .location-error {
+          color: #e74c3c;
+          margin: 0;
+          font-size: 0.85rem;
+        }
+
+        .error-text {
+          color: #e74c3c;
+          margin-bottom: 1rem;
+          font-weight: 500;
+        }
+
+        .result-box {
+          margin-top: 1rem;
+          padding: 1.5rem;
+          border-radius: 16px;
+          background: var(--card);
+          box-shadow: 0 10px 24px rgba(0,0,0,0.15);
+          animation: fadeInUp 0.4s ease forwards;
+        }
+
+        .result-title {
+          font-size: 1.3rem;
+          margin-bottom: 1rem;
+          font-weight: 700;
+        }
+
+        .result-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 1rem;
+          margin-bottom: 1rem;
+        }
+
+        .result-card {
+          padding: 1rem;
+          border-radius: 12px;
+          border: 1px solid var(--border);
+          background: radial-gradient(circle at top left, #f9fbff, var(--card));
+          display: flex;
+          flex-direction: column;
+          gap: 0.4rem;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .result-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+          border-color: #007bff;
+        }
+
+        .result-card.best {
+          border: 2px solid #28a745;
+          box-shadow: 0 10px 26px rgba(40,167,69,0.35);
+          background: radial-gradient(circle at top left, #e9ffe9, var(--card));
+        }
+
+        .result-supermarket {
+          font-weight: 700;
+          font-size: 1.05rem;
+        }
+
+        .result-price-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.6rem;
+        }
+
+        .result-price {
+          font-weight: 700;
+          font-size: 1.1rem;
+        }
+
+        .best-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          padding: 0.2rem 0.6rem;
+          border-radius: 999px;
+          background: #28a745;
+          color: #fff;
+          font-size: 0.8rem;
+          font-weight: 600;
+        }
+
+        .wishlist-btn {
+          padding: 0.3rem 0.7rem;
+          background-color: #ff4081;
+          color: #fff;
+          border: none;
+          border-radius: 999px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: transform 0.1s ease, box-shadow 0.1s ease;
+          font-size: 0.85rem;
+        }
+
+        .wishlist-btn:hover {
+          transform: scale(1.08);
+          box-shadow: 0 4px 12px rgba(255,64,129,0.5);
+        }
+
+        .cheapest {
+          margin-top: 0.6rem;
+          font-size: 1rem;
+          font-weight: 600;
+        }
+
+        .map-section {
+          margin-top: 1.4rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.6rem;
+        }
+
+        #map {
+          width: 100%;
+          height: 360px;
+          border-radius: 14px;
+          overflow: hidden;
+          border: 1px solid var(--border);
+        }
+
+        .google-link {
+          margin-top: 0.25rem;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          background: #28a745;
+          color: white;
+          padding: 0.55rem 1.1rem;
+          border-radius: 999px;
+          text-decoration: none;
+          font-weight: 600;
+          font-size: 0.95rem;
+          box-shadow: 0 6px 18px rgba(40,167,69,0.4);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .google-link:hover {
+          background-color: #218838;
+          transform: translateY(-1px);
+          box-shadow: 0 10px 26px rgba(40,167,69,0.55);
+        }
+
+        .popup-msg {
+          position: fixed;
+          bottom: 2rem;
+          left: 50%;
+          transform: translateX(-50%);
+          background: linear-gradient(90deg, #007bff, #ff4081);
+          color: #fff;
+          padding: 0.8rem 1.3rem;
+          border-radius: 999px;
+          font-weight: 600;
+          box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+          animation: slideUp 0.5s ease forwards;
+          z-index: 100;
+          cursor: pointer;
+        }
+
+        .map-loading {
+          font-size: 0.9rem;
+          color: #555;
+        }
+
+        @keyframes slideUp {
+          from { opacity: 0; transform: translate(-50%, 20px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+          .compare-container {
+            padding: 1.2rem;
+          }
+          .compare-heading {
+            font-size: 1.7rem;
+          }
+          .result-box {
+            padding: 1.1rem;
+          }
+        }
       `}</style>
 
-      <h2 className="compare-heading">🔍 Compare Product Prices</h2>
+      <h2 className="compare-heading">
+        🔍 <span>Compare Product Prices</span>
+      </h2>
 
       <div className="search-box" ref={dropdownRef}>
         <div className="input-wrapper">
@@ -432,39 +804,17 @@ const Compare = () => {
           </ul>
         )}
 
-        {/* Location prompt: appears when product selected but no userLocation */}
         {showLocationPrompt && (
-          <div
-            style={{
-              marginTop: 12,
-              background: "#fff",
-              padding: 12,
-              borderRadius: 8,
-              boxShadow: "0 6px 18px rgba(0,0,0,0.06)",
-              textAlign: "left",
-            }}
-          >
-            <h4 style={{ margin: "0 0 8px 0" }}>Where are you located?</h4>
-            <p style={{ margin: "0 0 8px 0", color: "#555" }}>
+          <div className="location-prompt">
+            <h4 className="location-prompt-title">Where are you located?</h4>
+            <p className="location-prompt-text">
               Allow the browser to detect your location or enter an address/place
               (city, street, postal code).
             </p>
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                marginBottom: 8,
-              }}
-            >
+            <div className="location-controls">
               <button
                 onClick={handleUseGeolocation}
-                style={{
-                  padding: "0.5rem 0.8rem",
-                  borderRadius: 6,
-                  background: "#007bff",
-                  color: "#fff",
-                  border: "none",
-                }}
+                className="location-button-primary"
               >
                 Use my current location
               </button>
@@ -472,30 +822,19 @@ const Compare = () => {
                 value={manualAddress}
                 onChange={(e) => setManualAddress(e.target.value)}
                 placeholder="Enter address or city"
-                style={{
-                  flex: 1,
-                  padding: "0.45rem",
-                  borderRadius: 6,
-                  border: "1px solid #ddd",
-                }}
+                className="location-input"
               />
               <button
                 onClick={async () => {
                   if (manualAddress.trim()) await geocodeAddress(manualAddress);
                 }}
-                style={{
-                  padding: "0.5rem 0.8rem",
-                  borderRadius: 6,
-                  background: "#28a745",
-                  color: "#fff",
-                  border: "none",
-                }}
+                className="location-button-secondary"
               >
                 Search
               </button>
             </div>
             {addressError && (
-              <p style={{ color: "red", margin: 0 }}>{addressError}</p>
+              <p className="location-error">{addressError}</p>
             )}
           </div>
         )}
@@ -505,31 +844,17 @@ const Compare = () => {
         </button>
       </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="error-text">{error}</p>}
 
-      {/* Render matches (prefix results) when available */}
       {matches && matches.length > 0 && (
-        <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+        <div className="did-you-mean">
           <h4>Did you mean:</h4>
-          <div
-            style={{
-              display: "flex",
-              gap: "0.6rem",
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
-          >
+          <div className="did-you-mean-buttons">
             {matches.map((m, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSelectProduct(m)}
-                style={{
-                  padding: "0.4rem 0.8rem",
-                  borderRadius: 6,
-                  border: "1px solid #ddd",
-                  background: "#fff",
-                  cursor: "pointer",
-                }}
+                className="did-you-mean-button"
               >
                 {m}
               </button>
@@ -543,51 +868,66 @@ const Compare = () => {
           <h3 className="result-title">
             Results for: <strong>{result.product}</strong>
           </h3>
-          <table className="result-table">
-            <tbody>
-              {result.supermarkets.map((p, i) => (
-                <tr
+
+          <div className="result-grid">
+            {result.supermarkets.map((p, i) => {
+              const isBest =
+                p.supermarket === result.cheapest.supermarket &&
+                p.price === result.cheapest.price;
+
+              return (
+                <div
                   key={i}
-                  className={
-                    p.supermarket === result.cheapest.supermarket
-                      ? "best-row"
-                      : ""
-                  }
+                  className={`result-card ${isBest ? "best" : ""}`}
                 >
-                  <td>{p.supermarket}</td>
-                  <td>
-                    {p.price.toFixed(2)} €
-                    {p.supermarket === result.cheapest.supermarket && (
+                  <div className="result-supermarket">{p.supermarket}</div>
+                  <div className="result-price-row">
+                    <div>
+                      <div className="result-price">
+                        {p.price.toFixed(2)} €
+                      </div>
+                      {isBest && (
+                        <div className="best-badge">
+                          ✅ Cheapest
+                        </div>
+                      )}
+                    </div>
+                    {isBest && (
                       <button
                         onClick={() => handleAddToWishlist(p._id)}
                         className="wishlist-btn"
                       >
-                        ❤️
+                        ❤️ Wishlist
                       </button>
                     )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
           <p className="cheapest">
             ✅ Cheapest: <strong>{result.cheapest.supermarket}</strong> at{" "}
             <strong>{result.cheapest.price.toFixed(2)} €</strong>
           </p>
 
-          <div id="map" ref={mapRef}></div>
+          <div className="map-section">
+            {mapLoading && (
+              <p className="map-loading">Loading map for the cheapest store…</p>
+            )}
+            <div id="map" ref={mapRef}></div>
 
-          {googleMapsLink && (
-            <a
-              href={googleMapsLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="google-link"
-            >
-              Go to Google Maps 🚀
-            </a>
-          )}
+            {googleMapsLink && (
+              <a
+                href={googleMapsLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="google-link"
+              >
+                Go to Google Maps 🚀
+              </a>
+            )}
+          </div>
         </div>
       )}
 
