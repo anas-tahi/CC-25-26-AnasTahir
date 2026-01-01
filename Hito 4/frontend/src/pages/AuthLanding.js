@@ -13,7 +13,7 @@ const AuthLanding = ({ setToken }) => {
   const navigate = useNavigate();
   const { fetchUser } = useContext(UserContext);
 
-  // Prevent theme override
+  // Keep theme from forcing a solid background
   useEffect(() => {
     document.body.style.background = "transparent";
     document.documentElement.style.background = "transparent";
@@ -49,10 +49,10 @@ const AuthLanding = ({ setToken }) => {
 
   return (
     <div style={styles.wrapper}>
-      {/* Violet Background */}
+      {/* Soft violet background */}
       <div style={styles.gradientBg}></div>
 
-      {/* Card */}
+      {/* Main card */}
       <div
         style={{
           ...styles.card,
@@ -61,15 +61,7 @@ const AuthLanding = ({ setToken }) => {
       >
         <div style={styles.inner}>
           {/* LEFT SIDE */}
-          <div
-            style={{
-              ...styles.side,
-              transform:
-                mode === "login" ? "translateX(0)" : "translateX(-40px)",
-              opacity: mode === "login" ? 1 : 0,
-              transition: "all 0.6s ease",
-            }}
-          >
+          <div style={styles.side}>
             {mode === "login" ? (
               <div style={styles.formContainer}>
                 <h2 style={styles.title}>Welcome Back</h2>
@@ -114,15 +106,7 @@ const AuthLanding = ({ setToken }) => {
           </div>
 
           {/* RIGHT SIDE */}
-          <div
-            style={{
-              ...styles.side,
-              transform:
-                mode === "login" ? "translateX(40px)" : "translateX(0)",
-              opacity: mode === "login" ? 0 : 1,
-              transition: "all 0.6s ease",
-            }}
-          >
+          <div style={styles.side}>
             {mode === "login" ? (
               <div style={styles.imageWrapper}>
                 <img src={GeminiImage} alt="Gemini" style={styles.image} />
@@ -176,7 +160,6 @@ const AuthLanding = ({ setToken }) => {
         </div>
       </div>
 
-      {/* Animations */}
       <style>
         {`
           @keyframes gradientMove {
@@ -186,9 +169,9 @@ const AuthLanding = ({ setToken }) => {
           }
 
           @keyframes successGlow {
-            0% { box-shadow: 0 0 0px rgba(0,255,150,0.0); }
-            50% { box-shadow: 0 0 40px rgba(0,255,150,0.6); }
-            100% { box-shadow: 0 0 0px rgba(0,255,150,0.0); }
+            0% { box-shadow: 0 0 0px rgba(52,211,153,0.0); }
+            50% { box-shadow: 0 0 30px rgba(52,211,153,0.7); }
+            100% { box-shadow: 0 0 0px rgba(52,211,153,0.0); }
           }
 
           @keyframes spin {
@@ -218,14 +201,14 @@ const styles = {
     position: "relative",
     overflow: "hidden",
     fontFamily: "'Inter', sans-serif",
-    background: "transparent !important",
+    background: "transparent",
   },
 
   gradientBg: {
     position: "absolute",
     width: "200%",
     height: "200%",
-    background: "linear-gradient(135deg, #4c1d95, #6d28d9, #8b5cf6)",
+    background: "linear-gradient(135deg, #7c3aed, #8b5cf6, #a855f7)",
     backgroundSize: "400% 400%",
     animation: "gradientMove 30s ease infinite",
     zIndex: -3,
@@ -234,11 +217,10 @@ const styles = {
   card: {
     width: "900px",
     height: "520px",
-    backdropFilter: "blur(25px)",
-    background: "rgba(0,0,0,0.4)",
+    background: "#ffffff",
     borderRadius: "20px",
-    padding: "1rem",
-    boxShadow: "0 20px 40px rgba(0,0,0,0.4)",
+    padding: "1.5rem",
+    boxShadow: "0 20px 40px rgba(15,23,42,0.3)",
     overflow: "hidden",
     position: "relative",
   },
@@ -273,28 +255,28 @@ const styles = {
   image: {
     width: "100%",
     borderRadius: "20px",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+    boxShadow: "0 10px 25px rgba(15,23,42,0.35)",
   },
 
   title: {
     fontSize: "2rem",
     fontWeight: "700",
-    color: "#ffffff",
+    color: "#111827",
   },
 
   subtitle: {
     fontSize: "1rem",
-    color: "#d1d5db",
-    marginBottom: "1rem",
+    color: "#6b7280",
+    marginBottom: "0.5rem",
   },
 
   input: {
     width: "100%",
     padding: "0.9rem",
     borderRadius: "10px",
-    border: "1px solid rgba(255,255,255,0.5)",
-    background: "rgba(0,0,0,0.3)",
-    color: "#fff",
+    border: "1px solid #e5e7eb",
+    background: "#f9fafb",
+    color: "#111827",
     fontSize: "1rem",
     outline: "none",
   },
@@ -303,7 +285,7 @@ const styles = {
     width: "100%",
     padding: "0.9rem",
     background: "#10b981",
-    color: "#fff",
+    color: "#ffffff",
     border: "none",
     borderRadius: "10px",
     fontSize: "1rem",
@@ -313,12 +295,12 @@ const styles = {
 
   switchText: {
     marginTop: "0.5rem",
-    color: "#d1d5db",
+    color: "#6b7280",
     textAlign: "center",
   },
 
   switchLink: {
-    color: "#ffffff",
+    color: "#4f46e5",
     cursor: "pointer",
     textDecoration: "underline",
     fontWeight: "600",
