@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { authAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
@@ -12,6 +12,12 @@ const AuthLanding = ({ setToken }) => {
 
   const navigate = useNavigate();
   const { fetchUser } = useContext(UserContext);
+
+  // ⭐ Prevent theme toggle from overriding this page
+  useEffect(() => {
+    document.body.style.background = "transparent";
+    document.documentElement.style.background = "transparent";
+  }, []);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -43,8 +49,10 @@ const AuthLanding = ({ setToken }) => {
 
   return (
     <div style={styles.wrapper}>
+      {/* Violet Background */}
       <div style={styles.gradientBg}></div>
 
+      {/* Card */}
       <div
         style={{
           ...styles.card,
@@ -168,6 +176,7 @@ const AuthLanding = ({ setToken }) => {
         </div>
       </div>
 
+      {/* Animations */}
       <style>
         {`
           @keyframes gradientMove {
@@ -209,14 +218,16 @@ const styles = {
     position: "relative",
     overflow: "hidden",
     fontFamily: "'Inter', sans-serif",
+
+    // ⭐ Prevent theme override
+    background: "transparent !important",
   },
 
   gradientBg: {
     position: "absolute",
     width: "200%",
     height: "200%",
-    background:
-      "linear-gradient(135deg, #6d28d9, #8b5cf6, #a78bfa)",
+    background: "linear-gradient(135deg, #6d28d9, #8b5cf6, #a78bfa)",
     backgroundSize: "400% 400%",
     animation: "gradientMove 30s ease infinite",
     zIndex: -3,
@@ -290,7 +301,7 @@ const styles = {
     outline: "none",
   },
 
-    button: {
+  button: {
     width: "100%",
     padding: "0.9rem",
     background: "#10b981",
@@ -300,7 +311,6 @@ const styles = {
     fontSize: "1rem",
     fontWeight: "600",
     cursor: "pointer",
-    transition: "0.3s ease",
   },
 
   switchText: {
