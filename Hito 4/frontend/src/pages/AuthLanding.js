@@ -3,6 +3,9 @@ import { authAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 
+// Correct image import
+import GeminiImage from "../pages/logos/Gemini_Generated_Image_pqac0epqac0epqac.png";
+
 const AuthLanding = ({ setToken }) => {
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -42,35 +45,28 @@ const AuthLanding = ({ setToken }) => {
 
   return (
     <div style={styles.wrapper}>
-      {/* Animated Background */}
+      {/* Background */}
       <div style={styles.gradientBg}></div>
 
-      {/* Main Glassmorphic Card */}
+      {/* Card */}
       <div
         style={{
           ...styles.card,
           animation: successGlow ? "successGlow 0.8s ease" : "none",
         }}
       >
-        <div
-          style={{
-            ...styles.inner,
-          }}
-        >
-          {/* LEFT SIDE (depends on mode) */}
+        <div style={styles.inner}>
+          {/* LEFT SIDE */}
           <div
             style={{
               ...styles.side,
-              ...styles.leftSide,
               transform:
-                mode === "login"
-                  ? "translateX(0)"
-                  : "translateX(-40px)",
+                mode === "login" ? "translateX(0)" : "translateX(-40px)",
               opacity: mode === "login" ? 1 : 0,
               transition: "all 0.6s ease",
             }}
           >
-            {mode === "login" && (
+            {mode === "login" ? (
               <div style={styles.formContainer}>
                 <h2 style={styles.title}>Welcome Back</h2>
                 <p style={styles.subtitle}>Log in to continue your journey</p>
@@ -106,53 +102,28 @@ const AuthLanding = ({ setToken }) => {
                   </span>
                 </p>
               </div>
-            )}
-
-            {mode === "register" && (
-              <div
-                style={{
-                  ...styles.imageWrapper,
-                  transform: "translateX(0)",
-                }}
-              >
-                <img
-                  src={require("./logos/Gemini_Generated_Image_pqac0epqac0epqac.png")}
-                  alt="Gemini"
-                  style={styles.image}
-                />
+            ) : (
+              <div style={styles.imageWrapper}>
+                <img src={GeminiImage} alt="Gemini" style={styles.image} />
               </div>
             )}
           </div>
 
-          {/* RIGHT SIDE (depends on mode) */}
+          {/* RIGHT SIDE */}
           <div
             style={{
               ...styles.side,
-              ...styles.rightSide,
               transform:
-                mode === "login"
-                  ? "translateX(40px)"
-                  : "translateX(0)",
+                mode === "login" ? "translateX(40px)" : "translateX(0)",
               opacity: mode === "login" ? 0 : 1,
               transition: "all 0.6s ease",
             }}
           >
-            {mode === "login" && (
-              <div
-                style={{
-                  ...styles.imageWrapper,
-                  transform: "translateX(0)",
-                }}
-              >
-                <img
-                  src={require("./logos/Gemini_Generated_Image_pqac0epqac0epqac.png")}
-                  alt="Gemini"
-                  style={styles.image}
-                />
+            {mode === "login" ? (
+              <div style={styles.imageWrapper}>
+                <img src={GeminiImage} alt="Gemini" style={styles.image} />
               </div>
-            )}
-
-            {mode === "register" && (
+            ) : (
               <div style={styles.formContainer}>
                 <h2 style={styles.title}>Create Account</h2>
                 <p style={styles.subtitle}>Join us and start saving today</p>
@@ -204,6 +175,12 @@ const AuthLanding = ({ setToken }) => {
       {/* Animations */}
       <style>
         {`
+          @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+
           @keyframes successGlow {
             0% { box-shadow: 0 0 0px rgba(0,255,150,0.0); }
             50% { box-shadow: 0 0 40px rgba(0,255,150,0.6); }
@@ -244,9 +221,9 @@ const styles = {
     width: "200%",
     height: "200%",
     background:
-      "linear-gradient(135deg, #0ea5e9, #6366f1, #8b5cf6, #14b8a6)",
+      "linear-gradient(135deg, #6d28d9, #8b5cf6, #a78bfa)",
     backgroundSize: "400% 400%",
-    animation: "gradientMove 12s ease infinite",
+    animation: "gradientMove 30s ease infinite",
     zIndex: -3,
   },
 
@@ -276,27 +253,17 @@ const styles = {
     justifyContent: "center",
   },
 
-  leftSide: {
-    transformOrigin: "center",
-  },
-
-  rightSide: {
-    transformOrigin: "center",
-  },
-
   formContainer: {
     width: "80%",
     display: "flex",
     flexDirection: "column",
     gap: "1rem",
-    animation: "fadeScale 0.6s ease",
   },
 
   imageWrapper: {
     width: "80%",
     display: "flex",
     justifyContent: "center",
-    animation: "fadeScale 0.6s ease",
   },
 
   image: {
