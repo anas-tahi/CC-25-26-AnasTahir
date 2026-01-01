@@ -2,8 +2,6 @@ import { useState, useContext } from "react";
 import { authAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
-
-// Correct image import
 import GeminiImage from "../pages/logos/Gemini_Generated_Image_pqac0epqac0epqac.png";
 
 const AuthLanding = ({ setToken }) => {
@@ -45,10 +43,8 @@ const AuthLanding = ({ setToken }) => {
 
   return (
     <div style={styles.wrapper}>
-      {/* Background */}
       <div style={styles.gradientBg}></div>
 
-      {/* Card */}
       <div
         style={{
           ...styles.card,
@@ -172,7 +168,6 @@ const AuthLanding = ({ setToken }) => {
         </div>
       </div>
 
-      {/* Animations */}
       <style>
         {`
           @keyframes gradientMove {
@@ -295,7 +290,7 @@ const styles = {
     outline: "none",
   },
 
-  button: {
+    button: {
     width: "100%",
     padding: "0.9rem",
     background: "#10b981",
@@ -305,17 +300,20 @@ const styles = {
     fontSize: "1rem",
     fontWeight: "600",
     cursor: "pointer",
+    transition: "0.3s ease",
   },
 
   switchText: {
     marginTop: "0.5rem",
     color: "#e0e0e0",
+    textAlign: "center",
   },
 
   switchLink: {
     color: "#fff",
     cursor: "pointer",
     textDecoration: "underline",
+    fontWeight: "600",
   },
 };
 
