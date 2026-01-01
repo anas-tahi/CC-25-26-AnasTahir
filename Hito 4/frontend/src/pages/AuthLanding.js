@@ -13,7 +13,7 @@ const AuthLanding = ({ setToken }) => {
   const navigate = useNavigate();
   const { fetchUser } = useContext(UserContext);
 
-  // ⭐ Prevent theme toggle from overriding this page
+  // Prevent theme override
   useEffect(() => {
     document.body.style.background = "transparent";
     document.documentElement.style.background = "transparent";
@@ -218,8 +218,6 @@ const styles = {
     position: "relative",
     overflow: "hidden",
     fontFamily: "'Inter', sans-serif",
-
-    // ⭐ Prevent theme override
     background: "transparent !important",
   },
 
@@ -227,7 +225,7 @@ const styles = {
     position: "absolute",
     width: "200%",
     height: "200%",
-    background: "linear-gradient(135deg, #6d28d9, #8b5cf6, #a78bfa)",
+    background: "linear-gradient(135deg, #4c1d95, #6d28d9, #8b5cf6)",
     backgroundSize: "400% 400%",
     animation: "gradientMove 30s ease infinite",
     zIndex: -3,
@@ -237,10 +235,10 @@ const styles = {
     width: "900px",
     height: "520px",
     backdropFilter: "blur(25px)",
-    background: "rgba(255,255,255,0.12)",
+    background: "rgba(0,0,0,0.4)",
     borderRadius: "20px",
     padding: "1rem",
-    boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
+    boxShadow: "0 20px 40px rgba(0,0,0,0.4)",
     overflow: "hidden",
     position: "relative",
   },
@@ -281,12 +279,12 @@ const styles = {
   title: {
     fontSize: "2rem",
     fontWeight: "700",
-    color: "#fff",
+    color: "#ffffff",
   },
 
   subtitle: {
     fontSize: "1rem",
-    color: "#e0e0e0",
+    color: "#d1d5db",
     marginBottom: "1rem",
   },
 
@@ -294,8 +292,8 @@ const styles = {
     width: "100%",
     padding: "0.9rem",
     borderRadius: "10px",
-    border: "1px solid rgba(255,255,255,0.3)",
-    background: "rgba(255,255,255,0.2)",
+    border: "1px solid rgba(255,255,255,0.5)",
+    background: "rgba(0,0,0,0.3)",
     color: "#fff",
     fontSize: "1rem",
     outline: "none",
@@ -315,12 +313,12 @@ const styles = {
 
   switchText: {
     marginTop: "0.5rem",
-    color: "#e0e0e0",
+    color: "#d1d5db",
     textAlign: "center",
   },
 
   switchLink: {
-    color: "#fff",
+    color: "#ffffff",
     cursor: "pointer",
     textDecoration: "underline",
     fontWeight: "600",
