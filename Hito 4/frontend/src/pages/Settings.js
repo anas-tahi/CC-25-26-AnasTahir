@@ -1,26 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import Swal from 'sweetalert2';
 import { authAPI } from '../services/api';
+import { UserContext } from '../context/UserContext';   // ⭐ NEW
 
 const Settings = () => {
-  const [user, setUser] = useState(null);
+  const { user, setUser, fetchUser } = useContext(UserContext); // ⭐ NEW
   const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
 
+  // ⭐ Load user from context instead of fetching manually
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await authAPI.get('/me');
-        setUser(res.data);
-      } catch (err) {
-        console.error('❌ Failed to fetch user info:', err);
-      }
-    };
-    fetchUser();
-  }, []);
+    if (!user) fetchUser();
+  }, [user, fetchUser]);
 
   const handleChange = (e) =>
     setUser({ ...user, [e.target.name]: e.target.value });
@@ -30,7 +24,11 @@ const Settings = () => {
 
   const handleSave = async () => {
     try {
-      await authAPI.put('/update', user);
+      const res = await authAPI.put('/update', user);
+
+      // ⭐ Update global user instantly
+      setUser(res.data);
+
       Swal.fire('✅ Saved!', 'Your profile has been updated.', 'success');
     } catch (err) {
       console.error('❌ Failed to update user info:', err);
@@ -276,3 +274,4 @@ const styles = {
 };
 
 export default Settings;
+  

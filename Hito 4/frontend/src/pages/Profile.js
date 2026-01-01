@@ -1,38 +1,37 @@
-import { useEffect, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../context/UserContext';   // ⭐ NEW
 import { authAPI } from '../services/api';
 
 const Profile = () => {
-  const token = localStorage.getItem('token');
-  const [user, setUser] = useState(null);
+  const { user, setUser, fetchUser } = useContext(UserContext); // ⭐ NEW
   const [avatar, setAvatar] = useState(null);
   const navigate = useNavigate();
 
+  // ⭐ Load user from context instead of fetching manually
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await authAPI.get('/me');
-        setUser(res.data);
-        setAvatar(res.data.avatar || null);
-      } catch (err) {
-        console.error('❌ Failed to fetch profile:', err);
-      }
-    };
-    if (token) fetchUser();
-  }, [token]);
+    if (user) {
+      setAvatar(user.avatar || null);
+    } else {
+      fetchUser();
+    }
+  }, [user, fetchUser]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    window.location.href = '/login';
+    navigate('/login');
   };
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onloadend = () => {
       setAvatar(reader.result);
-      // Optional: send to backend
+
+      // Optional: send avatar to backend
+      // authAPI.put('/update-avatar', { avatar: reader.result });
     };
     reader.readAsDataURL(file);
   };
@@ -67,6 +66,7 @@ const Profile = () => {
               {user.name.charAt(0).toUpperCase()}
             </div>
           )}
+
           <label style={styles.uploadLabel}>
             🖼️ Upload
             <input

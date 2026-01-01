@@ -18,11 +18,15 @@ export const FavoritesProvider = ({ children }) => {
         }
       );
 
-      const count = res.data.length;
-      setFavoritesCount(count);
+      setFavoritesCount(res.data.length);
     } catch (err) {
       console.error("Failed to fetch favorites count:", err);
     }
+  };
+
+  // 🔥 NEW: decrease count instantly without waiting for backend
+  const decreaseFavoritesCount = () => {
+    setFavoritesCount(prev => Math.max(prev - 1, 0));
   };
 
   useEffect(() => {
@@ -30,7 +34,13 @@ export const FavoritesProvider = ({ children }) => {
   }, []);
 
   return (
-    <FavoritesContext.Provider value={{ favoritesCount, fetchFavoritesCount }}>
+    <FavoritesContext.Provider
+      value={{
+        favoritesCount,
+        fetchFavoritesCount,
+        decreaseFavoritesCount
+      }}
+    >
       {children}
     </FavoritesContext.Provider>
   );

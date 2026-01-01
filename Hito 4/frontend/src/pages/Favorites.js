@@ -1,12 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { FiTag, FiTrash2 } from "react-icons/fi";
 import { FaStore } from "react-icons/fa";
 import Swal from "sweetalert2";
+import { FavoritesContext } from "../context/FavoritesContext";
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
   const token = localStorage.getItem("token");
+
+  // ⭐ NEW: import context functions
+  const { fetchFavoritesCount, decreaseFavoritesCount } = useContext(FavoritesContext);
 
   // ✅ Fetch favorites on load
   useEffect(() => {
@@ -26,7 +30,7 @@ const Favorites = () => {
     fetchFavorites();
   }, [token]);
 
-  // ✅ Delete favorite item with SweetAlert2
+  // ⭐ UPDATED: Delete favorite item + update navbar count
   const handleDelete = async (productId) => {
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -48,7 +52,14 @@ const Favorites = () => {
         }
       );
 
+      // 🔥 Update UI instantly
       setFavorites((prev) => prev.filter((item) => item._id !== productId));
+
+      // 🔥 Update navbar instantly
+      decreaseFavoritesCount();
+
+      // 🔥 Sync with backend
+      fetchFavoritesCount();
 
       Swal.fire({
         title: "Deleted!",
