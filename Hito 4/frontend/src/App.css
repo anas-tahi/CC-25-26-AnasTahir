@@ -41,8 +41,10 @@
 }
 
 .logo {
-  height: 40px;
-  border-radius: 6px;
+  height: 40px; /* adjust size */ 
+  width: auto; 
+  object-fit: contain; 
+  cursor: pointer; 
 }
 
 .title {
