@@ -11,6 +11,8 @@ import { LanguageContext } from '../context/LanguageContext';
 import { UserContext } from '../context/UserContext';
 import { ThemeContext } from '../context/ThemeContext';
 
+import './navbar.css';
+
 const Navbar = ({ setToken }) => {
   const { lang, changeLanguage } = useContext(LanguageContext);
   const { favoritesCount } = useContext(FavoritesContext);
@@ -22,7 +24,6 @@ const Navbar = ({ setToken }) => {
 
   const [showProfile, setShowProfile] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -78,34 +79,27 @@ const Navbar = ({ setToken }) => {
           <span className="title">CompraSmart</span>
         </Link>
 
-        {/* Desktop Links */}
         <div className="nav-links desktop-only">
           <Link to="/home" className="nav-link"><AiOutlineHome /> {t.home}</Link>
           <Link to="/products" className="nav-link"><FiBox /> {t.products}</Link>
           <Link to="/compare" className="nav-link"><MdCompareArrows /> {t.compare}</Link>
-
           {token && (
             <div className="favorites-wrapper">
-              <Link to="/favorites" className="nav-link">
-                <FiHeart /> {t.favorites}
-              </Link>
+              <Link to="/favorites" className="nav-link"><FiHeart /> {t.favorites}</Link>
               {favoritesCount > 0 && <span className="badge">{favoritesCount}</span>}
             </div>
           )}
-
           <Link to="/settings" className="nav-link"><FiSettings /> {t.settings}</Link>
         </div>
       </div>
 
       {/* RIGHT SIDE */}
       <div className="nav-right">
-        {/* Profile Dropdown */}
         {token && user && (
           <div className="profile-container" ref={dropdownRef}>
             <button onClick={toggleProfile} className="profile-button">
               <FiUser /> {user.name} ⏷
             </button>
-
             {showProfile && (
               <div className="dropdown-menu">
                 <button onClick={() => navigate('/profile')} className="dropdown-item">{t.viewProfile}</button>
@@ -117,22 +111,15 @@ const Navbar = ({ setToken }) => {
           </div>
         )}
 
-        {/* Language */}
-        <select
-          value={lang}
-          onChange={(e) => changeLanguage(e.target.value)}
-          className="lang-select"
-        >
+        <select value={lang} onChange={(e) => changeLanguage(e.target.value)} className="lang-select">
           <option value="en">English</option>
           <option value="es">Español</option>
         </select>
 
-        {/* Theme Toggle */}
         <button onClick={toggleTheme} className="theme-btn">
           {theme === 'light' ? <BsMoon /> : <BsSun />}
         </button>
 
-        {/* Mobile Menu Button */}
         <button className="mobile-menu-btn" onClick={toggleMobile}>
           {mobileOpen ? <FiX /> : <FiMenu />}
         </button>
