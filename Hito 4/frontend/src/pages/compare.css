@@ -9,6 +9,12 @@
   font-family: 'Inter', sans-serif;
   background: var(--bg);
   color: var(--text);
+  animation: fadePage 0.4s ease;
+}
+
+@keyframes fadePage {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* ================================
@@ -24,18 +30,10 @@
 
 .compare-heading span {
   background: linear-gradient(90deg, #007bff, #ff4081);
-
-  /* Standard property */
   background-clip: text;
-
-  /* Vendor prefixes for compatibility */
   -webkit-background-clip: text;
-  -moz-background-clip: text;
-
-  /* Required to make the clipped text visible */
   color: transparent;
 }
-
 
 /* ================================
    SEARCH BOX
@@ -118,6 +116,12 @@
   overflow-y: auto;
   z-index: 20;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  animation: dropdownFade 0.25s ease;
+}
+
+@keyframes dropdownFade {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .suggestion {
@@ -286,6 +290,12 @@
   gap: 0.4rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  animation: fadeCard 0.35s ease forwards;
+}
+
+@keyframes fadeCard {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .result-card:hover {
@@ -298,6 +308,10 @@
   border: 2px solid #28a745;
   box-shadow: 0 10px 26px rgba(40,167,69,0.35);
   background: radial-gradient(circle at top left, #e9ffe9, var(--card));
+}
+
+.result-card.best:hover {
+  box-shadow: 0 12px 30px rgba(40,167,69,0.45);
 }
 
 .result-supermarket {
@@ -376,6 +390,23 @@
   border: 1px solid var(--border);
 }
 
+/* Map shimmer loading */
+#map.loading {
+  background: linear-gradient(
+    90deg,
+    #e0e0e0 0%,
+    #f5f5f5 50%,
+    #e0e0e0 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 .map-loading {
   font-size: 0.9rem;
   color: #555;
@@ -425,17 +456,9 @@
   cursor: pointer;
 }
 
-/* ================================
-   ANIMATIONS
-================================ */
 @keyframes slideUp {
   from { opacity: 0; transform: translate(-50%, 20px); }
   to { opacity: 1; transform: translate(-50%, 0); }
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ================================

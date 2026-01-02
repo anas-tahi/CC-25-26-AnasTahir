@@ -6,7 +6,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Swal from "sweetalert2";
 import { FavoritesContext } from "../context/FavoritesContext";
-import "./compare.css"; // ⭐ NEW — imports the CSS you added
+import "./compare.css";
 
 const Compare = () => {
   const [query, setQuery] = useState("");
@@ -15,7 +15,6 @@ const Compare = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [matches, setMatches] = useState([]);
-  const [popupMsg, setPopupMsg] = useState("");
   const [userLocation, setUserLocation] = useState(null);
   const [nearestStore, setNearestStore] = useState(null);
   const [googleMapsLink, setGoogleMapsLink] = useState("");
@@ -27,11 +26,9 @@ const Compare = () => {
   const [addressError, setAddressError] = useState("");
 
   const token = localStorage.getItem("token");
-
   const mapRef = useRef(null);
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
-
   const { fetchFavoritesCount } = useContext(FavoritesContext);
 
   // ============================
@@ -126,16 +123,10 @@ const Compare = () => {
 
     if (isExact) {
       try {
-        const res = await productAPI.get(
-          `/compare/${encodeURIComponent(query)}`
-        );
-
+        const res = await productAPI.get(`/compare/${encodeURIComponent(query)}`);
         setResult(res.data);
         setMatches([]);
         setError("");
-        setPopupMsg(
-          `🎉 The cheapest product is in ${res.data.cheapest.supermarket}!`
-        );
       } catch (err) {
         console.error("Compare error:", err);
         setResult(null);
@@ -143,10 +134,7 @@ const Compare = () => {
       }
     } else {
       try {
-        const res = await productAPI.get(
-          `/names/${encodeURIComponent(query)}`
-        );
-
+        const res = await productAPI.get(`/names/${encodeURIComponent(query)}`);
         setMatches(res.data);
         setResult(null);
         setError("");
@@ -170,19 +158,12 @@ const Compare = () => {
     } catch {}
 
     try {
-      const res = await productAPI.get(
-        `/compare/${encodeURIComponent(name)}`
-      );
-
+      const res = await productAPI.get(`/compare/${encodeURIComponent(name)}`);
       setResult(res.data);
       setMatches([]);
       setQuery(name);
       setSuggestions([]);
       setError("");
-
-      setPopupMsg(
-        `🎉 The cheapest product is in ${res.data.cheapest.supermarket}!`
-      );
 
       if (!userLocation) {
         setShowLocationPrompt(true);
@@ -209,13 +190,11 @@ const Compare = () => {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`
       );
-
       const data = await res.json();
 
       if (Array.isArray(data) && data.length > 0) {
         const lat = parseFloat(data[0].lat);
         const lon = parseFloat(data[0].lon);
-
         setUserLocation({ lat, lng: lon });
         setShowLocationPrompt(false);
         return true;
@@ -245,9 +224,7 @@ const Compare = () => {
         },
         (err) => {
           console.error("Geolocation error:", err);
-          setAddressError(
-            "Geolocation failed or denied. Enter address instead."
-          );
+          setAddressError("Geolocation failed or denied. Enter address instead.");
         }
       );
     } else {
@@ -287,7 +264,6 @@ const Compare = () => {
   const scrollIntoView = (index) => {
     const dropdown = dropdownRef.current;
     if (!dropdown) return;
-
     const item = dropdown.querySelectorAll(".suggestion")[index];
     if (item) item.scrollIntoView({ block: "nearest" });
   };
@@ -313,7 +289,6 @@ const Compare = () => {
     if (!result || !mapRef.current) return;
 
     const map = L.map(mapRef.current);
-
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
@@ -372,9 +347,7 @@ const Compare = () => {
     };
 
     if (userLocation) {
-      const viewbox = `${userLocation.lng - 0.05},${
-        userLocation.lat + 0.05
-      },${userLocation.lng + 0.05},${userLocation.lat - 0.05}`;
+      const viewbox = `${userLocation.lng - 0.05},${userLocation.lat + 0.05},${userLocation.lng + 0.05},${userLocation.lat - 0.05}`;
 
       fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1&viewbox=${viewbox}&bounded=1`
@@ -415,9 +388,7 @@ const Compare = () => {
   // ============================
   return (
     <div className="compare-container">
-      <h2 className="compare-heading">
-        🔍 <span>Compare Product Prices</span>
-      </h2>
+      <h2 className="compare-heading">🔍 <span>Compare Product Prices</span></h2>
 
       {/* SEARCH BOX */}
       <div className="search-box" ref={dropdownRef}>
@@ -440,9 +411,7 @@ const Compare = () => {
             {suggestions.map((name, i) => (
               <li
                 key={i}
-                className={`suggestion ${
-                  highlightIndex === i ? "active" : ""
-                }`}
+                className={`suggestion ${highlightIndex === i ? "active" : ""}`}
                 onMouseEnter={() => setHighlightIndex(i)}
                 onClick={() => handleSelectProduct(name)}
               >
@@ -457,15 +426,11 @@ const Compare = () => {
           <div className="location-prompt">
             <h4 className="location-prompt-title">Where are you located?</h4>
             <p className="location-prompt-text">
-              Allow the browser to detect your location or enter an address/place
-              (city, street, postal code).
+              Allow the browser to detect your location or enter an address/place.
             </p>
 
             <div className="location-controls">
-              <button
-                onClick={handleUseGeolocation}
-                className="location-button-primary"
-              >
+              <button onClick={handleUseGeolocation} className="location-button-primary">
                 Use my current location
               </button>
 
@@ -486,9 +451,7 @@ const Compare = () => {
               </button>
             </div>
 
-            {addressError && (
-              <p className="location-error">{addressError}</p>
-            )}
+            {addressError && <p className="location-error">{addressError}</p>}
           </div>
         )}
 
@@ -532,26 +495,18 @@ const Compare = () => {
                 p.price === result.cheapest.price;
 
               return (
-                <div
-                  key={i}
-                  className={`result-card ${isBest ? "best" : ""}`}
-                >
+                <div key={i} className={`result-card ${isBest ? "best" : ""}`}>
                   <div className="result-supermarket">{p.supermarket}</div>
 
                   <div className="result-price-row">
                     <div>
-                      <div className="result-price">
-                        {p.price.toFixed(2)} €
-                      </div>
-
-                      {isBest && (
-                        <div className="best-badge">✅ Cheapest</div>
-                      )}
+                      <div className="result-price">{p.price.toFixed(2)} €</div>
+                      {isBest && <div className="best-badge">✅ Cheapest</div>}
                     </div>
 
                     {isBest && (
                       <button
-                        onClick={() => handleAddToWishlist(p._id)}
+                        onClick={() => handleAddToWishlist(p.id)}
                         className="wishlist-btn"
                       >
                         ❤️ Wishlist
@@ -571,9 +526,7 @@ const Compare = () => {
           {/* MAP */}
           <div className="map-section">
             {mapLoading && (
-              <p className="map-loading">
-                Loading map for the cheapest store…
-              </p>
+              <p className="map-loading">Loading map for the cheapest store…</p>
             )}
 
             <div id="map" ref={mapRef}></div>
@@ -589,13 +542,6 @@ const Compare = () => {
               </a>
             )}
           </div>
-        </div>
-      )}
-
-      {/* POPUP MESSAGE */}
-      {popupMsg && (
-        <div className="popup-msg" onClick={() => setPopupMsg("")}>
-          {popupMsg}
         </div>
       )}
     </div>

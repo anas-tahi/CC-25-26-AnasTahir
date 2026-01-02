@@ -186,129 +186,6 @@
   }
 }
 
-/* FAVORITES PAGE */
-.favorites-container {
-  padding: 2rem;
-  background: var(--bg);
-  min-height: 100vh;
-  position: relative;
-}
-
-.favorites-heading {
-  font-size: 2.2rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
-  text-align: center;
-  color: var(--text);
-}
-
-.favorites-empty {
-  text-align: center;
-  font-size: 1.2rem;
-  color: var(--text);
-  opacity: 0.7;
-}
-
-.favorites-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 2rem;
-  padding-bottom: 6rem;
-}
-
-.favorites-card {
-  background: var(--card);
-  border-radius: 14px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-  border: 1px solid var(--border);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.favorites-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.18);
-}
-
-.favorites-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.favorites-card-title {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.favorites-card-item {
-  font-size: 1rem;
-  color: var(--text);
-  opacity: 0.8;
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-}
-
-.favorites-icon {
-  margin-right: 0.5rem;
-  opacity: 0.6;
-}
-
-.favorites-icon-small {
-  margin-right: 0.3rem;
-}
-
-.favorites-delete-btn {
-  background: none;
-  border: none;
-  color: #e74c3c;
-  font-size: 1.3rem;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.favorites-delete-btn:hover {
-  transform: scale(1.15);
-}
-
-/* Sticky Total Bar */
-.favorites-total-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: var(--card);
-  padding: 1rem;
-  box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
-  text-align: center;
-  border-top: 1px solid var(--border);
-  z-index: 100;
-}
-
-.favorites-total-text {
-  font-size: 1.2rem;
-  color: var(--text);
-  font-weight: 600;
-}
-
-/* MOBILE */
-@media (max-width: 480px) {
-  .favorites-heading {
-    font-size: 1.8rem;
-  }
-
-  .favorites-card {
-    padding: 1.2rem;
-  }
-
-  .favorites-total-text {
-    font-size: 1rem;
-  }
-}
-
 /* SETTINGS PAGE */
 .settings-container {
   padding: 2rem;
@@ -390,41 +267,6 @@
 .settings-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-/* Animations */
-.fade-in {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 0.6s forwards;
-}
-
-.delay-1 { animation-delay: 0.2s; }
-.delay-2 { animation-delay: 0.4s; }
-
-@keyframes fadeInUp {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.pulse-danger {
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
-/* MOBILE */
-@media (max-width: 480px) {
-  .settings-card {
-    padding: 1.5rem;
-  }
-
-  .settings-title {
-    font-size: 1.6rem;
-  }
 }
 
 /* PROFILE PAGE */
@@ -570,6 +412,7 @@
     font-size: 1.6rem;
   }
 }
+
 /* USER GUIDE PAGE */
 .guide-container {
   padding: 2rem;
