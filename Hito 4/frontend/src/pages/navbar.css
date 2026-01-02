@@ -1,0 +1,270 @@
+/* ================================
+   NAVBAR CONTAINER
+================================ */
+.navbar {
+  background: var(--bg);
+  color: var(--text);
+  padding: 0.8rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* ================================
+   LEFT SIDE
+================================ */
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+/* Logo + Title */
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+}
+
+.logo {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Nav links */
+.nav-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+/* ⭐ Modern hover effect */
+.nav-link:hover {
+  background: var(--card);
+  transform: translateY(-2px);
+}
+
+/* Favorites badge */
+.favorites-wrapper {
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  background: #e74c3c;
+  color: #fff;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* ================================
+   RIGHT SIDE
+================================ */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Language selector */
+.lang-select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease;
+}
+
+.lang-select:hover {
+  border-color: #007bff;
+}
+
+/* Theme toggle */
+.theme-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* ================================
+   PROFILE DROPDOWN
+================================ */
+.profile-container {
+  position: relative;
+}
+
+.profile-button {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: opacity 0.2s ease;
+}
+
+.profile-button:hover {
+  opacity: 0.7;
+}
+
+/* Dropdown */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--card);
+  color: var(--text);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.4rem;
+  z-index: 10;
+  animation: fadeIn 0.2s ease;
+}
+
+.dropdown-item {
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background 0.2s ease, padding-left 0.2s ease;
+}
+
+/* ⭐ Smooth hover */
+.dropdown-item:hover {
+  background: rgba(0,0,0,0.05);
+  padding-left: 1.2rem;
+}
+
+.dropdown-item.logout {
+  color: #dc3545;
+}
+
+/* ================================
+   MOBILE MENU
+================================ */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.mobile-menu-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Mobile menu container */
+.mobile-menu {
+  display: none;
+}
+
+/* ================================
+   RESPONSIVE
+================================ */
+@media (max-width: 900px) {
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  /* ⭐ Animated mobile menu */
+  .mobile-menu {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    padding: 1rem;
+    gap: 1rem;
+    animation: slideDown 0.25s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .mobile-link {
+    text-decoration: none;
+    color: var(--text);
+    font-size: 1.15rem;
+    padding: 0.7rem 0;
+    border-radius: 6px;
+    transition: background 0.2s ease, padding-left 0.2s ease;
+  }
+
+  /* ⭐ Mobile hover/tap effect */
+  .mobile-link:hover {
+    background: var(--card);
+    padding-left: 0.6rem;
+  }
+}
+
+/* ================================
+   ANIMATIONS
+================================ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
