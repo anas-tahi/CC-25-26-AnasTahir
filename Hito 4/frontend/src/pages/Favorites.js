@@ -22,6 +22,8 @@ const Favorites = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+
+        // ⭐ Backend returns product.id, not _id
         setFavorites(res.data);
       } catch (err) {
         console.error("Failed to load favorites:", err);
@@ -53,7 +55,8 @@ const Favorites = () => {
         }
       );
 
-      setFavorites((prev) => prev.filter((item) => item._id !== productId));
+      // ⭐ FIX: use item.id
+      setFavorites((prev) => prev.filter((item) => item.id !== productId));
 
       decreaseFavoritesCount();
       fetchFavoritesCount();
@@ -98,9 +101,10 @@ const Favorites = () => {
                 <div className="favorites-card-header">
                   <h3 className="favorites-card-title">{item.name}</h3>
 
+                  {/* ⭐ FIX: use item.id */}
                   <button
                     className="favorites-delete-btn"
-                    onClick={() => handleDelete(item._id)}
+                    onClick={() => handleDelete(item.id)}
                     title="Remove from favorites"
                   >
                     <FiTrash2 />
