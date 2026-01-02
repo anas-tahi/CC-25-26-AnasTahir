@@ -4,6 +4,13 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const auth = require("../middleware/auth");
 
+// Helper: sanitize user before sending to frontend
+const sanitizeUser = (user) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+});
+
 // REGISTER
 router.post("/register", async (req, res) => {
   try {
@@ -41,6 +48,8 @@ router.post("/login", async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    // You only send token (good, nothing sensitive)
     res.json({ token });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -52,7 +61,9 @@ router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
+
+    // ⭐ sanitized response
+    res.json(sanitizeUser(user));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -66,7 +77,9 @@ router.put("/update", auth, async (req, res) => {
       { name, email },
       { new: true }
     ).select("-password");
-    res.json(updated);
+
+    // ⭐ sanitized response
+    res.json(sanitizeUser(updated));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -107,7 +120,5 @@ router.delete("/delete", auth, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
-
 
 module.exports = router;

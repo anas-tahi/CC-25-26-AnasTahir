@@ -4,6 +4,9 @@ const Wishlist = require('../models/Wishlist');
 const Product = require('../models/Product');
 const authMiddleware = require('../middleware/auth');
 
+// Helper to sanitize product (relies on Product.toJSON)
+const sanitizeProduct = (p) => p.toJSON();
+
 // ✅ Add to wishlist
 router.post('/', authMiddleware, async (req, res) => {
   const { productId } = req.body;
@@ -55,7 +58,12 @@ router.get('/', authMiddleware, async (req, res) => {
 
   try {
     const items = await Wishlist.find({ userId }).populate('productId');
-    const products = items.map((entry) => entry.productId);
+
+    // ⭐ sanitize each populated product
+    const products = items
+      .filter(entry => entry.productId) // just in case
+      .map((entry) => sanitizeProduct(entry.productId));
+
     res.json(products);
   } catch (err) {
     console.error('Error fetching wishlist:', err);

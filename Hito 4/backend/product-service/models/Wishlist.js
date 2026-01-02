@@ -5,6 +5,14 @@ const wishlistSchema = new mongoose.Schema({
   productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
 });
 
+// ⭐ Sanitize output
+wishlistSchema.methods.toJSON = function () {
+  return {
+    id: this._id,
+    productId: this.productId,
+  };
+};
+
 const Wishlist = mongoose.model('Wishlist', wishlistSchema);
 
 module.exports = Wishlist;

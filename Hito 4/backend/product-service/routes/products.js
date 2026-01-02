@@ -3,11 +3,14 @@ const router = express.Router();
 const Product = require("../models/Product");
 const auth = require("../middleware/auth");
 
+// Helper to sanitize product (relies on model.toJSON)
+const sanitizeProduct = (p) => p.toJSON();
+
 // ✅ Get all products (for recommendations)
 router.get("/", async (req, res) => {
   try {
     const products = await Product.find({});
-    res.json(products);
+    res.json(products.map(sanitizeProduct));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -17,7 +20,7 @@ router.get("/", async (req, res) => {
 router.get("/recommendations", async (req, res) => {
   try {
     const products = await Product.find({});
-    res.json(products);
+    res.json(products.map(sanitizeProduct));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -93,7 +96,7 @@ router.get("/compare/:name", auth, async (req, res) => {
 
     res.json({
       product: rawName,
-      supermarkets: filtered,
+      supermarkets: filtered.map(sanitizeProduct),
       cheapest: {
         supermarket: cheapest.supermarket,
         price: cheapest.price
@@ -118,8 +121,6 @@ router.get("/names/:prefix", async (req, res) => {
   }
 });
 
-// (moved above to avoid route shadowing)
-
 // ✅ Get products by exact name
 router.get("/:name", async (req, res) => {
   try {
@@ -140,7 +141,7 @@ router.get("/:name", async (req, res) => {
     if (filtered.length === 0)
       return res.status(404).json({ message: "No products found" });
 
-    res.json(filtered);
+    res.json(filtered.map(sanitizeProduct));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

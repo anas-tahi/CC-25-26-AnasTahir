@@ -6,4 +6,14 @@ const commentSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+// ⭐ Sanitize output
+commentSchema.methods.toJSON = function () {
+  return {
+    id: this._id,
+    name: this.name,
+    message: this.message,
+    createdAt: this.createdAt
+  };
+};
+
 module.exports = mongoose.model("Comment", commentSchema);
