@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import { authAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
-import GeminiImage from "../pages/logos/Gemini_Generated_Image_pqac0epqac0epqac.png";
+import GeminiImage from "./logos/Gemini_Generated_Image_pqac0epqac0epqac.png";
 
 const AuthLanding = ({ setToken }) => {
   const [mode, setMode] = useState("login");
