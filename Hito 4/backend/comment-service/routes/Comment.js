@@ -5,7 +5,7 @@ const Comment = require("../models/Comment");
 router.get("/", async (req, res) => {
   try {
     const comments = await Comment.find({}).sort({ createdAt: -1 });
-    res.json(comments.map(c => c.toJSON()));
+    res.json(comments.map((c) => c.toJSON()));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -18,10 +18,12 @@ router.post("/", async (req, res) => {
     const finalMessage = message || text;
 
     if (!name || !finalMessage) {
-      return res.status(400).json({ message: "Name and message are required" });
+      return res
+        .status(400)
+        .json({ message: "Name and message are required" });
     }
 
-    // ⭐ Check last comment by this user
+    // ⭐ Check last comment by this user (rate limit 5 min)
     const lastComment = await Comment.findOne({ name }).sort({ createdAt: -1 });
 
     if (lastComment) {
@@ -32,18 +34,23 @@ router.post("/", async (req, res) => {
       if (diffMinutes < 5) {
         const remaining = Math.ceil(5 - diffMinutes);
         return res.status(429).json({
-          message: `Please wait ${remaining} more minute(s) before commenting again.`
+          message: `Please wait ${remaining} more minute(s) before commenting again.`,
         });
       }
     }
 
-    // ⭐ Save new comment
+    // ⭐ Create comment object
     const newComment = new Comment({ name, message: finalMessage });
-    await newComment.save();
 
+    // ⭐ Respond immediately (no DB wait)
     res.json({
-      message: "Comment saved successfully.",
-      comment: newComment.toJSON()
+      message: "Comment received.",
+      comment: newComment.toJSON(),
+    });
+
+    // ⭐ Save to DB in background (does NOT block response)
+    newComment.save().catch((err) => {
+      console.error("❌ Failed to save comment:", err);
     });
   } catch (error) {
     res.status(500).json({ error: "Server error" });

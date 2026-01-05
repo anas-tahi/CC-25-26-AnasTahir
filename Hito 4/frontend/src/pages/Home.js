@@ -9,7 +9,7 @@ import diaLogo from "./logos/dia.png";
 
 import { LanguageContext } from "../context/LanguageContext";
 
-import "./home.css"; // ⭐ NEW — imports your cleaned CSS
+import "./home.css";
 
 const Home = () => {
   const { lang } = useContext(LanguageContext);
@@ -56,25 +56,29 @@ const Home = () => {
   };
 
   // ============================
-  // SUBMIT COMMENT
+  // SUBMIT COMMENT (Optimistic, instant UX)
   // ============================
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
 
+    const newComment = {
+      name: comment.name,
+      message: comment.message,
+      createdAt: new Date().toISOString(),
+    };
+
+    // ⭐ 1) INSTANT FEEDBACK – no waiting for backend
+    alert(lang === "es" ? "✅ Comentario enviado!" : "✅ Comment submitted!");
+
+    // ⭐ 2) CLEAR INPUT IMMEDIATELY
+    setComment({ name: user?.name || "", message: "" });
+
+    // ⭐ 3) SEND TO BACKEND IN BACKGROUND
     try {
-      await commentAPI.post("/", comment);
-
-      alert(lang === "es" ? "✅ Comentario enviado!" : "✅ Comment submitted!");
-
-      setComment({ name: user?.name || "", message: "" });
+      await commentAPI.post("/", newComment);
     } catch (err) {
       console.error("❌ Failed to submit comment:", err);
-
-      alert(
-        lang === "es"
-          ? "❌ Error al enviar comentario."
-          : "❌ Failed to submit comment."
-      );
+      // No need to block UX; backend failure is logged
     }
   };
 
