@@ -114,6 +114,9 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* ⭐ REQUIRED FOR RENDER + REACT ROUTER V7 */}
+        <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
 
       <ToastContainer
