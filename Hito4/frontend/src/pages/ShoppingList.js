@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { FiSearch } from "react-icons/fi";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./shoppingList.css";
@@ -12,7 +11,6 @@ const ShoppingList = () => {
 
   const [items, setItems] = useState([]);
   const [result, setResult] = useState(null);
-  const [closing, setClosing] = useState(false);
 
   const [userLocation, setUserLocation] = useState(null);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
@@ -46,23 +44,29 @@ const ShoppingList = () => {
   // ============================
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (query.length < 2) return setSuggestions([]);
+      if (query.length < 1) return setSuggestions([]);
 
       try {
         const res = await axios.get(
           `https://product-service-3lsh.onrender.com/products?search=${query}`
         );
-        setSuggestions(res.data.products || []);
+        // Remove duplicates by name
+        const names = res.data.products || [];
+        const uniqueNames = Array.from(new Set(names.map(p => p.name))).map(
+          name => names.find(p => p.name === name)
+        );
+        setSuggestions(uniqueNames);
         setHighlightIndex(-1);
       } catch {
         setSuggestions([]);
       }
     };
+
     fetchSuggestions();
   }, [query]);
 
   // ============================
-  // ADD / REMOVE ITEMS
+  // ADD ITEM TO LIST
   // ============================
   const addItem = (name) => {
     if (!name || items.includes(name)) return;
@@ -71,29 +75,11 @@ const ShoppingList = () => {
     setSuggestions([]);
   };
 
+  // ============================
+  // REMOVE ITEM
+  // ============================
   const removeItem = (i) => {
     setItems(items.filter((_, idx) => idx !== i));
-  };
-
-  // ============================
-  // RESET COMPARISON
-  // ============================
-  const resetComparison = () => {
-    setClosing(true);
-    setTimeout(() => {
-      setResult(null);
-      setItems([]);
-      setQuery("");
-      setSuggestions([]);
-      setHighlightIndex(-1);
-      setUserLocation(null);
-      setShowLocationPrompt(false);
-      setManualAddress("");
-      setAddressError("");
-      setGoogleMapsLink("");
-      if (mapRef.current) mapRef.current.innerHTML = "";
-      setClosing(false);
-    }, 400);
   };
 
   // ============================
@@ -114,7 +100,9 @@ const ShoppingList = () => {
 
       setResult(res.data);
 
-      if (!userLocation) setShowLocationPrompt(true);
+      if (!userLocation) {
+        setShowLocationPrompt(true);
+      }
     } catch (err) {
       console.error("Compare list error:", err);
     }
@@ -127,6 +115,7 @@ const ShoppingList = () => {
   // ============================
   const geocodeAddress = async (address) => {
     setAddressError("");
+
     try {
       const q = encodeURIComponent(address);
       const res = await fetch(
@@ -142,6 +131,7 @@ const ShoppingList = () => {
         setShowLocationPrompt(false);
         return true;
       }
+
       setAddressError("Address not found.");
       return false;
     } catch {
@@ -184,8 +174,11 @@ const ShoppingList = () => {
       e.preventDefault();
       setHighlightIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
     } else if (e.key === "Enter") {
-      if (highlightIndex >= 0) addItem(suggestions[highlightIndex].name);
-      else addItem(query);
+      if (highlightIndex >= 0) {
+        addItem(suggestions[highlightIndex].name);
+      } else {
+        addItem(query);
+      }
     }
   };
 
@@ -194,6 +187,7 @@ const ShoppingList = () => {
   // ============================
   useEffect(() => {
     if (!result || !mapRef.current) return;
+
     mapRef.current.innerHTML = "";
 
     const map = L.map(mapRef.current);
@@ -208,7 +202,7 @@ const ShoppingList = () => {
     const addStoreMarker = (lat, lon) => {
       L.marker([lat, lon])
         .addTo(map)
-        .bindPopup(`${storeName} ✅ Cheapest`)
+        .bindPopup(`${storeName} (Cheapest)`)
         .openPopup();
 
       if (userLocation) {
@@ -235,13 +229,30 @@ const ShoppingList = () => {
       }
     };
 
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`)
+    fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`
+    )
       .then((res) => res.json())
       .then((data) => {
-        if (data.length > 0) addStoreMarker(parseFloat(data[0].lat), parseFloat(data[0].lon));
+        if (data.length > 0) {
+          addStoreMarker(
+            parseFloat(data[0].lat),
+            parseFloat(data[0].lon)
+          );
+        }
       })
       .catch((err) => console.error("Map error:", err));
+
+    return () => map.remove();
   }, [result, userLocation]);
+
+  // ============================
+  // EXIT COMPARISON VIEW
+  // ============================
+  const handleExitComparison = () => {
+    setResult(null);
+    setGoogleMapsLink("");
+  };
 
   // ============================
   // RENDER
@@ -252,85 +263,81 @@ const ShoppingList = () => {
 
       {!result && (
         <>
-          {/* SEARCH BOX */}
-          <div className="list-input-box search-box" ref={dropdownRef}>
-            <div className="input-wrapper">
-              <FiSearch className="search-icon" />
-              <input
-                type="text"
-                placeholder="Start typing a product name..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="list-input search-input"
-              />
-            </div>
-
-            {/* SUGGESTIONS */}
-            {suggestions.length > 0 && (
-              <ul className="dropdown list-suggestions">
-                {suggestions.map((s, i) => (
-                  <li
-                    key={i}
-                    className={`list-suggestion-item suggestion ${
-                      highlightIndex === i ? "active" : ""
-                    }`}
-                    onMouseEnter={() => setHighlightIndex(i)}
-                    onClick={() => addItem(s.name)}
-                  >
-                    {s.name}
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <button onClick={() => addItem(query)} className="compare-button list-add-btn">
+          <div className="list-input-box">
+            <input
+              type="text"
+              placeholder="Search product..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="list-input"
+            />
+            <button onClick={() => addItem(query)} className="list-add-btn">
               Add
             </button>
           </div>
+
+          {suggestions.length > 0 && (
+            <ul className="list-suggestions" ref={dropdownRef}>
+              {suggestions.map((s, i) => (
+                <li
+                  key={i}
+                  className={`list-suggestion-item ${
+                    highlightIndex === i ? "active" : ""
+                  }`}
+                  onClick={() => addItem(s.name)}
+                >
+                  {s.name}
+                </li>
+              ))}
+            </ul>
+          )}
 
           <ul className="list-items">
             {items.map((item, i) => (
               <li key={i} className="list-item">
                 {item}
-                <button className="list-remove-btn" onClick={() => removeItem(i)}>✖</button>
+                <button className="list-remove-btn" onClick={() => removeItem(i)}>
+                  ✖
+                </button>
               </li>
             ))}
           </ul>
 
-          <button onClick={compareList} className="list-compare-btn">Compare List</button>
+          <button onClick={compareList} className="list-compare-btn">
+            Compare List
+          </button>
         </>
       )}
 
       {showLocationPrompt && !result && (
         <div className="location-prompt">
           <h4>Where are you located?</h4>
-          <div className="location-controls">
-            <button className="location-button-primary" onClick={handleUseGeolocation}>Use my location</button>
-            <input
-              value={manualAddress}
-              onChange={(e) => setManualAddress(e.target.value)}
-              placeholder="Enter address"
-              className="location-input"
-            />
-            <button className="location-button-secondary" onClick={() => geocodeAddress(manualAddress)}>Search</button>
-          </div>
+          <button onClick={handleUseGeolocation}>Use my location</button>
+          <input
+            value={manualAddress}
+            onChange={(e) => setManualAddress(e.target.value)}
+            placeholder="Enter address"
+          />
+          <button onClick={() => geocodeAddress(manualAddress)}>Search</button>
           {addressError && <p className="location-error">{addressError}</p>}
         </div>
       )}
 
       {result && (
-        <div className={`list-results ${closing ? "fade-out" : "fade-in"}`}>
+        <div className="list-results">
           <button
-            onClick={resetComparison}
-            className="close-btn"
-            title="Close Comparison"
+            className="exit-comparison-btn"
+            onClick={handleExitComparison}
+            title="Exit Comparison"
           >
             ✖
           </button>
 
           <h2>🏆 Best Supermarket: {result.best.supermarket}</h2>
-          <p>Total: <strong>{result.best.total} €</strong></p>
+          <p>
+            Total: <strong>{result.best.total} €</strong>
+          </p>
 
           <h3>Full Breakdown</h3>
           <div className="list-grid">
