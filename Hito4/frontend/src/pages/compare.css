@@ -7,11 +7,37 @@
   padding: 2.5rem 1.5rem;
   min-height: 100vh;
   animation: fadeIn 0.45s ease;
+  position: relative;
+  font-family: "Inter", sans-serif;
+  color: var(--text-primary);
 }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   EXIT BUTTON
+============================================================ */
+.exit-btn-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.8rem;
+}
+
+.exit-btn {
+  font-size: 1.6rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #ff4d4f;
+  font-weight: 700;
+  transition: transform 0.2s ease;
+}
+
+.exit-btn:hover {
+  transform: scale(1.2);
 }
 
 /* ============================================================
@@ -22,7 +48,6 @@
   font-size: 2.4rem;
   font-weight: 800;
   margin-bottom: 2.5rem;
-  color: var(--text-primary);
   letter-spacing: -0.5px;
 }
 
@@ -163,52 +188,6 @@
 }
 
 /* ============================================================
-   LOCATION PROMPT
-============================================================ */
-.location-prompt {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: var(--card-bg);
-  border-radius: 14px;
-  box-shadow: var(--shadow-md);
-}
-
-.location-controls {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
-}
-
-.location-button-primary,
-.location-button-secondary {
-  padding: 0.55rem 1rem;
-  border-radius: 10px;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.location-button-primary {
-  background: #007bff;
-}
-
-.location-button-secondary {
-  background: #28a745;
-}
-
-.location-input {
-  flex: 1;
-  min-width: 200px;
-  padding: 0.55rem;
-  border-radius: 10px;
-  border: 1px solid var(--border-light);
-  background: var(--card-bg);
-  color: var(--text-primary);
-}
-
-/* ============================================================
    RESULT BOX
 ============================================================ */
 .result-box {
@@ -336,6 +315,88 @@
 }
 
 /* ============================================================
+   MODAL / MANUAL ADDRESS
+============================================================ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  padding: 1.5rem 2rem;
+  border-radius: 16px;
+  width: 340px;
+  max-width: 90%;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  cursor: move;
+  transition: 0.25s ease;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 0.55rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  margin-top: 0.8rem;
+  margin-bottom: 0.6rem;
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+.modal-content button {
+  width: 100%;
+  padding: 0.55rem;
+  border-radius: 10px;
+  border: none;
+  background: #007bff;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modal-content button:hover {
+  background: #0062cc;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  color: #ff4d4f;
+}
+
+.modal-close:hover {
+  transform: scale(1.2);
+}
+
+/* ============================================================
+   ERROR TEXT
+============================================================ */
+.error-text {
+  color: #ff4d4f;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+/* ============================================================
    RESPONSIVE
 ============================================================ */
 @media (max-width: 600px) {
@@ -345,5 +406,9 @@
 
   #map {
     height: 260px;
+  }
+
+  .modal-content {
+    width: 90%;
   }
 }
