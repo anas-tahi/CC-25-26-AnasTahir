@@ -1,127 +1,73 @@
 const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
-const auth = require("../middleware/auth");
 
-// Helper to sanitize product (relies on model.toJSON)
+// Sanitize helper
 const sanitizeProduct = (p) => p.toJSON();
 
-// ✅ Get all products (for recommendations)
+/* ============================
+   AUTOCOMPLETE SEARCH
+   GET /products?search=milk
+============================ */
 router.get("/", async (req, res) => {
   try {
-    const products = await Product.find({});
-    res.json(products.map(sanitizeProduct));
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+    const search = req.query.search;
 
-// ✅ NEW: Recommendations route (frontend expects this)
-router.get("/recommendations", async (req, res) => {
-  try {
-    const products = await Product.find({});
-    res.json(products.map(sanitizeProduct));
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// ✅ Get all unique product names (for autocomplete)
-router.get("/names", async (req, res) => {
-  try {
-    const products = await Product.find({});
-    const uniqueNames = [...new Set(products.map(p => p.name))];
-    res.json(uniqueNames);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// ✅ Compare all products
-router.get("/compare-all", async (req, res) => {
-  try {
-    const products = await Product.find({});
-    const grouped = {};
-
-    products.forEach(p => {
-      const normalizedName = p.name
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-      if (!grouped[normalizedName]) grouped[normalizedName] = [];
-      grouped[normalizedName].push(p);
-    });
-
-    const result = Object.keys(grouped).map(name => {
-      const items = grouped[name];
-      const cheapest = items.reduce((min, p) => (p.price < min.price ? p : min), items[0]);
-      return {
-        product: name,
-        cheapest: {
-          supermarket: cheapest.supermarket,
-          price: cheapest.price
-        }
-      };
-    });
-
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// ✅ Compare single product
-router.get("/compare/:name", auth, async (req, res) => {
-  try {
-    const rawName = req.params.name;
-    const normalizedQuery = rawName
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase();
-
-    const products = await Product.find({});
-    const filtered = products.filter(p => {
-      const normalizedName = p.name
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-      return normalizedName.includes(normalizedQuery);
-    });
-
-    if (filtered.length === 0) {
-      return res.status(404).json({ message: "No matching products found." });
+    if (!search) {
+      return res.json({ products: [] });
     }
 
-    const cheapest = filtered.reduce((min, p) => (p.price < min.price ? p : min), filtered[0]);
+    const products = await Product.find({
+      name: { $regex: search, $options: "i" },
+    }).limit(10);
 
     res.json({
-      product: rawName,
-      supermarkets: filtered.map(sanitizeProduct),
-      cheapest: {
-        supermarket: cheapest.supermarket,
-        price: cheapest.price
-      }
+      products: products.map((p) => ({
+        name: p.name,
+        supermarket: p.supermarket,
+        price: p.price,
+      })),
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// ✅ Get product names by prefix
+/* ============================
+   UNIQUE NAMES (prefix search)
+   GET /products/names/:prefix
+============================ */
 router.get("/names/:prefix", async (req, res) => {
   try {
     const prefix = req.params.prefix.toLowerCase();
+
     const products = await Product.find({
-      name: { $regex: `^${prefix}`, $options: "i" }
+      name: { $regex: `^${prefix}`, $options: "i" },
     });
-    const uniqueNames = [...new Set(products.map(p => p.name))];
-    res.json(uniqueNames);
+
+    const uniqueNames = [...new Set(products.map((p) => p.name))];
+
+    res.json(uniqueNames.map((name) => ({ name })));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// ✅ Get products by exact name
+/* ============================
+   GET ALL PRODUCTS
+============================ */
+router.get("/all", async (req, res) => {
+  try {
+    const products = await Product.find({});
+    res.json(products.map(sanitizeProduct));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/* ============================
+   GET PRODUCT BY EXACT NAME
+============================ */
 router.get("/:name", async (req, res) => {
   try {
     const nameParam = req.params.name
@@ -131,7 +77,7 @@ router.get("/:name", async (req, res) => {
 
     const products = await Product.find({});
     const filtered = products.filter(
-      p =>
+      (p) =>
         p.name
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
