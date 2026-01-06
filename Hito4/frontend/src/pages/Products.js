@@ -6,6 +6,8 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { FavoritesContext } from '../context/FavoritesContext';
 import { ThemeContext } from '../context/ThemeContext';
+import "./products.css";
+
 
 const Products = () => {
   const [recommended, setRecommended] = useState([]);

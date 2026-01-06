@@ -2,6 +2,8 @@ import { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 import { ThemeContext } from '../context/ThemeContext';
+import "./profile.css";
+
 
 const Profile = () => {
   const { user, fetchUser } = useContext(UserContext);

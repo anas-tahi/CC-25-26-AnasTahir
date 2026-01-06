@@ -3,6 +3,8 @@ import Swal from 'sweetalert2';
 import { authAPI } from '../services/api';
 import { UserContext } from '../context/UserContext';
 import { ThemeContext } from '../context/ThemeContext';
+import "./settings.css";
+
 
 const Settings = () => {
   const { user, setUser, fetchUser } = useContext(UserContext);

@@ -1,0 +1,170 @@
+/* ===========================
+   CONTAINER
+=========================== */
+.profile-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ===========================
+   BANNER
+=========================== */
+.profile-banner {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  padding: 40px 20px;
+  border-radius: 16px;
+  text-align: center;
+  margin-bottom: 35px;
+  box-shadow: var(--shadow-md);
+}
+
+.profile-banner-text {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 1px;
+}
+
+/* ===========================
+   PROFILE SECTION
+=========================== */
+.profile-section {
+  display: flex;
+  gap: 30px;
+  background: var(--card-bg);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ===========================
+   LEFT SIDE (AVATAR)
+=========================== */
+.profile-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Avatar image */
+.profile-avatar {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+/* Fallback avatar */
+.profile-avatar-fallback {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  font-size: 3rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+}
+
+/* Upload button */
+.profile-upload {
+  background: var(--accent);
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.25s ease;
+}
+
+.profile-upload:hover {
+  background: var(--accent-dark);
+}
+
+/* ===========================
+   RIGHT SIDE (TEXT + BUTTON)
+=========================== */
+.profile-right {
+  flex: 1;
+  min-width: 250px;
+}
+
+.profile-welcome {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.profile-thank {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+/* Logout button */
+.profile-logout {
+  background: #e74c3c;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.profile-logout:hover {
+  background: #c0392b;
+}
+
+/* ===========================
+   LOADING STATE
+=========================== */
+.profile-loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+/* ===========================
+   DARK MODE SUPPORT
+=========================== */
+:root {
+  --text-primary: #222;
+  --text-secondary: #555;
+  --card-bg: #ffffff;
+  --border-light: #e5e5e5;
+  --accent: #ff6b6b;
+  --accent-light: #ffe3e3;
+  --accent-dark: #b83232;
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+[data-theme="dark"] {
+  --text-primary: #f1f1f1;
+  --text-secondary: #cfcfcf;
+  --card-bg: #1e1e1e;
+  --border-light: #333;
+  --accent: #ff8e53;
+  --accent-light: #3a2b2b;
+  --accent-dark: #ffb38a;
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+}
