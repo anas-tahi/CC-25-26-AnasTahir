@@ -16,9 +16,7 @@ const Products = () => {
   useEffect(() => {
     const fetchRecommended = async () => {
       try {
-        // ✅ FIXED: Correct backend route
         const res = await productAPI.get('/products/recommended');
-
         const grouped = groupByName(res.data);
         const limited = Object.entries(grouped).slice(0, 6);
         setRecommended(limited);
@@ -40,13 +38,11 @@ const Products = () => {
     return map;
   };
 
-  // ⭐ Get cheapest product ID
   const getCheapestProductId = (items) => {
     if (!items.length) return null;
     return items.reduce((min, item) => (item.price < min.price ? item : min)).id;
   };
 
-  // ⭐ Add to wishlist
   const handleAddToWishlist = async (productId) => {
     const token = localStorage.getItem("token");
 
@@ -111,7 +107,6 @@ const Products = () => {
 
           return (
             <div key={index} className="product-card" style={{ animation: 'fadeInUp 0.6s ease forwards' }}>
-              
               <div className="product-badge">🔥 Recommended</div>
 
               <h3 className="product-title">{name}</h3>
@@ -128,7 +123,6 @@ const Products = () => {
                         <FiTag className="price-icon" /> {item.price.toFixed(2)}€
                       </span>
 
-                      {/* ⭐ Wishlist button only for cheapest */}
                       {item.id === cheapestId && (
                         <button
                           onClick={() => handleAddToWishlist(item.id)}

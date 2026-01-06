@@ -11,7 +11,6 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "Product list is required" });
     }
 
-    // Fetch ALL products in ONE query
     const allItems = await Product.find({ name: { $in: products } });
 
     const supermarketTotals = {};
@@ -24,7 +23,6 @@ router.post("/", async (req, res) => {
 
       const availableMarkets = items.map((i) => i.supermarket);
 
-      // Add prices
       for (const item of items) {
         const market = item.supermarket;
 
@@ -36,7 +34,6 @@ router.post("/", async (req, res) => {
         supermarketTotals[market] += item.price;
       }
 
-      // Count missing items
       for (const market of Object.keys(supermarketTotals)) {
         if (!availableMarkets.includes(market)) {
           supermarketMissing[market] = (supermarketMissing[market] || 0) + 1;

@@ -23,6 +23,7 @@ router.get("/", async (req, res) => {
 
     res.json({
       products: products.map((p) => ({
+        id: p.id,
         name: p.name,
         supermarket: p.supermarket,
         price: p.price,
@@ -40,7 +41,7 @@ router.get("/", async (req, res) => {
 ============================ */
 router.get("/recommended", async (req, res) => {
   try {
-    const products = await Product.find({}).limit(20);
+    const products = await Product.find({}).limit(50);
     res.json(products.map(sanitizeProduct));
   } catch (err) {
     console.error("Recommended error:", err);
@@ -71,7 +72,7 @@ router.get("/names/:prefix", async (req, res) => {
 
 /* ============================
    SINGLE PRODUCT COMPARISON
-   GET /products/compare/milk
+   GET /products/compare/:name
 ============================ */
 router.get("/compare/:name", async (req, res) => {
   try {
@@ -89,7 +90,6 @@ router.get("/compare/:name", async (req, res) => {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase();
-
       return normalizedName.includes(normalizedQuery);
     });
 
@@ -118,6 +118,7 @@ router.get("/compare/:name", async (req, res) => {
 
 /* ============================
    GET ALL PRODUCTS
+   GET /products/all
 ============================ */
 router.get("/all", async (req, res) => {
   try {
@@ -131,6 +132,7 @@ router.get("/all", async (req, res) => {
 
 /* ============================
    GET PRODUCT BY EXACT NAME
+   GET /products/:name
 ============================ */
 router.get("/:name", async (req, res) => {
   try {

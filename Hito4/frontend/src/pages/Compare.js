@@ -18,8 +18,6 @@ const Compare = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [nearestStore, setNearestStore] = useState(null);
   const [googleMapsLink, setGoogleMapsLink] = useState("");
-  const [googleSearchLink, setGoogleSearchLink] = useState("");
-  const [mapError, setMapError] = useState("");
   const [mapLoading, setMapLoading] = useState(false);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [manualAddress, setManualAddress] = useState("");
@@ -31,9 +29,6 @@ const Compare = () => {
   const inputRef = useRef(null);
   const { fetchFavoritesCount } = useContext(FavoritesContext);
 
-  // ============================
-  // GET USER LOCATION
-  // ============================
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -48,9 +43,6 @@ const Compare = () => {
     }
   }, []);
 
-  // ============================
-  // ADD TO WISHLIST
-  // ============================
   const handleAddToWishlist = async (productId) => {
     try {
       await axios.post(
@@ -88,9 +80,6 @@ const Compare = () => {
     }
   };
 
-  // ============================
-  // FETCH SUGGESTIONS
-  // ============================
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (!query.trim()) {
@@ -101,7 +90,6 @@ const Compare = () => {
       }
 
       try {
-        // backend: GET /products/names/:prefix -> [{ name }]
         const res = await productAPI.get(
           `/products/names/${encodeURIComponent(query)}`
         );
@@ -117,9 +105,6 @@ const Compare = () => {
     fetchSuggestions();
   }, [query]);
 
-  // ============================
-  // SEARCH HANDLER
-  // ============================
   const handleSearch = async () => {
     if (!query.trim()) return;
 
@@ -128,7 +113,6 @@ const Compare = () => {
 
     if (isExact) {
       try {
-        // backend: GET /products/compare/:name
         const res = await productAPI.get(
           `/products/compare/${encodeURIComponent(trimmed)}`
         );
@@ -157,15 +141,10 @@ const Compare = () => {
     }
   };
 
-  // ============================
-  // SELECT PRODUCT
-  // ============================
   const handleSelectProduct = async (name) => {
     try {
-      setMapError("");
-      setMapLoading(true);
       setGoogleMapsLink("");
-      setGoogleSearchLink("");
+      setMapLoading(true);
     } catch {}
 
     try {
@@ -192,9 +171,6 @@ const Compare = () => {
     }
   };
 
-  // ============================
-  // GEOCODE ADDRESS
-  // ============================
   const geocodeAddress = async (address) => {
     setAddressError("");
 
@@ -222,9 +198,6 @@ const Compare = () => {
     }
   };
 
-  // ============================
-  // USE BROWSER LOCATION
-  // ============================
   const handleUseGeolocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -245,9 +218,6 @@ const Compare = () => {
     }
   };
 
-  // ============================
-  // KEYBOARD NAVIGATION
-  // ============================
   const handleKeyDown = (e) => {
     if (suggestions.length === 0) return;
 
@@ -281,9 +251,6 @@ const Compare = () => {
     if (item) item.scrollIntoView({ block: "nearest" });
   };
 
-  // ============================
-  // CLOSE DROPDOWN ON OUTSIDE CLICK
-  // ============================
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -295,9 +262,6 @@ const Compare = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // ============================
-  // MAP LOGIC
-  // ============================
   useEffect(() => {
     if (!result || !mapRef.current) return;
 
@@ -398,16 +362,12 @@ const Compare = () => {
     return () => map.remove();
   }, [result, userLocation]);
 
-  // ============================
-  // RENDER
-  // ============================
   return (
     <div className="compare-container">
       <h2 className="compare-heading">
         🔍 <span>Compare Product Prices</span>
       </h2>
 
-      {/* SEARCH BOX */}
       <div className="search-box" ref={dropdownRef}>
         <div className="input-wrapper">
           <FiSearch className="search-icon" />
@@ -422,7 +382,6 @@ const Compare = () => {
           />
         </div>
 
-        {/* SUGGESTIONS */}
         {suggestions.length > 0 && (
           <ul className="dropdown">
             {suggestions.map((name, i) => (
@@ -438,7 +397,6 @@ const Compare = () => {
           </ul>
         )}
 
-        {/* LOCATION PROMPT */}
         {showLocationPrompt && (
           <div className="location-prompt">
             <h4 className="location-prompt-title">Where are you located?</h4>
@@ -480,10 +438,8 @@ const Compare = () => {
         </button>
       </div>
 
-      {/* ERROR */}
       {error && <p className="error-text">{error}</p>}
 
-      {/* DID YOU MEAN */}
       {matches && matches.length > 0 && (
         <div className="did-you-mean">
           <h4>Did you mean:</h4>
@@ -501,7 +457,6 @@ const Compare = () => {
         </div>
       )}
 
-      {/* RESULT */}
       {result && (
         <div className="result-box">
           <h3 className="result-title">
@@ -545,7 +500,6 @@ const Compare = () => {
             <strong>{result.cheapest.price.toFixed(2)} €</strong>
           </p>
 
-          {/* MAP */}
           <div className="map-section">
             {mapLoading && (
               <p className="map-loading">

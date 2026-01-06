@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+
 // PRODUCT SERVICE
 export const productAPI = axios.create({
   baseURL: 'https://product-service-3lsh.onrender.com/products',
