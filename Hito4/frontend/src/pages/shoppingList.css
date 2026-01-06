@@ -45,7 +45,7 @@
 }
 
 .list-input:focus {
-  border-color: var(--accent);
+  border-color: var(--accent-dark);
   box-shadow: 0 0 0 3px var(--accent-light);
 }
 
@@ -65,8 +65,10 @@
   box-shadow: 0 6px 14px rgba(0,123,255,0.35);
 }
 
-/* DROPDOWN */
-.list-suggestions {
+/* ============================================================
+   AUTOCOMPLETE DROPDOWN
+============================================================ */
+.autocomplete-box {
   position: absolute;
   top: 105%;
   left: 0;
@@ -86,14 +88,13 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.list-suggestion-item {
+.autocomplete-item {
   padding: 0.75rem 1rem;
   cursor: pointer;
   transition: 0.2s;
 }
 
-.list-suggestion-item:hover,
-.list-suggestion-item.active {
+.autocomplete-item:hover {
   background: var(--accent-light);
   color: var(--accent-dark);
   font-weight: 600;
@@ -263,10 +264,31 @@
   border: 1px solid var(--border-light);
   background: var(--card-bg);
   box-shadow: var(--shadow-sm);
+  transition: 0.25s;
+}
+
+.list-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
 }
 
 .list-card h4 {
   margin-bottom: 0.5rem;
+}
+
+/* ============================================================
+   HEART BUTTON (CHEAPEST SUPERMARKET)
+============================================================ */
+.heart {
+  cursor: pointer;
+  margin-left: 8px;
+  font-size: 22px;
+  transition: 0.25s;
+}
+
+.heart:hover {
+  transform: scale(1.25);
+  filter: drop-shadow(0 0 6px rgba(255,0,0,0.4));
 }
 
 /* ============================================================

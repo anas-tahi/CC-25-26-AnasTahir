@@ -161,4 +161,31 @@ router.get("/:name", async (req, res) => {
   }
 });
 
+/* ============================
+   AUTOCOMPLETE (prefix)
+   GET /products/autocomplete?query=a
+============================ */
+router.get("/autocomplete", async (req, res) => {
+  try {
+    const query = req.query.query || "";
+
+    if (!query.trim()) {
+      return res.json({ products: [] });
+    }
+
+    const regex = new RegExp("^" + query, "i");
+
+    const products = await Product.find({ name: regex })
+      .limit(10)
+      .select("name");
+
+    const names = [...new Set(products.map((p) => p.name))];
+
+    res.json({ products: names });
+  } catch (err) {
+    console.error("Autocomplete error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 module.exports = router;

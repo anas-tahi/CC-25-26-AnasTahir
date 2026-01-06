@@ -90,12 +90,8 @@ router.post("/", async (req, res) => {
 
     // Backwards compatible + richer response
     res.json({
-      // original: array of names (for old frontend)
       products: productNames,
-
-      // new: includes quantities (for new frontend)
       items: normalized,
-
       supermarkets: result,
       best: result[0] || null,
     });
