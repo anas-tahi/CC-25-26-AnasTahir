@@ -53,9 +53,7 @@ const Compare = () => {
       await axios.post(
         "https://product-service-3lsh.onrender.com/wishlist",
         { productId },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       Swal.fire({
@@ -67,21 +65,11 @@ const Compare = () => {
 
       fetchFavoritesCount();
     } catch (err) {
-      console.error("❌ Wishlist error:", err.response?.data || err);
-
-      if (err.response && err.response.data?.message) {
-        Swal.fire({
-          title: "⚠️ Already added",
-          text: err.response.data.message,
-          icon: "info",
-        });
-      } else {
-        Swal.fire({
-          title: "❌ Error",
-          text: "Failed to add to wishlist.",
-          icon: "error",
-        });
-      }
+      Swal.fire({
+        title: "❌ Error",
+        text: err.response?.data?.message || "Failed to add to wishlist",
+        icon: "error",
+      });
     }
   };
 
@@ -98,13 +86,11 @@ const Compare = () => {
       }
 
       try {
-        // CORRECT: backend route is /products/names/:prefix
         const res = await productAPI.get(`/names/${encodeURIComponent(query)}`);
         const names = (res.data || []).map((p) => p.name);
         setSuggestions(names);
         setHighlightIndex(-1);
-      } catch (err) {
-        console.error("Failed to load suggestions:", err);
+      } catch {
         setSuggestions([]);
       }
     };
@@ -123,28 +109,22 @@ const Compare = () => {
 
     if (isExact) {
       try {
-        const res = await productAPI.get(
-          `/compare/${encodeURIComponent(trimmed)}`
-        );
+        const res = await productAPI.get(`/compare/${encodeURIComponent(trimmed)}`);
         setResult(res.data);
         setMatches([]);
         setError("");
-      } catch (err) {
-        console.error("Compare error:", err);
+      } catch {
         setResult(null);
         setError("Product not found or error fetching data.");
       }
     } else {
       try {
-        const res = await productAPI.get(
-          `/names/${encodeURIComponent(trimmed)}`
-        );
+        const res = await productAPI.get(`/names/${encodeURIComponent(trimmed)}`);
         const names = (res.data || []).map((p) => p.name);
         setMatches(names);
         setResult(null);
         setError(names.length ? "" : "No matching products found.");
-      } catch (err) {
-        console.error("Prefix match error:", err);
+      } catch {
         setMatches([]);
         setError("No matching products found.");
       }
@@ -158,25 +138,17 @@ const Compare = () => {
     try {
       setGoogleMapsLink("");
       setMapLoading(true);
-    } catch {}
 
-    try {
-      const res = await productAPI.get(
-        `/compare/${encodeURIComponent(name)}`
-      );
+      const res = await productAPI.get(`/compare/${encodeURIComponent(name)}`);
       setResult(res.data);
       setMatches([]);
       setQuery(name);
       setSuggestions([]);
       setError("");
 
-      if (!userLocation) {
-        setShowLocationPrompt(true);
-      } else {
-        setShowLocationPrompt(false);
-      }
-    } catch (err) {
-      console.error("Compare select error:", err);
+      if (!userLocation) setShowLocationPrompt(true);
+      else setShowLocationPrompt(false);
+    } catch {
       setResult(null);
       setError("Product not found or error fetching data.");
     } finally {
@@ -197,80 +169,18 @@ const Compare = () => {
       );
       const data = await res.json();
 
-      if (Array.isArray(data) && data.length > 0) {
-        const lat = parseFloat(data[0].lat);
-        const lon = parseFloat(data[0].lon);
-        setUserLocation({ lat, lng: lon });
+      if (data.length > 0) {
+        setUserLocation({
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon),
+        });
         setShowLocationPrompt(false);
-        return true;
-      }
-
-      setAddressError("Address not found. Try a different query.");
-      return false;
-    } catch (err) {
-      console.error("Geocode error:", err);
-      setAddressError("Unable to resolve address. Try again later.");
-      return false;
-    }
-  };
-
-  // ============================
-  // USE BROWSER LOCATION
-  // ============================
-  const handleUseGeolocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-          setShowLocationPrompt(false);
-        },
-        (err) => {
-          console.error("Geolocation error:", err);
-          setAddressError("Geolocation failed or denied. Enter address instead.");
-        }
-      );
-    } else {
-      setAddressError("Geolocation is not supported by your browser.");
-    }
-  };
-
-  // ============================
-  // KEYBOARD NAVIGATION
-  // ============================
-  const handleKeyDown = (e) => {
-    if (suggestions.length === 0) return;
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setHighlightIndex((prev) => {
-        const next = (prev + 1) % suggestions.length;
-        scrollIntoView(next);
-        return next;
-      });
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setHighlightIndex((prev) => {
-        const next = (prev - 1 + suggestions.length) % suggestions.length;
-        scrollIntoView(next);
-        return next;
-      });
-    } else if (e.key === "Enter") {
-      if (highlightIndex >= 0) {
-        handleSelectProduct(suggestions[highlightIndex]);
       } else {
-        handleSearch();
+        setAddressError("Address not found.");
       }
+    } catch {
+      setAddressError("Unable to resolve address.");
     }
-  };
-
-  const scrollIntoView = (index) => {
-    const dropdown = dropdownRef.current;
-    if (!dropdown) return;
-    const item = dropdown.querySelectorAll(".suggestion")[index];
-    if (item) item.scrollIntoView({ block: "nearest" });
   };
 
   // ============================
@@ -288,12 +198,16 @@ const Compare = () => {
   }, []);
 
   // ============================
-  // MAP LOGIC
+  // MAP LOGIC (FIXED)
   // ============================
   useEffect(() => {
     if (!result || !mapRef.current) return;
 
+    // ✅ FIX: clear old map instance
+    mapRef.current.innerHTML = "";
+
     const map = L.map(mapRef.current);
+
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
@@ -301,44 +215,30 @@ const Compare = () => {
     const storeName = result.cheapest.supermarket;
     const q = encodeURIComponent(storeName);
 
-    const addStoreMarker = ({ lat, lon, display_name }) => {
+    const addStoreMarker = ({ lat, lon }) => {
       const storeLat = parseFloat(lat);
       const storeLon = parseFloat(lon);
 
-      L.marker([storeLat, storeLon], {
-        icon: L.icon({
-          iconUrl: "https://cdn-icons-png.flaticon.com/512/190/190411.png",
-          iconSize: [35, 35],
-        }),
-      })
+      L.marker([storeLat, storeLon])
         .addTo(map)
         .bindPopup(`${storeName} ✅ Cheapest store`)
         .openPopup();
 
       if (userLocation) {
-        L.marker([userLocation.lat, userLocation.lng], {
-          icon: L.icon({
-            iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
-            iconSize: [35, 35],
-          }),
-        })
+        L.marker([userLocation.lat, userLocation.lng])
           .addTo(map)
           .bindPopup("You are here");
+
+        map.fitBounds([
+          [userLocation.lat, userLocation.lng],
+          [storeLat, storeLon],
+        ]);
 
         setGoogleMapsLink(
           `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${storeLat},${storeLon}`
         );
-
-        map.fitBounds(
-          [
-            [userLocation.lat, userLocation.lng],
-            [storeLat, storeLon],
-          ],
-          { padding: [50, 50] }
-        );
       } else {
         map.setView([storeLat, storeLon], 15);
-
         setGoogleMapsLink(
           `https://www.google.com/maps/search/?api=1&query=${storeLat},${storeLon}`
         );
@@ -352,9 +252,7 @@ const Compare = () => {
       .then((data) => {
         if (data.length > 0) addStoreMarker(data[0]);
       })
-      .catch((err) => console.error("Nominatim error:", err));
-
-    return () => map.remove();
+      .catch((err) => console.error("Map error:", err));
   }, [result, userLocation]);
 
   // ============================
@@ -364,122 +262,44 @@ const Compare = () => {
     <div className="compare-container">
       <h2 className="compare-heading">🔍 Compare Product Prices</h2>
 
-      {/* SEARCH BOX */}
       <div className="search-box" ref={dropdownRef}>
         <div className="input-wrapper">
           <FiSearch className="search-icon" />
           <input
-            type="text"
             ref={inputRef}
-            placeholder="Start typing a product name..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="search-input"
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            placeholder="Start typing a product name..."
           />
         </div>
 
-        {/* SUGGESTIONS */}
-        {suggestions.length > 0 && (
-          <ul className="dropdown">
-            {suggestions.map((name, i) => (
-              <li
-                key={i}
-                className={`suggestion ${highlightIndex === i ? "active" : ""}`}
-                onMouseEnter={() => setHighlightIndex(i)}
-                onClick={() => handleSelectProduct(name)}
-              >
-                {name}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <button onClick={handleSearch} className="compare-button">
-          Compare
-        </button>
+        <button onClick={handleSearch}>Compare</button>
       </div>
 
-      {/* ERROR */}
       {error && <p className="error-text">{error}</p>}
 
-      {/* DID YOU MEAN */}
-      {matches && matches.length > 0 && (
-        <div className="did-you-mean">
-          <h4>Did you mean:</h4>
-          <div className="did-you-mean-buttons">
-            {matches.map((m, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSelectProduct(m)}
-                className="did-you-mean-button"
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* RESULT */}
       {result && (
         <div className="result-box">
-          <h3 className="result-title">
-            Results for: <strong>{result.product}</strong>
-          </h3>
+          <h3>{result.product}</h3>
 
-          <div className="result-grid">
-            {result.supermarkets.map((p, i) => {
-              const isBest =
-                p.supermarket === result.cheapest.supermarket &&
-                p.price === result.cheapest.price;
+          {result.supermarkets.map((p, i) => (
+            <div key={i}>
+              {p.supermarket} — {p.price.toFixed(2)} €
+              {p.supermarket === result.cheapest.supermarket && (
+                <button onClick={() => handleAddToWishlist(p.id)}>
+                  ❤️ Wishlist
+                </button>
+              )}
+            </div>
+          ))}
 
-              return (
-                <div key={i} className={`result-card ${isBest ? "best" : ""}`}>
-                  <div className="result-supermarket">{p.supermarket}</div>
-
-                  <div className="result-price-row">
-                    <div>
-                      <div className="result-price">
-                        {p.price.toFixed(2)} €
-                      </div>
-                      {isBest && <div className="best-badge">✅ Cheapest</div>}
-                    </div>
-
-                    {isBest && (
-                      <button
-                        onClick={() => handleAddToWishlist(p.id)}
-                        className="wishlist-btn"
-                      >
-                        ❤️ Wishlist
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <p className="cheapest">
-            ✅ Cheapest: <strong>{result.cheapest.supermarket}</strong> at{" "}
-            <strong>{result.cheapest.price.toFixed(2)} €</strong>
-          </p>
-
-          {/* MAP */}
           <div className="map-section">
-            {mapLoading && (
-              <p className="map-loading">Loading map for the cheapest store…</p>
-            )}
-
+            {mapLoading && <p>Loading map…</p>}
             <div id="map" ref={mapRef}></div>
 
             {googleMapsLink && (
-              <a
-                href={googleMapsLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="google-link"
-              >
+              <a href={googleMapsLink} target="_blank" rel="noreferrer">
                 Go to Google Maps 🚀
               </a>
             )}

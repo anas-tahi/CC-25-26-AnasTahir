@@ -178,26 +178,33 @@ const ShoppingList = () => {
   };
 
   // ============================
-  // MAP LOGIC
+  // MAP LOGIC (FIXED)
   // ============================
   useEffect(() => {
     if (!result || !mapRef.current) return;
 
+    // ✅ FIX: clear previous map instance
+    mapRef.current.innerHTML = "";
+
     const map = L.map(mapRef.current);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(map);
 
     const storeName = result.best.supermarket;
     const q = encodeURIComponent(storeName);
 
     const addStoreMarker = (lat, lon) => {
-      L.marker([lat, lon]).addTo(map).bindPopup(`${storeName} (Cheapest)`);
+      L.marker([lat, lon])
+        .addTo(map)
+        .bindPopup(`${storeName} (Cheapest)`)
+        .openPopup();
 
       if (userLocation) {
-        L.marker([userLocation.lat, userLocation.lng]).addTo(map).bindPopup("You");
-
-        setGoogleMapsLink(
-          `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${lat},${lon}`
-        );
+        L.marker([userLocation.lat, userLocation.lng])
+          .addTo(map)
+          .bindPopup("You");
 
         map.fitBounds(
           [
@@ -206,8 +213,15 @@ const ShoppingList = () => {
           ],
           { padding: [50, 50] }
         );
+
+        setGoogleMapsLink(
+          `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${lat},${lon}`
+        );
       } else {
         map.setView([lat, lon], 15);
+        setGoogleMapsLink(
+          `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
+        );
       }
     };
 
@@ -217,11 +231,13 @@ const ShoppingList = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.length > 0) {
-          addStoreMarker(parseFloat(data[0].lat), parseFloat(data[0].lon));
+          addStoreMarker(
+            parseFloat(data[0].lat),
+            parseFloat(data[0].lon)
+          );
         }
-      });
-
-    return () => map.remove();
+      })
+      .catch((err) => console.error("Map error:", err));
   }, [result, userLocation]);
 
   // ============================
@@ -231,7 +247,6 @@ const ShoppingList = () => {
     <div className="list-container">
       <h1 className="list-title">🛒 Compare Your Shopping List</h1>
 
-      {/* INPUT */}
       <div className="list-input-box">
         <input
           type="text"
@@ -246,7 +261,6 @@ const ShoppingList = () => {
         </button>
       </div>
 
-      {/* SUGGESTIONS */}
       {suggestions.length > 0 && (
         <ul className="list-suggestions" ref={dropdownRef}>
           {suggestions.map((s, i) => (
@@ -263,7 +277,6 @@ const ShoppingList = () => {
         </ul>
       )}
 
-      {/* ITEMS */}
       <ul className="list-items">
         {items.map((item, i) => (
           <li key={i} className="list-item">
@@ -275,12 +288,10 @@ const ShoppingList = () => {
         ))}
       </ul>
 
-      {/* COMPARE BUTTON */}
       <button onClick={compareList} className="list-compare-btn">
         Compare List
       </button>
 
-      {/* LOCATION PROMPT */}
       {showLocationPrompt && (
         <div className="location-prompt">
           <h4>Where are you located?</h4>
@@ -298,11 +309,12 @@ const ShoppingList = () => {
         </div>
       )}
 
-      {/* RESULTS */}
       {result && (
         <div className="list-results">
           <h2>🏆 Best Supermarket: {result.best.supermarket}</h2>
-          <p>Total: <strong>{result.best.total} €</strong></p>
+          <p>
+            Total: <strong>{result.best.total} €</strong>
+          </p>
 
           <h3>Full Breakdown</h3>
           <div className="list-grid">
