@@ -71,4 +71,16 @@ export const getShoppingLists = async () => {
 
   return res.json(); // returns [{ id, name, items }]
 };
+export const deleteShoppingList = async (id) => {
+  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists/${id}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error deleting shopping list");
+  }
+
+  return res.json();
+};
 
