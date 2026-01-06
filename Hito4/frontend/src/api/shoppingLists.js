@@ -1,72 +1,62 @@
-// 🌐 Adjust these to your real URLs
-const AUTH_API_BASE = process.env.REACT_APP_AUTH_API_BASE || "http://localhost:4000";
-const PRODUCT_API_BASE = process.env.REACT_APP_PRODUCT_API_BASE || "http://localhost:5000";
+const SHOPPING_API_BASE = process.env.REACT_APP_SHOPPING_API_BASE; // e.g. https://your-user-service
+const PRODUCT_API_BASE = process.env.REACT_APP_PRODUCT_API_BASE;   // e.g. https://your-product-service
 
-function getAuthHeaders() {
+// Attach auth token if needed
+const authHeaders = () => {
   const token = localStorage.getItem("token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
+  return token
+    ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+    : { "Content-Type": "application/json" };
+};
 
-// 🔹 Compare list (product-service)
-export async function compareList(items) {
+export const compareList = async (items) => {
   const res = await fetch(`${PRODUCT_API_BASE}/compare-list`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ products: items }),
+    body: JSON.stringify({ products: items }), // IMPORTANT
   });
-  if (!res.ok) throw new Error("Error comparing list");
-  return res.json();
-}
 
-// 🔹 Get all lists (auth-service)
-export async function getShoppingLists() {
-  const res = await fetch(`${AUTH_API_BASE}/shopping-lists`, {
-    headers: getAuthHeaders(),
+  if (!res.ok) {
+    throw new Error("Compare failed");
+  }
+
+  return res.json();
+};
+
+export const getShoppingList = async (id) => {
+  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists/${id}`, {
+    headers: authHeaders(),
   });
-  if (!res.ok) throw new Error("Error fetching shopping lists");
+  if (!res.ok) {
+    throw new Error("Error loading shopping list");
+  }
   return res.json();
-}
+};
 
-// 🔹 Get single list
-export async function getShoppingList(id) {
-  const res = await fetch(`${AUTH_API_BASE}/shopping-lists/${id}`, {
-    headers: getAuthHeaders(),
-  });
-  if (!res.ok) throw new Error("Error fetching shopping list");
-  return res.json();
-}
-
-// 🔹 Create list
-export async function createShoppingList({ name, items }) {
-  const res = await fetch(`${AUTH_API_BASE}/shopping-lists`, {
+export const createShoppingList = async ({ name, items }) => {
+  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    headers: authHeaders(),
     body: JSON.stringify({ name, items }),
   });
-  if (!res.ok) throw new Error("Error creating shopping list");
-  return res.json();
-}
 
-// 🔹 Update list
-export async function updateShoppingList(id, { name, items }) {
-  const res = await fetch(`${AUTH_API_BASE}/shopping-lists/${id}`, {
+  if (!res.ok) {
+    throw new Error("Error creating shopping list");
+  }
+
+  return res.json(); // { id, name, items, createdAt }
+};
+
+export const updateShoppingList = async (id, { name, items }) => {
+  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists/${id}`, {
     method: "PUT",
-    headers: getAuthHeaders(),
+    headers: authHeaders(),
     body: JSON.stringify({ name, items }),
   });
-  if (!res.ok) throw new Error("Error updating shopping list");
-  return res.json();
-}
 
-// 🔹 Delete list
-export async function deleteShoppingList(id) {
-  const res = await fetch(`${AUTH_API_BASE}/shopping-lists/${id}`, {
-    method: "DELETE",
-    headers: getAuthHeaders(),
-  });
-  if (!res.ok) throw new Error("Error deleting shopping list");
+  if (!res.ok) {
+    throw new Error("Error updating shopping list");
+  }
+
   return res.json();
-}
+};

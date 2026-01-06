@@ -6,7 +6,7 @@ import {
   createShoppingList,
   updateShoppingList,
 } from "../api/shoppingLists";
-import "./shoppingList.css";
+import "../styles/shoppingList.css";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -15,22 +15,16 @@ function useQuery() {
 const ShoppingList = () => {
   const query = useQuery();
 
-  // Top search input (with autocomplete)
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-
-  // Actual list items that will be compared/saved
   const [items, setItems] = useState([{ name: "leche", quantity: 1 }]);
-
   const [result, setResult] = useState(null);
   const [loadingCompare, setLoadingCompare] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
   const [currentListId, setCurrentListId] = useState(null);
   const [listNameForEdit, setListNameForEdit] = useState("");
 
-  // Load list by ID from URL ?listId=...
   useEffect(() => {
     const listId = query.get("listId");
     if (!listId) return;
@@ -49,14 +43,11 @@ const ShoppingList = () => {
         setCurrentListId(list.id);
         setListNameForEdit(list.name || "");
       } catch (err) {
-        console.error("Error loading list from URL:", err);
+        console.error("Error loading list:", err);
       }
     })();
   }, [query]);
 
-  // =======================
-  // AUTOCOMPLETE
-  // =======================
   const fetchSuggestions = async (text) => {
     if (!text.trim()) {
       setSuggestions([]);
@@ -64,7 +55,6 @@ const ShoppingList = () => {
     }
 
     try {
-      // Uses your existing route: GET /products/names/:prefix
       const res = await fetch(
         `${process.env.REACT_APP_PRODUCT_API_BASE}/products/names/${encodeURIComponent(
           text
@@ -92,9 +82,6 @@ const ShoppingList = () => {
     setSuggestions([]);
   };
 
-  // =======================
-  // ITEMS MANAGEMENT
-  // =======================
   const handleAddItem = () => {
     const trimmed = searchTerm.trim();
     if (!trimmed) return;
@@ -121,9 +108,6 @@ const ShoppingList = () => {
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // =======================
-  // COMPARE
-  // =======================
   const handleCompare = async () => {
     setError("");
     setResult(null);
@@ -142,7 +126,6 @@ const ShoppingList = () => {
 
     try {
       setLoadingCompare(true);
-      // compareList should POST { products: normalized }
       const data = await compareList(normalized);
       setResult(data);
     } catch (err) {
@@ -153,12 +136,8 @@ const ShoppingList = () => {
     }
   };
 
-  // =======================
-  // SAVE LIST (MANUAL BUTTON)
-  // =======================
   const handleSaveList = async () => {
     setError("");
-
     if (!result) {
       setError("Compare the list before saving.");
       return;
@@ -175,11 +154,6 @@ const ShoppingList = () => {
       }))
       .filter((item) => item.name);
 
-    if (normalized.length === 0) {
-      setError("Cannot save an empty list.");
-      return;
-    }
-
     try {
       setSaving(true);
       let saved;
@@ -190,21 +164,18 @@ const ShoppingList = () => {
         });
       } else {
         saved = await createShoppingList({ name, items: normalized });
-        setCurrentListId(saved.id);
       }
+      setCurrentListId(saved.id);
       setListNameForEdit(saved.name);
       alert("List saved!");
     } catch (err) {
-      console.error("Save list error:", err);
-      setError("Error saving list. Are you logged in?");
+      console.error("Save error:", err);
+      setError("Error saving list.");
     } finally {
       setSaving(false);
     }
   };
 
-  // =======================
-  // SAVE CHEAPEST (HEART)
-  // =======================
   const handleSaveBest = async (supermarket) => {
     const name = window.prompt(
       `Save this list (cheapest: ${supermarket})`,
@@ -223,7 +194,7 @@ const ShoppingList = () => {
       await createShoppingList({ name, items: normalized });
       alert("List saved!");
     } catch (err) {
-      console.error("Save cheapest error:", err);
+      console.error("Save best error:", err);
       alert("Error saving list");
     }
   };
@@ -234,7 +205,6 @@ const ShoppingList = () => {
 
       {error && <div className="shopping-list-error">{error}</div>}
 
-      {/* TOP SEARCH + ADD */}
       <div className="list-input-box">
         <div style={{ position: "relative", flex: 1 }}>
           <input
@@ -268,7 +238,6 @@ const ShoppingList = () => {
         </button>
       </div>
 
-      {/* CURRENT ITEMS */}
       <ul className="list-items">
         {items.map((item, index) => (
           <li key={index} className="list-item">
@@ -303,7 +272,6 @@ const ShoppingList = () => {
         ))}
       </ul>
 
-      {/* COMPARE + SAVE BUTTONS */}
       <button
         type="button"
         className="list-compare-btn"
@@ -323,7 +291,6 @@ const ShoppingList = () => {
         {saving ? "Saving..." : "Save this list"}
       </button>
 
-      {/* RESULTS */}
       {result && (
         <div className="list-results">
           <h2>Comparison</h2>

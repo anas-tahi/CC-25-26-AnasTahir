@@ -6,7 +6,7 @@ const Product = require("../models/Product");
 const sanitizeProduct = (p) => p.toJSON();
 
 /* ============================
-   AUTOCOMPLETE SEARCH
+   AUTOCOMPLETE SEARCH (legacy)
    GET /products?search=milk
 ============================ */
 router.get("/", async (req, res) => {
@@ -52,6 +52,7 @@ router.get("/recommended", async (req, res) => {
 /* ============================
    UNIQUE NAMES (prefix search)
    GET /products/names/:prefix
+   Used by autocomplete in ShoppingList
 ============================ */
 router.get("/names/:prefix", async (req, res) => {
   try {
@@ -63,6 +64,7 @@ router.get("/names/:prefix", async (req, res) => {
 
     const uniqueNames = [...new Set(products.map((p) => p.name))];
 
+    // IMPORTANT: frontend expects [{ name }]
     res.json(uniqueNames.map((name) => ({ name })));
   } catch (err) {
     console.error("Prefix search error:", err);
@@ -158,33 +160,6 @@ router.get("/:name", async (req, res) => {
   } catch (err) {
     console.error("Exact name search error:", err);
     res.status(500).json({ message: err.message });
-  }
-});
-
-/* ============================
-   AUTOCOMPLETE (prefix)
-   GET /products/autocomplete?query=a
-============================ */
-router.get("/autocomplete", async (req, res) => {
-  try {
-    const query = req.query.query || "";
-
-    if (!query.trim()) {
-      return res.json({ products: [] });
-    }
-
-    const regex = new RegExp("^" + query, "i");
-
-    const products = await Product.find({ name: regex })
-      .limit(10)
-      .select("name");
-
-    const names = [...new Set(products.map((p) => p.name))];
-
-    res.json({ products: names });
-  } catch (err) {
-    console.error("Autocomplete error:", err);
-    res.status(500).json({ message: "Server error" });
   }
 });
 

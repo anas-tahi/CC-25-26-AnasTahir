@@ -54,7 +54,6 @@ router.post("/", async (req, res) => {
       const items = allItems.filter((i) => i.name === name);
 
       if (items.length === 0) {
-        // if no supermarket has it, we skip totals but still count missing later
         continue;
       }
 
@@ -88,7 +87,6 @@ router.post("/", async (req, res) => {
 
     result.sort((a, b) => a.total - b.total);
 
-    // Backwards compatible + richer response
     res.json({
       products: productNames,
       items: normalized,

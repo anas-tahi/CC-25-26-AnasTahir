@@ -3,21 +3,26 @@ const router = express.Router();
 const ShoppingList = require("../models/ShoppingList");
 const auth = require("../middleware/auth");
 
-// ✅ Get all lists for current user
 // GET /shopping-lists
 router.get("/", auth, async (req, res) => {
   try {
     const lists = await ShoppingList.find({ userId: req.user.id }).sort({
       createdAt: -1,
     });
-    res.json(lists);
+    res.json(
+      lists.map((list) => ({
+        id: list._id,
+        name: list.name,
+        items: list.items,
+        createdAt: list.createdAt,
+      }))
+    );
   } catch (err) {
     console.error("Get shopping lists error:", err);
     res.status(500).json({ message: "Server error fetching shopping lists" });
   }
 });
 
-// ✅ Get single list by id (must belong to user)
 // GET /shopping-lists/:id
 router.get("/:id", auth, async (req, res) => {
   try {
@@ -30,16 +35,19 @@ router.get("/:id", auth, async (req, res) => {
       return res.status(404).json({ message: "Shopping list not found" });
     }
 
-    res.json(list);
+    res.json({
+      id: list._id,
+      name: list.name,
+      items: list.items,
+      createdAt: list.createdAt,
+    });
   } catch (err) {
     console.error("Get shopping list error:", err);
     res.status(500).json({ message: "Server error fetching shopping list" });
   }
 });
 
-// ✅ Create new list
 // POST /shopping-lists
-// body: { name: string, items: [{ name, quantity }] }
 router.post("/", auth, async (req, res) => {
   try {
     const { name, items } = req.body;
@@ -66,14 +74,19 @@ router.post("/", auth, async (req, res) => {
     });
 
     await list.save();
-    res.status(201).json(list);
+
+    res.status(201).json({
+      id: list._id,
+      name: list.name,
+      items: list.items,
+      createdAt: list.createdAt,
+    });
   } catch (err) {
     console.error("Create shopping list error:", err);
     res.status(500).json({ message: "Server error creating shopping list" });
   }
 });
 
-// ✅ Update list (name + items)
 // PUT /shopping-lists/:id
 router.put("/:id", auth, async (req, res) => {
   try {
@@ -100,14 +113,19 @@ router.put("/:id", auth, async (req, res) => {
     }
 
     await list.save();
-    res.json(list);
+
+    res.json({
+      id: list._id,
+      name: list.name,
+      items: list.items,
+      createdAt: list.createdAt,
+    });
   } catch (err) {
     console.error("Update shopping list error:", err);
     res.status(500).json({ message: "Server error updating shopping list" });
   }
 });
 
-// ✅ Delete list
 // DELETE /shopping-lists/:id
 router.delete("/:id", auth, async (req, res) => {
   try {
