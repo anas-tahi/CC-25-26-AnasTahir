@@ -8,7 +8,6 @@ import { FavoritesContext } from '../context/FavoritesContext';
 import { ThemeContext } from '../context/ThemeContext';
 import "./products.css";
 
-
 const Products = () => {
   const [recommended, setRecommended] = useState([]);
   const { fetchFavoritesCount } = useContext(FavoritesContext);
@@ -17,7 +16,9 @@ const Products = () => {
   useEffect(() => {
     const fetchRecommended = async () => {
       try {
-        const res = await productAPI.get('/recommendations');
+        // ✅ FIXED: Correct backend route
+        const res = await productAPI.get('/products/recommended');
+
         const grouped = groupByName(res.data);
         const limited = Object.entries(grouped).slice(0, 6);
         setRecommended(limited);
@@ -25,6 +26,7 @@ const Products = () => {
         console.error('Failed to load recommended products:', err);
       }
     };
+
     fetchRecommended();
   }, []);
 
@@ -38,13 +40,13 @@ const Products = () => {
     return map;
   };
 
-  // ⭐ FIXED: use item.id (NOT item._id)
+  // ⭐ Get cheapest product ID
   const getCheapestProductId = (items) => {
     if (!items.length) return null;
     return items.reduce((min, item) => (item.price < min.price ? item : min)).id;
   };
 
-  // ⭐ FIXED: send productId: item.id
+  // ⭐ Add to wishlist
   const handleAddToWishlist = async (productId) => {
     const token = localStorage.getItem("token");
 
@@ -126,7 +128,7 @@ const Products = () => {
                         <FiTag className="price-icon" /> {item.price.toFixed(2)}€
                       </span>
 
-                      {/* ⭐ FIXED: use item.id */}
+                      {/* ⭐ Wishlist button only for cheapest */}
                       {item.id === cheapestId && (
                         <button
                           onClick={() => handleAddToWishlist(item.id)}

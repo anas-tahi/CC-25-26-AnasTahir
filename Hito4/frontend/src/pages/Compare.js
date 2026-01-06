@@ -10,11 +10,11 @@ import "./compare.css";
 
 const Compare = () => {
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
+  const [suggestions, setSuggestions] = useState([]); // array of strings
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const [matches, setMatches] = useState([]);
+  const [matches, setMatches] = useState([]); // array of strings
   const [userLocation, setUserLocation] = useState(null);
   const [nearestStore, setNearestStore] = useState(null);
   const [googleMapsLink, setGoogleMapsLink] = useState("");
@@ -101,8 +101,12 @@ const Compare = () => {
       }
 
       try {
-        const res = await productAPI.get(`/names/${encodeURIComponent(query)}`);
-        setSuggestions(res.data);
+        // backend: GET /products/names/:prefix -> [{ name }]
+        const res = await productAPI.get(
+          `/products/names/${encodeURIComponent(query)}`
+        );
+        const names = (res.data || []).map((p) => p.name);
+        setSuggestions(names);
         setHighlightIndex(-1);
       } catch (err) {
         console.error("Failed to load suggestions:", err);
@@ -119,11 +123,15 @@ const Compare = () => {
   const handleSearch = async () => {
     if (!query.trim()) return;
 
-    const isExact = suggestions.includes(query.trim());
+    const trimmed = query.trim();
+    const isExact = suggestions.includes(trimmed);
 
     if (isExact) {
       try {
-        const res = await productAPI.get(`/compare/${encodeURIComponent(query)}`);
+        // backend: GET /products/compare/:name
+        const res = await productAPI.get(
+          `/products/compare/${encodeURIComponent(trimmed)}`
+        );
         setResult(res.data);
         setMatches([]);
         setError("");
@@ -134,10 +142,13 @@ const Compare = () => {
       }
     } else {
       try {
-        const res = await productAPI.get(`/names/${encodeURIComponent(query)}`);
-        setMatches(res.data);
+        const res = await productAPI.get(
+          `/products/names/${encodeURIComponent(trimmed)}`
+        );
+        const names = (res.data || []).map((p) => p.name);
+        setMatches(names);
         setResult(null);
-        setError("");
+        setError(names.length ? "" : "No matching products found.");
       } catch (err) {
         console.error("Prefix match error:", err);
         setMatches([]);
@@ -158,7 +169,9 @@ const Compare = () => {
     } catch {}
 
     try {
-      const res = await productAPI.get(`/compare/${encodeURIComponent(name)}`);
+      const res = await productAPI.get(
+        `/products/compare/${encodeURIComponent(name)}`
+      );
       setResult(res.data);
       setMatches([]);
       setQuery(name);
@@ -347,7 +360,9 @@ const Compare = () => {
     };
 
     if (userLocation) {
-      const viewbox = `${userLocation.lng - 0.05},${userLocation.lat + 0.05},${userLocation.lng + 0.05},${userLocation.lat - 0.05}`;
+      const viewbox = `${userLocation.lng - 0.05},${userLocation.lat + 0.05},${
+        userLocation.lng + 0.05
+      },${userLocation.lat - 0.05}`;
 
       fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1&viewbox=${viewbox}&bounded=1`
@@ -388,7 +403,9 @@ const Compare = () => {
   // ============================
   return (
     <div className="compare-container">
-      <h2 className="compare-heading">🔍 <span>Compare Product Prices</span></h2>
+      <h2 className="compare-heading">
+        🔍 <span>Compare Product Prices</span>
+      </h2>
 
       {/* SEARCH BOX */}
       <div className="search-box" ref={dropdownRef}>
@@ -430,7 +447,10 @@ const Compare = () => {
             </p>
 
             <div className="location-controls">
-              <button onClick={handleUseGeolocation} className="location-button-primary">
+              <button
+                onClick={handleUseGeolocation}
+                className="location-button-primary"
+              >
                 Use my current location
               </button>
 
@@ -500,7 +520,9 @@ const Compare = () => {
 
                   <div className="result-price-row">
                     <div>
-                      <div className="result-price">{p.price.toFixed(2)} €</div>
+                      <div className="result-price">
+                        {p.price.toFixed(2)} €
+                      </div>
                       {isBest && <div className="best-badge">✅ Cheapest</div>}
                     </div>
 
@@ -526,7 +548,9 @@ const Compare = () => {
           {/* MAP */}
           <div className="map-section">
             {mapLoading && (
-              <p className="map-loading">Loading map for the cheapest store…</p>
+              <p className="map-loading">
+                Loading map for the cheapest store…
+              </p>
             )}
 
             <div id="map" ref={mapRef}></div>

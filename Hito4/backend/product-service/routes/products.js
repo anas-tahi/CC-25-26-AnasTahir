@@ -13,7 +13,6 @@ router.get("/", async (req, res) => {
   try {
     const search = req.query.search;
 
-    // If no search term, return empty list (frontend expects this)
     if (!search) {
       return res.json({ products: [] });
     }
@@ -22,7 +21,6 @@ router.get("/", async (req, res) => {
       name: { $regex: search, $options: "i" },
     }).limit(10);
 
-    // Frontend expects: { products: [ { name, supermarket, price } ] }
     res.json({
       products: products.map((p) => ({
         name: p.name,
@@ -32,6 +30,20 @@ router.get("/", async (req, res) => {
     });
   } catch (err) {
     console.error("Search error:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/* ============================
+   RECOMMENDED PRODUCTS
+   GET /products/recommended
+============================ */
+router.get("/recommended", async (req, res) => {
+  try {
+    const products = await Product.find({}).limit(20);
+    res.json(products.map(sanitizeProduct));
+  } catch (err) {
+    console.error("Recommended error:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -50,10 +62,56 @@ router.get("/names/:prefix", async (req, res) => {
 
     const uniqueNames = [...new Set(products.map((p) => p.name))];
 
-    // Return objects, not strings (frontend expects { name })
     res.json(uniqueNames.map((name) => ({ name })));
   } catch (err) {
     console.error("Prefix search error:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/* ============================
+   SINGLE PRODUCT COMPARISON
+   GET /products/compare/milk
+============================ */
+router.get("/compare/:name", async (req, res) => {
+  try {
+    const rawName = req.params.name;
+
+    const normalizedQuery = rawName
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
+    const products = await Product.find({});
+
+    const filtered = products.filter((p) => {
+      const normalizedName = p.name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+
+      return normalizedName.includes(normalizedQuery);
+    });
+
+    if (filtered.length === 0) {
+      return res.status(404).json({ message: "No matching products found." });
+    }
+
+    const cheapest = filtered.reduce(
+      (min, p) => (p.price < min.price ? p : min),
+      filtered[0]
+    );
+
+    res.json({
+      product: rawName,
+      supermarkets: filtered.map(sanitizeProduct),
+      cheapest: {
+        supermarket: cheapest.supermarket,
+        price: cheapest.price,
+      },
+    });
+  } catch (err) {
+    console.error("Compare error:", err);
     res.status(500).json({ message: err.message });
   }
 });
