@@ -50,6 +50,7 @@ const Navbar = ({ setToken }) => {
       home: 'Home',
       products: 'Products',
       compare: 'Compare',
+      shoppingList: 'Shopping List',
       settings: 'Settings',
       favorites: 'My Favorites',
       logout: 'Logout',
@@ -60,6 +61,7 @@ const Navbar = ({ setToken }) => {
       home: 'Inicio',
       products: 'Productos',
       compare: 'Comparar',
+      shoppingList: 'Lista de Compra',
       settings: 'Ajustes',
       favorites: 'Mis Favoritos',
       logout: 'Salir',
@@ -83,12 +85,15 @@ const Navbar = ({ setToken }) => {
           <Link to="/home" className="nav-link"><AiOutlineHome /> {t.home}</Link>
           <Link to="/products" className="nav-link"><FiBox /> {t.products}</Link>
           <Link to="/compare" className="nav-link"><MdCompareArrows /> {t.compare}</Link>
+          <Link to="/shopping-list" className="nav-link"><FiBox /> {t.shoppingList}</Link>
+
           {token && (
             <div className="favorites-wrapper">
               <Link to="/favorites" className="nav-link"><FiHeart /> {t.favorites}</Link>
               {favoritesCount > 0 && <span className="badge">{favoritesCount}</span>}
             </div>
           )}
+
           <Link to="/settings" className="nav-link"><FiSettings /> {t.settings}</Link>
         </div>
       </div>
@@ -131,6 +136,7 @@ const Navbar = ({ setToken }) => {
           <Link to="/home" className="mobile-link" onClick={toggleMobile}>{t.home}</Link>
           <Link to="/products" className="mobile-link" onClick={toggleMobile}>{t.products}</Link>
           <Link to="/compare" className="mobile-link" onClick={toggleMobile}>{t.compare}</Link>
+          <Link to="/shopping-list" className="mobile-link" onClick={toggleMobile}>{t.shoppingList}</Link>
           <Link to="/favorites" className="mobile-link" onClick={toggleMobile}>{t.favorites}</Link>
           <Link to="/settings" className="mobile-link" onClick={toggleMobile}>{t.settings}</Link>
         </div>

@@ -23,6 +23,10 @@ app.use("/products", productRoutes);
 const wishlistRoutes = require("./routes/wishlist");
 app.use("/wishlist", wishlistRoutes);
 
+const compareListRoutes = require("./routes/compareList");
+app.use("/compare-list", compareListRoutes);
+
+
 // ✅ Connect to MongoDB Atlas
 const mongoUri = process.env.PRODUCT_MONGO_URI;
 if (!mongoUri) {

@@ -11,6 +11,7 @@ import Navbar from './components/Navbar';
 import Favorites from './pages/Favorites';
 import Profile from './pages/Profile';
 import UserGuide from './pages/UserGuide';
+import ShoppingList from './pages/ShoppingList';
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -19,6 +20,7 @@ import { FavoritesProvider } from './context/FavoritesContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { UserProvider } from './context/UserContext';
 import { ThemeProvider, ThemeContext } from './context/ThemeContext';
+
 
 const AppContent = () => {
   const { theme } = useContext(ThemeContext);
@@ -87,6 +89,15 @@ const AppContent = () => {
         />
 
         <Route
+          path="/shopping-list"
+          element={
+            <ProtectedRoute>
+              <ShoppingList />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/settings"
           element={
             <ProtectedRoute>
@@ -127,6 +138,7 @@ const AppContent = () => {
     </div>
   );
 };
+
 
 const App = () => {
   return (
