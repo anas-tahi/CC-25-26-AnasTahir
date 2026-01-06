@@ -13,6 +13,7 @@ router.get("/", async (req, res) => {
   try {
     const search = req.query.search;
 
+    // If no search term, return empty list (frontend expects this)
     if (!search) {
       return res.json({ products: [] });
     }
@@ -21,6 +22,7 @@ router.get("/", async (req, res) => {
       name: { $regex: search, $options: "i" },
     }).limit(10);
 
+    // Frontend expects: { products: [ { name, supermarket, price } ] }
     res.json({
       products: products.map((p) => ({
         name: p.name,
@@ -29,6 +31,7 @@ router.get("/", async (req, res) => {
       })),
     });
   } catch (err) {
+    console.error("Search error:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -47,8 +50,10 @@ router.get("/names/:prefix", async (req, res) => {
 
     const uniqueNames = [...new Set(products.map((p) => p.name))];
 
+    // Return objects, not strings (frontend expects { name })
     res.json(uniqueNames.map((name) => ({ name })));
   } catch (err) {
+    console.error("Prefix search error:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -61,6 +66,7 @@ router.get("/all", async (req, res) => {
     const products = await Product.find({});
     res.json(products.map(sanitizeProduct));
   } catch (err) {
+    console.error("Get all products error:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -84,11 +90,13 @@ router.get("/:name", async (req, res) => {
           .toLowerCase() === nameParam
     );
 
-    if (filtered.length === 0)
+    if (filtered.length === 0) {
       return res.status(404).json({ message: "No products found" });
+    }
 
     res.json(filtered.map(sanitizeProduct));
   } catch (err) {
+    console.error("Exact name search error:", err);
     res.status(500).json({ message: err.message });
   }
 });
