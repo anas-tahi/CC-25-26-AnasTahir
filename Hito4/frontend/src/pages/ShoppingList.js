@@ -14,14 +14,21 @@ function useQuery() {
 
 const ShoppingList = () => {
   const query = useQuery();
-  const [items, setItems] = useState([{ name: "", quantity: 1 }]);
-  const [loadingCompare, setLoadingCompare] = useState(false);
+
+  // Top search input (with autocomplete)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+
+  // Actual list items that will be compared/saved
+  const [items, setItems] = useState([{ name: "leche", quantity: 1 }]);
+
   const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
+  const [loadingCompare, setLoadingCompare] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
   const [currentListId, setCurrentListId] = useState(null);
   const [listNameForEdit, setListNameForEdit] = useState("");
-  const [suggestions, setSuggestions] = useState({});
 
   // Load list by ID from URL ?listId=...
   useEffect(() => {
@@ -37,7 +44,7 @@ const ShoppingList = () => {
                 name: i.name,
                 quantity: i.quantity || 1,
               }))
-            : [{ name: "", quantity: 1 }]
+            : [{ name: "leche", quantity: 1 }]
         );
         setCurrentListId(list.id);
         setListNameForEdit(list.name || "");
@@ -47,26 +54,55 @@ const ShoppingList = () => {
     })();
   }, [query]);
 
-  const fetchSuggestions = async (index, text) => {
+  // =======================
+  // AUTOCOMPLETE
+  // =======================
+  const fetchSuggestions = async (text) => {
     if (!text.trim()) {
-      setSuggestions((prev) => ({ ...prev, [index]: [] }));
+      setSuggestions([]);
       return;
     }
 
     try {
+      // Uses your existing route: GET /products/names/:prefix
       const res = await fetch(
-        `${process.env.REACT_APP_PRODUCT_API_BASE}/products/autocomplete?query=${encodeURIComponent(
+        `${process.env.REACT_APP_PRODUCT_API_BASE}/products/names/${encodeURIComponent(
           text
         )}`
       );
-      const data = await res.json();
-      setSuggestions((prev) => ({
-        ...prev,
-        [index]: data.products || [],
-      }));
+      if (!res.ok) {
+        setSuggestions([]);
+        return;
+      }
+      const data = await res.json(); // [{ name }]
+      setSuggestions(data.map((d) => d.name));
     } catch (err) {
       console.error("Autocomplete error:", err);
+      setSuggestions([]);
     }
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+    fetchSuggestions(value);
+  };
+
+  const handleSelectSuggestion = (name) => {
+    setSearchTerm(name);
+    setSuggestions([]);
+  };
+
+  // =======================
+  // ITEMS MANAGEMENT
+  // =======================
+  const handleAddItem = () => {
+    const trimmed = searchTerm.trim();
+    if (!trimmed) return;
+
+    setItems((prev) => [...prev, { name: trimmed, quantity: 1 }]);
+    setSearchTerm("");
+    setSuggestions([]);
+    setError("");
   };
 
   const handleItemChange = (index, field, value) => {
@@ -80,16 +116,14 @@ const ShoppingList = () => {
     setItems(updated);
   };
 
-  const handleAddRow = () => {
-    setItems([...items, { name: "", quantity: 1 }]);
-  };
-
-  const handleRemoveRow = (index) => {
+  const handleRemoveItem = (index) => {
     if (items.length === 1) return;
-    const updated = items.filter((_, i) => i !== index);
-    setItems(updated);
+    setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // =======================
+  // COMPARE
+  // =======================
   const handleCompare = async () => {
     setError("");
     setResult(null);
@@ -102,24 +136,29 @@ const ShoppingList = () => {
       .filter((item) => item.name);
 
     if (normalized.length === 0) {
-      setError("Please add at least one product");
+      setError("Please add at least one product.");
       return;
     }
 
     try {
       setLoadingCompare(true);
+      // compareList should POST { products: normalized }
       const data = await compareList(normalized);
       setResult(data);
     } catch (err) {
-      console.error(err);
+      console.error("Compare error:", err);
       setError("Error comparing list");
     } finally {
       setLoadingCompare(false);
     }
   };
 
+  // =======================
+  // SAVE LIST (MANUAL BUTTON)
+  // =======================
   const handleSaveList = async () => {
     setError("");
+
     if (!result) {
       setError("Compare the list before saving.");
       return;
@@ -156,13 +195,16 @@ const ShoppingList = () => {
       setListNameForEdit(saved.name);
       alert("List saved!");
     } catch (err) {
-      console.error(err);
+      console.error("Save list error:", err);
       setError("Error saving list. Are you logged in?");
     } finally {
       setSaving(false);
     }
   };
 
+  // =======================
+  // SAVE CHEAPEST (HEART)
+  // =======================
   const handleSaveBest = async (supermarket) => {
     const name = window.prompt(
       `Save this list (cheapest: ${supermarket})`,
@@ -181,57 +223,58 @@ const ShoppingList = () => {
       await createShoppingList({ name, items: normalized });
       alert("List saved!");
     } catch (err) {
-      console.error(err);
+      console.error("Save cheapest error:", err);
       alert("Error saving list");
     }
   };
 
   return (
-    <div className="shopping-list-page">
-      <h1>Shopping List</h1>
-
-      {currentListId && (
-        <div className="shopping-list-current-name">
-          Editing list: <strong>{listNameForEdit}</strong>
-        </div>
-      )}
+    <div className="list-container">
+      <h1 className="list-title">Shopping List</h1>
 
       {error && <div className="shopping-list-error">{error}</div>}
 
-      <div className="shopping-list-inputs">
-        {items.map((item, index) => (
-          <div key={index} className="shopping-list-row">
-            <div className="input-wrapper">
-              <input
-                type="text"
-                placeholder="Product name"
-                value={item.name}
-                onChange={(e) => {
-                  handleItemChange(index, "name", e.target.value);
-                  fetchSuggestions(index, e.target.value);
-                }}
-              />
-
-              {suggestions[index] && suggestions[index].length > 0 && (
-                <div className="autocomplete-box">
-                  {suggestions[index].map((s, i) => (
-                    <div
-                      key={i}
-                      className="autocomplete-item"
-                      onClick={() => {
-                        handleItemChange(index, "name", s);
-                        setSuggestions((prev) => ({
-                          ...prev,
-                          [index]: [],
-                        }));
-                      }}
-                    >
-                      {s}
-                    </div>
-                  ))}
+      {/* TOP SEARCH + ADD */}
+      <div className="list-input-box">
+        <div style={{ position: "relative", flex: 1 }}>
+          <input
+            className="list-input"
+            type="text"
+            placeholder="Type a product (e.g. leche, pan...)"
+            value={searchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
+          />
+          {suggestions.length > 0 && (
+            <div className="list-suggestions">
+              {suggestions.map((s, i) => (
+                <div
+                  key={i}
+                  className="list-suggestion-item"
+                  onClick={() => handleSelectSuggestion(s)}
+                >
+                  {s}
                 </div>
-              )}
+              ))}
             </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          className="list-add-btn"
+          onClick={handleAddItem}
+        >
+          + Add item
+        </button>
+      </div>
+
+      {/* CURRENT ITEMS */}
+      <ul className="list-items">
+        {items.map((item, index) => (
+          <li key={index} className="list-item">
+            <span style={{ flex: 1, marginRight: "0.5rem" }}>
+              {item.name || <span style={{ opacity: 0.6 }}>Unnamed item</span>}
+            </span>
 
             <input
               type="number"
@@ -240,71 +283,67 @@ const ShoppingList = () => {
               onChange={(e) =>
                 handleItemChange(index, "quantity", e.target.value)
               }
-              className="shopping-list-quantity"
+              style={{
+                width: "70px",
+                marginRight: "0.5rem",
+                borderRadius: "8px",
+                border: "1px solid var(--border-light)",
+                padding: "0.25rem 0.5rem",
+              }}
             />
+
             <button
               type="button"
-              onClick={() => handleRemoveRow(index)}
-              className="shopping-list-remove"
+              className="list-remove-btn"
+              onClick={() => handleRemoveItem(index)}
             >
               ✕
             </button>
-          </div>
+          </li>
         ))}
+      </ul>
 
-        <button
-          type="button"
-          onClick={handleAddRow}
-          className="shopping-list-add-row"
-        >
-          + Add item
-        </button>
-      </div>
+      {/* COMPARE + SAVE BUTTONS */}
+      <button
+        type="button"
+        className="list-compare-btn"
+        onClick={handleCompare}
+        disabled={loadingCompare}
+      >
+        {loadingCompare ? "Comparing..." : "Compare prices"}
+      </button>
 
-      <div className="shopping-list-actions">
-        <button
-          type="button"
-          onClick={handleCompare}
-          disabled={loadingCompare}
-          className="shopping-list-compare-btn"
-        >
-          {loadingCompare ? "Comparing..." : "Compare prices"}
-        </button>
+      <button
+        type="button"
+        onClick={handleSaveList}
+        disabled={saving || !result}
+        className="list-compare-btn"
+        style={{ marginTop: "0.8rem", background: "#007bff" }}
+      >
+        {saving ? "Saving..." : "Save this list"}
+      </button>
 
-        <button
-          type="button"
-          onClick={handleSaveList}
-          disabled={saving || !result}
-          className="shopping-list-save-btn"
-        >
-          {saving ? "Saving..." : "Save this list"}
-        </button>
-      </div>
-
+      {/* RESULTS */}
       {result && (
-        <div className="shopping-list-results">
+        <div className="list-results">
           <h2>Comparison</h2>
 
-          <div className="shopping-list-summary">
-            {result.best ? (
-              <p>
-                Best supermarket: <strong>{result.best.supermarket}</strong> —
-                total: <strong>{result.best.total}€</strong> — missing items:{" "}
-                <strong>{result.best.missing}</strong>
-              </p>
-            ) : (
-              <p>No supermarkets found for these products.</p>
-            )}
-          </div>
+          {result.best ? (
+            <p>
+              Best supermarket:{" "}
+              <strong>{result.best.supermarket}</strong> — total:{" "}
+              <strong>{result.best.total}€</strong> — missing items:{" "}
+              <strong>{result.best.missing}</strong>
+            </p>
+          ) : (
+            <p>No supermarkets found for these products.</p>
+          )}
 
-          <div className="shopping-list-supermarkets">
+          <div className="list-grid">
             {result.supermarkets &&
               result.supermarkets.map((s) => (
-                <div
-                  key={s.supermarket}
-                  className="shopping-list-supermarket-card"
-                >
-                  <h3>
+                <div key={s.supermarket} className="list-card">
+                  <h4>
                     {s.supermarket}
                     {result.best &&
                       result.best.supermarket === s.supermarket && (
@@ -315,7 +354,7 @@ const ShoppingList = () => {
                           ❤️
                         </span>
                       )}
-                  </h3>
+                  </h4>
                   <p>Total: {s.total}€</p>
                   <p>Missing items: {s.missing}</p>
                 </div>
