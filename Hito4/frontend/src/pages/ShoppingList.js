@@ -11,6 +11,7 @@ const ShoppingList = () => {
 
   const [items, setItems] = useState([]);
   const [result, setResult] = useState(null);
+  const [showComparison, setShowComparison] = useState(false);
 
   const [userLocation, setUserLocation] = useState(null);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
@@ -24,7 +25,7 @@ const ShoppingList = () => {
   const mapRef = useRef(null);
 
   // ============================
-  // GET USER LOCATION
+  // GET USER LOCATION (ON LOAD)
   // ============================
   useEffect(() => {
     if (navigator.geolocation) {
@@ -40,22 +41,31 @@ const ShoppingList = () => {
   }, []);
 
   // ============================
-  // FETCH PRODUCT SUGGESTIONS
+  // FETCH PRODUCT SUGGESTIONS (PREFIX SEARCH)
   // ============================
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (query.length < 1) return setSuggestions([]);
+      const trimmedQuery = query.trim().toLowerCase();
+      if (trimmedQuery.length === 0) {
+        setSuggestions([]);
+        setHighlightIndex(-1);
+        return;
+      }
 
       try {
         const res = await axios.get(
-          `https://product-service-3lsh.onrender.com/products?search=${query}`
+          `https://product-service-3lsh.onrender.com/products?search=${trimmedQuery}`
         );
-        // Remove duplicates by name
-        const names = res.data.products || [];
-        const uniqueNames = Array.from(new Set(names.map(p => p.name))).map(
-          name => names.find(p => p.name === name)
-        );
-        setSuggestions(uniqueNames);
+
+        // Only products starting with query
+        const filtered = (res.data.products || [])
+          .filter((p) => p.name.toLowerCase().startsWith(trimmedQuery))
+          .map((p) => p.name);
+
+        // Remove duplicates
+        const unique = Array.from(new Set(filtered));
+
+        setSuggestions(unique);
         setHighlightIndex(-1);
       } catch {
         setSuggestions([]);
@@ -99,6 +109,7 @@ const ShoppingList = () => {
       );
 
       setResult(res.data);
+      setShowComparison(true);
 
       if (!userLocation) {
         setShowLocationPrompt(true);
@@ -111,7 +122,7 @@ const ShoppingList = () => {
   };
 
   // ============================
-  // GEOCODE ADDRESS
+  // GEOCODE MANUAL ADDRESS
   // ============================
   const geocodeAddress = async (address) => {
     setAddressError("");
@@ -141,7 +152,7 @@ const ShoppingList = () => {
   };
 
   // ============================
-  // USE BROWSER LOCATION
+  // USE BROWSER GEOLOCATION
   // ============================
   const handleUseGeolocation = () => {
     if (!navigator.geolocation) {
@@ -175,7 +186,7 @@ const ShoppingList = () => {
       setHighlightIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
     } else if (e.key === "Enter") {
       if (highlightIndex >= 0) {
-        addItem(suggestions[highlightIndex].name);
+        addItem(suggestions[highlightIndex]);
       } else {
         addItem(query);
       }
@@ -202,7 +213,7 @@ const ShoppingList = () => {
     const addStoreMarker = (lat, lon) => {
       L.marker([lat, lon])
         .addTo(map)
-        .bindPopup(`${storeName} (Cheapest)`)
+        .bindPopup(`${storeName} ✅ Cheapest`)
         .openPopup();
 
       if (userLocation) {
@@ -229,29 +240,26 @@ const ShoppingList = () => {
       }
     };
 
-    fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`
-    )
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`)
       .then((res) => res.json())
       .then((data) => {
         if (data.length > 0) {
-          addStoreMarker(
-            parseFloat(data[0].lat),
-            parseFloat(data[0].lon)
-          );
+          addStoreMarker(parseFloat(data[0].lat), parseFloat(data[0].lon));
         }
       })
       .catch((err) => console.error("Map error:", err));
-
-    return () => map.remove();
   }, [result, userLocation]);
 
   // ============================
   // EXIT COMPARISON VIEW
   // ============================
   const handleExitComparison = () => {
+    setShowComparison(false);
     setResult(null);
-    setGoogleMapsLink("");
+    setItems([]);
+    setQuery("");
+    setSuggestions([]);
+    setHighlightIndex(-1);
   };
 
   // ============================
@@ -261,7 +269,7 @@ const ShoppingList = () => {
     <div className="list-container">
       <h1 className="list-title">🛒 Compare Your Shopping List</h1>
 
-      {!result && (
+      {!showComparison && (
         <>
           <div className="list-input-box">
             <input
@@ -275,23 +283,25 @@ const ShoppingList = () => {
             <button onClick={() => addItem(query)} className="list-add-btn">
               Add
             </button>
-          </div>
 
-          {suggestions.length > 0 && (
-            <ul className="list-suggestions" ref={dropdownRef}>
-              {suggestions.map((s, i) => (
-                <li
-                  key={i}
-                  className={`list-suggestion-item ${
-                    highlightIndex === i ? "active" : ""
-                  }`}
-                  onClick={() => addItem(s.name)}
-                >
-                  {s.name}
-                </li>
-              ))}
-            </ul>
-          )}
+            {/* DROPDOWN */}
+            {suggestions.length > 0 && (
+              <ul className="list-suggestions" ref={dropdownRef}>
+                {suggestions.map((s, i) => (
+                  <li
+                    key={i}
+                    className={`list-suggestion-item ${
+                      highlightIndex === i ? "active" : ""
+                    }`}
+                    onMouseEnter={() => setHighlightIndex(i)}
+                    onClick={() => addItem(s)}
+                  >
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           <ul className="list-items">
             {items.map((item, i) => (
@@ -310,7 +320,7 @@ const ShoppingList = () => {
         </>
       )}
 
-      {showLocationPrompt && !result && (
+      {showLocationPrompt && !userLocation && (
         <div className="location-prompt">
           <h4>Where are you located?</h4>
           <button onClick={handleUseGeolocation}>Use my location</button>
@@ -324,20 +334,14 @@ const ShoppingList = () => {
         </div>
       )}
 
-      {result && (
+      {showComparison && result && (
         <div className="list-results">
-          <button
-            className="exit-comparison-btn"
-            onClick={handleExitComparison}
-            title="Exit Comparison"
-          >
+          <button className="exit-comparison-btn" onClick={handleExitComparison}>
             ✖
           </button>
 
           <h2>🏆 Best Supermarket: {result.best.supermarket}</h2>
-          <p>
-            Total: <strong>{result.best.total} €</strong>
-          </p>
+          <p>Total: <strong>{result.best.total} €</strong></p>
 
           <h3>Full Breakdown</h3>
           <div className="list-grid">
