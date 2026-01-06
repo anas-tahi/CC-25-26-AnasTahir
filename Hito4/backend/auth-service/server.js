@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const logger = require('./logger');  
+const shoppingListsRoutes = require("./routes/shoppingLists");
+
 
 dotenv.config();
 
@@ -21,6 +23,8 @@ app.use((req, res, next) => {
 // ✅ Routes
 const authRoutes = require("./routes/auth");
 app.use("/auth", authRoutes);
+app.use("/shopping-lists", shoppingListsRoutes);
+
 
 // ✅ MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)

@@ -2,6 +2,30 @@ const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
 
+// Helper to normalize products input
+// Accepts:
+// - ["Milk", "Eggs"]
+// - [{ name: "Milk", quantity: 2 }, { name: "Eggs", quantity: 12 }]
+function normalizeProducts(rawProducts) {
+  if (!Array.isArray(rawProducts)) return [];
+
+  // Case 1: array of strings
+  if (typeof rawProducts[0] === "string") {
+    return rawProducts.map((name) => ({
+      name,
+      quantity: 1,
+    }));
+  }
+
+  // Case 2: array of objects
+  return rawProducts
+    .filter((p) => p && typeof p.name === "string")
+    .map((p) => ({
+      name: p.name,
+      quantity: p.quantity && p.quantity > 0 ? p.quantity : 1,
+    }));
+}
+
 // POST /compare-list
 router.post("/", async (req, res) => {
   try {
@@ -11,18 +35,32 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "Product list is required" });
     }
 
-    const allItems = await Product.find({ name: { $in: products } });
+    // Normalize input → always: [{ name, quantity }]
+    const normalized = normalizeProducts(products);
+    if (normalized.length === 0) {
+      return res.status(400).json({ message: "Product names are required" });
+    }
+
+    const productNames = normalized.map((p) => p.name);
+
+    // Fetch all product documents for these names
+    const allItems = await Product.find({ name: { $in: productNames } });
 
     const supermarketTotals = {};
     const supermarketMissing = {};
 
-    for (const name of products) {
+    // For each requested product
+    for (const { name, quantity } of normalized) {
       const items = allItems.filter((i) => i.name === name);
 
-      if (items.length === 0) continue;
+      if (items.length === 0) {
+        // if no supermarket has it, we skip totals but still count missing later
+        continue;
+      }
 
       const availableMarkets = items.map((i) => i.supermarket);
 
+      // Add cost per supermarket, multiplied by quantity
       for (const item of items) {
         const market = item.supermarket;
 
@@ -31,9 +69,10 @@ router.post("/", async (req, res) => {
           supermarketMissing[market] = 0;
         }
 
-        supermarketTotals[market] += item.price;
+        supermarketTotals[market] += item.price * quantity;
       }
 
+      // For any supermarket that exists in totals but doesn't have this product → mark as missing
       for (const market of Object.keys(supermarketTotals)) {
         if (!availableMarkets.includes(market)) {
           supermarketMissing[market] = (supermarketMissing[market] || 0) + 1;
@@ -49,10 +88,16 @@ router.post("/", async (req, res) => {
 
     result.sort((a, b) => a.total - b.total);
 
+    // Backwards compatible + richer response
     res.json({
-      products,
+      // original: array of names (for old frontend)
+      products: productNames,
+
+      // new: includes quantities (for new frontend)
+      items: normalized,
+
       supermarkets: result,
-      best: result[0],
+      best: result[0] || null,
     });
   } catch (err) {
     console.error("Compare list error:", err);

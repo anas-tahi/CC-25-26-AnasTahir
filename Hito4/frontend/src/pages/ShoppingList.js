@@ -1,371 +1,244 @@
-import { useState, useEffect, useRef } from "react";
-import axios from "axios";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import "./shoppingList.css";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import {
+  compareList,
+  getShoppingList,
+  createShoppingList,
+  updateShoppingList,
+} from "../api/shoppingLists"; // adjust path if needed
+import "./shoppingList.css"; // keep or adapt
+
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
 
 const ShoppingList = () => {
-  const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
-  const [highlightIndex, setHighlightIndex] = useState(-1);
-
-  const [items, setItems] = useState([]);
+  const query = useQuery();
+  const [items, setItems] = useState([{ name: "", quantity: 1 }]);
+  const [loadingCompare, setLoadingCompare] = useState(false);
   const [result, setResult] = useState(null);
-  const [showComparison, setShowComparison] = useState(false);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [currentListId, setCurrentListId] = useState(null); // for edit
+  const [listNameForEdit, setListNameForEdit] = useState("");
 
-  const [userLocation, setUserLocation] = useState(null);
-  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
-  const [manualAddress, setManualAddress] = useState("");
-  const [addressError, setAddressError] = useState("");
-
-  const [googleMapsLink, setGoogleMapsLink] = useState("");
-  const [mapLoading, setMapLoading] = useState(false);
-
-  const dropdownRef = useRef(null);
-  const mapRef = useRef(null);
-
-  // ============================
-  // GET USER LOCATION (ON LOAD)
-  // ============================
+  // Load list by ID from URL ?listId=...
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) =>
-          setUserLocation({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          }),
-        () => {}
-      );
-    }
-  }, []);
+    const listId = query.get("listId");
+    if (!listId) return;
 
-  // ============================
-  // FETCH PRODUCT SUGGESTIONS (PREFIX SEARCH)
-  // ============================
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      const trimmedQuery = query.trim().toLowerCase();
-      if (trimmedQuery.length === 0) {
-        setSuggestions([]);
-        setHighlightIndex(-1);
-        return;
-      }
-
+    (async () => {
       try {
-        const res = await axios.get(
-          `https://product-service-3lsh.onrender.com/products?search=${trimmedQuery}`
+        const list = await getShoppingList(listId);
+        setItems(
+          list.items && list.items.length > 0
+            ? list.items.map((i) => ({
+                name: i.name,
+                quantity: i.quantity || 1,
+              }))
+            : [{ name: "", quantity: 1 }]
         );
-
-        // Only products starting with query
-        const filtered = (res.data.products || [])
-          .filter((p) => p.name.toLowerCase().startsWith(trimmedQuery))
-          .map((p) => p.name);
-
-        // Remove duplicates
-        const unique = Array.from(new Set(filtered));
-
-        setSuggestions(unique);
-        setHighlightIndex(-1);
-      } catch {
-        setSuggestions([]);
+        setCurrentListId(list.id);
+        setListNameForEdit(list.name || "");
+      } catch (err) {
+        console.error("Error loading list from URL:", err);
       }
-    };
-
-    fetchSuggestions();
+    })();
   }, [query]);
 
-  // ============================
-  // ADD ITEM TO LIST
-  // ============================
-  const addItem = (name) => {
-    if (!name || items.includes(name)) return;
-    setItems([...items, name]);
-    setQuery("");
-    setSuggestions([]);
+  const handleItemChange = (index, field, value) => {
+    const updated = [...items];
+    if (field === "quantity") {
+      const num = parseInt(value, 10);
+      updated[index].quantity = isNaN(num) || num < 1 ? 1 : num;
+    } else {
+      updated[index].name = value;
+    }
+    setItems(updated);
   };
 
-  // ============================
-  // REMOVE ITEM
-  // ============================
-  const removeItem = (i) => {
-    setItems(items.filter((_, idx) => idx !== i));
+  const handleAddRow = () => {
+    setItems([...items, { name: "", quantity: 1 }]);
   };
 
-  // ============================
-  // COMPARE LIST
-  // ============================
-  const compareList = async () => {
-    if (items.length === 0) return;
+  const handleRemoveRow = (index) => {
+    if (items.length === 1) return;
+    const updated = items.filter((_, i) => i !== index);
+    setItems(updated);
+  };
 
-    setMapLoading(true);
+  const handleCompare = async () => {
+    setError("");
     setResult(null);
-    setGoogleMapsLink("");
 
-    try {
-      const res = await axios.post(
-        "https://product-service-3lsh.onrender.com/compare-list",
-        { products: items }
-      );
+    const normalized = items
+      .map((item) => ({
+        name: item.name.trim(),
+        quantity: item.quantity || 1,
+      }))
+      .filter((item) => item.name);
 
-      setResult(res.data);
-      setShowComparison(true);
-
-      if (!userLocation) {
-        setShowLocationPrompt(true);
-      }
-    } catch (err) {
-      console.error("Compare list error:", err);
-    }
-
-    setMapLoading(false);
-  };
-
-  // ============================
-  // GEOCODE MANUAL ADDRESS
-  // ============================
-  const geocodeAddress = async (address) => {
-    setAddressError("");
-
-    try {
-      const q = encodeURIComponent(address);
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`
-      );
-      const data = await res.json();
-
-      if (data.length > 0) {
-        setUserLocation({
-          lat: parseFloat(data[0].lat),
-          lng: parseFloat(data[0].lon),
-        });
-        setShowLocationPrompt(false);
-        return true;
-      }
-
-      setAddressError("Address not found.");
-      return false;
-    } catch {
-      setAddressError("Unable to resolve address.");
-      return false;
-    }
-  };
-
-  // ============================
-  // USE BROWSER GEOLOCATION
-  // ============================
-  const handleUseGeolocation = () => {
-    if (!navigator.geolocation) {
-      setAddressError("Geolocation not supported.");
+    if (normalized.length === 0) {
+      setError("Please add at least one product");
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLocation({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        });
-        setShowLocationPrompt(false);
-      },
-      () => setAddressError("Geolocation failed.")
-    );
-  };
-
-  // ============================
-  // KEYBOARD NAVIGATION
-  // ============================
-  const handleKeyDown = (e) => {
-    if (suggestions.length === 0) return;
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setHighlightIndex((prev) => (prev + 1) % suggestions.length);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setHighlightIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
-    } else if (e.key === "Enter") {
-      if (highlightIndex >= 0) {
-        addItem(suggestions[highlightIndex]);
-      } else {
-        addItem(query);
-      }
+    try {
+      setLoadingCompare(true);
+      const data = await compareList(normalized);
+      setResult(data);
+    } catch (err) {
+      console.error(err);
+      setError("Error comparing list");
+    } finally {
+      setLoadingCompare(false);
     }
   };
 
-  // ============================
-  // MAP LOGIC
-  // ============================
-  useEffect(() => {
-    if (!result || !mapRef.current) return;
+  const handleSaveList = async () => {
+    setError("");
+    if (!result) {
+      setError("Compare the list before saving.");
+      return;
+    }
 
-    mapRef.current.innerHTML = "";
+    const defaultName = listNameForEdit || "My shopping list";
+    const name = window.prompt("Enter a name for this list:", defaultName);
+    if (!name) return;
 
-    const map = L.map(mapRef.current);
+    const normalized = items
+      .map((item) => ({
+        name: item.name.trim(),
+        quantity: item.quantity || 1,
+      }))
+      .filter((item) => item.name);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap contributors",
-    }).addTo(map);
+    if (normalized.length === 0) {
+      setError("Cannot save an empty list.");
+      return;
+    }
 
-    const storeName = result.best.supermarket;
-    const q = encodeURIComponent(storeName);
-
-    const addStoreMarker = (lat, lon) => {
-      L.marker([lat, lon])
-        .addTo(map)
-        .bindPopup(`${storeName} ✅ Cheapest`)
-        .openPopup();
-
-      if (userLocation) {
-        L.marker([userLocation.lat, userLocation.lng])
-          .addTo(map)
-          .bindPopup("You");
-
-        map.fitBounds(
-          [
-            [userLocation.lat, userLocation.lng],
-            [lat, lon],
-          ],
-          { padding: [50, 50] }
-        );
-
-        setGoogleMapsLink(
-          `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${lat},${lon}`
-        );
+    try {
+      setSaving(true);
+      let saved;
+      if (currentListId) {
+        saved = await updateShoppingList(currentListId, {
+          name,
+          items: normalized,
+        });
       } else {
-        map.setView([lat, lon], 15);
-        setGoogleMapsLink(
-          `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
-        );
+        saved = await createShoppingList({ name, items: normalized });
+        setCurrentListId(saved.id);
       }
-    };
-
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.length > 0) {
-          addStoreMarker(parseFloat(data[0].lat), parseFloat(data[0].lon));
-        }
-      })
-      .catch((err) => console.error("Map error:", err));
-  }, [result, userLocation]);
-
-  // ============================
-  // EXIT COMPARISON VIEW
-  // ============================
-  const handleExitComparison = () => {
-    setShowComparison(false);
-    setResult(null);
-    setItems([]);
-    setQuery("");
-    setSuggestions([]);
-    setHighlightIndex(-1);
+      setListNameForEdit(saved.name);
+    } catch (err) {
+      console.error(err);
+      setError("Error saving list. Are you logged in?");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // ============================
-  // RENDER
-  // ============================
   return (
-    <div className="list-container">
-      <h1 className="list-title">🛒 Compare Your Shopping List</h1>
+    <div className="shopping-list-page">
+      <h1>Shopping List</h1>
 
-      {!showComparison && (
-        <>
-          <div className="list-input-box">
-            <input
-              type="text"
-              placeholder="Search product..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="list-input"
-            />
-            <button onClick={() => addItem(query)} className="list-add-btn">
-              Add
-            </button>
-
-            {/* DROPDOWN */}
-            {suggestions.length > 0 && (
-              <ul className="list-suggestions" ref={dropdownRef}>
-                {suggestions.map((s, i) => (
-                  <li
-                    key={i}
-                    className={`list-suggestion-item ${
-                      highlightIndex === i ? "active" : ""
-                    }`}
-                    onMouseEnter={() => setHighlightIndex(i)}
-                    onClick={() => addItem(s)}
-                  >
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <ul className="list-items">
-            {items.map((item, i) => (
-              <li key={i} className="list-item">
-                {item}
-                <button className="list-remove-btn" onClick={() => removeItem(i)}>
-                  ✖
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          <button onClick={compareList} className="list-compare-btn">
-            Compare List
-          </button>
-        </>
-      )}
-
-      {showLocationPrompt && !userLocation && (
-        <div className="location-prompt">
-          <h4>Where are you located?</h4>
-          <button onClick={handleUseGeolocation}>Use my location</button>
-          <input
-            value={manualAddress}
-            onChange={(e) => setManualAddress(e.target.value)}
-            placeholder="Enter address"
-          />
-          <button onClick={() => geocodeAddress(manualAddress)}>Search</button>
-          {addressError && <p className="location-error">{addressError}</p>}
+      {currentListId && (
+        <div className="shopping-list-current-name">
+          Editing list: <strong>{listNameForEdit}</strong>
         </div>
       )}
 
-      {showComparison && result && (
-        <div className="list-results">
-          <button className="exit-comparison-btn" onClick={handleExitComparison}>
-            ✖
-          </button>
+      {error && <div className="shopping-list-error">{error}</div>}
 
-          <h2>🏆 Best Supermarket: {result.best.supermarket}</h2>
-          <p>Total: <strong>{result.best.total} €</strong></p>
+      <div className="shopping-list-inputs">
+        {items.map((item, index) => (
+          <div key={index} className="shopping-list-row">
+            <input
+              type="text"
+              placeholder="Product name"
+              value={item.name}
+              onChange={(e) =>
+                handleItemChange(index, "name", e.target.value)
+              }
+            />
+            <input
+              type="number"
+              min="1"
+              value={item.quantity}
+              onChange={(e) =>
+                handleItemChange(index, "quantity", e.target.value)
+              }
+              className="shopping-list-quantity"
+            />
+            <button
+              type="button"
+              onClick={() => handleRemoveRow(index)}
+              className="shopping-list-remove"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
 
-          <h3>Full Breakdown</h3>
-          <div className="list-grid">
-            {result.supermarkets.map((s, i) => (
-              <div key={i} className="list-card">
-                <h4>{s.supermarket}</h4>
-                <p>Total: {s.total} €</p>
-                <p>Missing items: {s.missing}</p>
-              </div>
-            ))}
+        <button
+          type="button"
+          onClick={handleAddRow}
+          className="shopping-list-add-row"
+        >
+          + Add item
+        </button>
+      </div>
+
+      <div className="shopping-list-actions">
+        <button
+          type="button"
+          onClick={handleCompare}
+          disabled={loadingCompare}
+          className="shopping-list-compare-btn"
+        >
+          {loadingCompare ? "Comparing..." : "Compare prices"}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleSaveList}
+          disabled={saving || !result}
+          className="shopping-list-save-btn"
+        >
+          {saving ? "Saving..." : "Save this list"}
+        </button>
+      </div>
+
+      {result && (
+        <div className="shopping-list-results">
+          <h2>Comparison</h2>
+
+          <div className="shopping-list-summary">
+            {result.best ? (
+              <p>
+                Best supermarket: <strong>{result.best.supermarket}</strong>{" "}
+                — total: <strong>{result.best.total}€</strong> — missing items:{" "}
+                <strong>{result.best.missing}</strong>
+              </p>
+            ) : (
+              <p>No supermarkets found for these products.</p>
+            )}
           </div>
 
-          <div id="map" ref={mapRef}></div>
-
-          {googleMapsLink && (
-            <a
-              href={googleMapsLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="google-link"
-            >
-              Go to Google Maps 🚀
-            </a>
-          )}
+          <div className="shopping-list-supermarkets">
+            {result.supermarkets &&
+              result.supermarkets.map((s) => (
+                <div
+                  key={s.supermarket}
+                  className="shopping-list-supermarket-card"
+                >
+                  <h3>{s.supermarket}</h3>
+                  <p>Total: {s.total}€</p>
+                  <p>Missing items: {s.missing}</p>
+                </div>
+              ))}
+          </div>
         </div>
       )}
     </div>
