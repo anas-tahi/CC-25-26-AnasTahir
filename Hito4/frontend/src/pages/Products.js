@@ -16,7 +16,8 @@ const Products = () => {
   useEffect(() => {
     const fetchRecommended = async () => {
       try {
-        const res = await productAPI.get('/products/recommended');
+        // CORRECT: backend route is /products/recommended
+        const res = await productAPI.get('/recommended');
         const grouped = groupByName(res.data);
         const limited = Object.entries(grouped).slice(0, 6);
         setRecommended(limited);
@@ -84,21 +85,6 @@ const Products = () => {
 
   return (
     <div className="products-container">
-      <style>
-        {`
-          @keyframes fadeInUp {
-            0% { opacity: 0; transform: translateY(20px); }
-            100% { opacity: 1; transform: translateY(0); }
-          }
-
-          @keyframes pulseBadge {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-            100% { transform: scale(1); }
-          }
-        `}
-      </style>
-
       <h2 className="products-heading">⭐ Recommended Products</h2>
 
       <div className="products-grid">
@@ -106,7 +92,7 @@ const Products = () => {
           const cheapestId = getCheapestProductId(items);
 
           return (
-            <div key={index} className="product-card" style={{ animation: 'fadeInUp 0.6s ease forwards' }}>
+            <div key={index} className="product-card">
               <div className="product-badge">🔥 Recommended</div>
 
               <h3 className="product-title">{name}</h3>

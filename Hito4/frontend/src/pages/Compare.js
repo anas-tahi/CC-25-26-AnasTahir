@@ -10,13 +10,12 @@ import "./compare.css";
 
 const Compare = () => {
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]); // array of strings
+  const [suggestions, setSuggestions] = useState([]);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const [matches, setMatches] = useState([]); // array of strings
+  const [matches, setMatches] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
-  const [nearestStore, setNearestStore] = useState(null);
   const [googleMapsLink, setGoogleMapsLink] = useState("");
   const [mapLoading, setMapLoading] = useState(false);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
@@ -29,6 +28,9 @@ const Compare = () => {
   const inputRef = useRef(null);
   const { fetchFavoritesCount } = useContext(FavoritesContext);
 
+  // ============================
+  // GET USER LOCATION
+  // ============================
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -43,6 +45,9 @@ const Compare = () => {
     }
   }, []);
 
+  // ============================
+  // ADD TO WISHLIST
+  // ============================
   const handleAddToWishlist = async (productId) => {
     try {
       await axios.post(
@@ -54,7 +59,7 @@ const Compare = () => {
       );
 
       Swal.fire({
-        title: "✅ Added to wishlist!",
+        title: "❤️ Added to wishlist!",
         icon: "success",
         timer: 1500,
         showConfirmButton: false,
@@ -80,6 +85,9 @@ const Compare = () => {
     }
   };
 
+  // ============================
+  // FETCH SUGGESTIONS
+  // ============================
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (!query.trim()) {
@@ -90,9 +98,8 @@ const Compare = () => {
       }
 
       try {
-        const res = await productAPI.get(
-          `/products/names/${encodeURIComponent(query)}`
-        );
+        // CORRECT: backend route is /products/names/:prefix
+        const res = await productAPI.get(`/names/${encodeURIComponent(query)}`);
         const names = (res.data || []).map((p) => p.name);
         setSuggestions(names);
         setHighlightIndex(-1);
@@ -105,6 +112,9 @@ const Compare = () => {
     fetchSuggestions();
   }, [query]);
 
+  // ============================
+  // SEARCH HANDLER
+  // ============================
   const handleSearch = async () => {
     if (!query.trim()) return;
 
@@ -114,7 +124,7 @@ const Compare = () => {
     if (isExact) {
       try {
         const res = await productAPI.get(
-          `/products/compare/${encodeURIComponent(trimmed)}`
+          `/compare/${encodeURIComponent(trimmed)}`
         );
         setResult(res.data);
         setMatches([]);
@@ -127,7 +137,7 @@ const Compare = () => {
     } else {
       try {
         const res = await productAPI.get(
-          `/products/names/${encodeURIComponent(trimmed)}`
+          `/names/${encodeURIComponent(trimmed)}`
         );
         const names = (res.data || []).map((p) => p.name);
         setMatches(names);
@@ -141,6 +151,9 @@ const Compare = () => {
     }
   };
 
+  // ============================
+  // SELECT PRODUCT
+  // ============================
   const handleSelectProduct = async (name) => {
     try {
       setGoogleMapsLink("");
@@ -149,7 +162,7 @@ const Compare = () => {
 
     try {
       const res = await productAPI.get(
-        `/products/compare/${encodeURIComponent(name)}`
+        `/compare/${encodeURIComponent(name)}`
       );
       setResult(res.data);
       setMatches([]);
@@ -171,6 +184,9 @@ const Compare = () => {
     }
   };
 
+  // ============================
+  // GEOCODE ADDRESS
+  // ============================
   const geocodeAddress = async (address) => {
     setAddressError("");
 
@@ -198,6 +214,9 @@ const Compare = () => {
     }
   };
 
+  // ============================
+  // USE BROWSER LOCATION
+  // ============================
   const handleUseGeolocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -218,6 +237,9 @@ const Compare = () => {
     }
   };
 
+  // ============================
+  // KEYBOARD NAVIGATION
+  // ============================
   const handleKeyDown = (e) => {
     if (suggestions.length === 0) return;
 
@@ -251,6 +273,9 @@ const Compare = () => {
     if (item) item.scrollIntoView({ block: "nearest" });
   };
 
+  // ============================
+  // CLOSE DROPDOWN ON OUTSIDE CLICK
+  // ============================
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -262,6 +287,9 @@ const Compare = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  // ============================
+  // MAP LOGIC
+  // ============================
   useEffect(() => {
     if (!result || !mapRef.current) return;
 
@@ -315,59 +343,28 @@ const Compare = () => {
           `https://www.google.com/maps/search/?api=1&query=${storeLat},${storeLon}`
         );
       }
-
-      setNearestStore({
-        lat: storeLat,
-        lon: storeLon,
-        name: display_name || storeName,
-      });
     };
 
-    if (userLocation) {
-      const viewbox = `${userLocation.lng - 0.05},${userLocation.lat + 0.05},${
-        userLocation.lng + 0.05
-      },${userLocation.lat - 0.05}`;
-
-      fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1&viewbox=${viewbox}&bounded=1`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.length > 0) {
-            addStoreMarker(data[0]);
-          } else {
-            return fetch(
-              `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`
-            )
-              .then((r) => r.json())
-              .then((fallback) => {
-                if (fallback.length > 0) addStoreMarker(fallback[0]);
-              });
-          }
-        })
-        .catch((err) => console.error("Nominatim error (bounded):", err));
-    } else {
-      fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.length > 0) {
-            addStoreMarker(data[0]);
-          }
-        })
-        .catch((err) => console.error("Nominatim error (global):", err));
-    }
+    fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.length > 0) addStoreMarker(data[0]);
+      })
+      .catch((err) => console.error("Nominatim error:", err));
 
     return () => map.remove();
   }, [result, userLocation]);
 
+  // ============================
+  // RENDER
+  // ============================
   return (
     <div className="compare-container">
-      <h2 className="compare-heading">
-        🔍 <span>Compare Product Prices</span>
-      </h2>
+      <h2 className="compare-heading">🔍 Compare Product Prices</h2>
 
+      {/* SEARCH BOX */}
       <div className="search-box" ref={dropdownRef}>
         <div className="input-wrapper">
           <FiSearch className="search-icon" />
@@ -382,6 +379,7 @@ const Compare = () => {
           />
         </div>
 
+        {/* SUGGESTIONS */}
         {suggestions.length > 0 && (
           <ul className="dropdown">
             {suggestions.map((name, i) => (
@@ -397,49 +395,15 @@ const Compare = () => {
           </ul>
         )}
 
-        {showLocationPrompt && (
-          <div className="location-prompt">
-            <h4 className="location-prompt-title">Where are you located?</h4>
-            <p className="location-prompt-text">
-              Allow the browser to detect your location or enter an address/place.
-            </p>
-
-            <div className="location-controls">
-              <button
-                onClick={handleUseGeolocation}
-                className="location-button-primary"
-              >
-                Use my current location
-              </button>
-
-              <input
-                value={manualAddress}
-                onChange={(e) => setManualAddress(e.target.value)}
-                placeholder="Enter address or city"
-                className="location-input"
-              />
-
-              <button
-                onClick={async () => {
-                  if (manualAddress.trim()) await geocodeAddress(manualAddress);
-                }}
-                className="location-button-secondary"
-              >
-                Search
-              </button>
-            </div>
-
-            {addressError && <p className="location-error">{addressError}</p>}
-          </div>
-        )}
-
         <button onClick={handleSearch} className="compare-button">
           Compare
         </button>
       </div>
 
+      {/* ERROR */}
       {error && <p className="error-text">{error}</p>}
 
+      {/* DID YOU MEAN */}
       {matches && matches.length > 0 && (
         <div className="did-you-mean">
           <h4>Did you mean:</h4>
@@ -457,6 +421,7 @@ const Compare = () => {
         </div>
       )}
 
+      {/* RESULT */}
       {result && (
         <div className="result-box">
           <h3 className="result-title">
@@ -500,11 +465,10 @@ const Compare = () => {
             <strong>{result.cheapest.price.toFixed(2)} €</strong>
           </p>
 
+          {/* MAP */}
           <div className="map-section">
             {mapLoading && (
-              <p className="map-loading">
-                Loading map for the cheapest store…
-              </p>
+              <p className="map-loading">Loading map for the cheapest store…</p>
             )}
 
             <div id="map" ref={mapRef}></div>
