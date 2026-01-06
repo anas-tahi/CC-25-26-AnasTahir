@@ -6,7 +6,7 @@ import {
   createShoppingList,
   updateShoppingList,
 } from "../api/shoppingLists";
-import "../styles/shoppingList.css";
+import "../pages/shoppingList.css";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
