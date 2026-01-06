@@ -5,6 +5,7 @@ import { FaStore } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { FavoritesContext } from "../context/FavoritesContext";
 import { ThemeContext } from "../context/ThemeContext";
+import "./favorites.css";
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
@@ -31,7 +32,7 @@ const Favorites = () => {
     };
     fetchFavorites();
   }, [token]);
-
+  
   const totalPrice = favorites.reduce((sum, item) => sum + item.price, 0);
 
   const handleDelete = async (productId) => {
