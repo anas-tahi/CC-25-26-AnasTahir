@@ -60,3 +60,15 @@ export const updateShoppingList = async (id, { name, items }) => {
 
   return res.json();
 };
+export const getShoppingLists = async () => {
+  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists`, {
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error loading shopping lists");
+  }
+
+  return res.json(); // returns [{ id, name, items }]
+};
+
