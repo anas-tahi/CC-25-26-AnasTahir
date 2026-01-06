@@ -10,38 +10,49 @@ router.post("/compare-list", async (req, res) => {
       return res.status(400).json({ message: "Product list is required" });
     }
 
+    // Fetch ALL products in ONE query (much faster)
+    const allItems = await Product.find({ name: { $in: products } });
+
     const supermarketTotals = {};
     const supermarketMissing = {};
 
+    // Process each product in the list
     for (const name of products) {
-      const items = await Product.find({ name });
+      const items = allItems.filter(i => i.name === name);
 
-      if (!items || items.length === 0) continue;
+      // If no supermarket sells this product, skip it
+      if (items.length === 0) continue;
 
       const availableMarkets = items.map(i => i.supermarket);
 
+      // Add prices for markets that have the product
       for (const item of items) {
         const market = item.supermarket;
+
         if (!supermarketTotals[market]) {
           supermarketTotals[market] = 0;
           supermarketMissing[market] = 0;
         }
+
         supermarketTotals[market] += item.price;
       }
 
+      // Count missing items for markets that DON'T have the product
       for (const market of Object.keys(supermarketTotals)) {
         if (!availableMarkets.includes(market)) {
-          supermarketMissing[market]++;
+          supermarketMissing[market] = (supermarketMissing[market] || 0) + 1;
         }
       }
     }
 
+    // Build final result array
     const result = Object.keys(supermarketTotals).map(market => ({
       supermarket: market,
       total: parseFloat(supermarketTotals[market].toFixed(2)),
-      missing: supermarketMissing[market]
+      missing: supermarketMissing[market] || 0
     }));
 
+    // Sort by total price (cheapest first)
     result.sort((a, b) => a.total - b.total);
 
     res.json({
