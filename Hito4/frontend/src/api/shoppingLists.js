@@ -1,98 +1,58 @@
-import { PRODUCT_API_BASE, SHOPPING_API_BASE } from "../config";
+const API_BASE = "https://product-service-3lsh.onrender.com";
 
-// ===============================
-// GET ALL SHOPPING LISTS
-// ===============================
-export const getShoppingLists = async () => {
-  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists`, {
-    headers: { "Content-Type": "application/json" },
+// ============================
+// COMPARE LIST
+// ============================
+export const compareList = async ({ products }) => {
+  const res = await fetch(`${API_BASE}/compare-list`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ products }),
   });
 
   if (!res.ok) {
-    throw new Error("Error loading shopping lists");
-  }
-
-  return res.json(); // [{ id, name, items }]
-};
-
-// ===============================
-// GET SINGLE LIST
-// ===============================
-export const getShoppingList = async (id) => {
-  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists/${id}`, {
-    headers: { "Content-Type": "application/json" },
-  });
-
-  if (!res.ok) {
-    throw new Error("Error loading shopping list");
+    const error = await res.json();
+    throw new Error(error.message || "Compare failed");
   }
 
   return res.json();
 };
 
-// ===============================
-// CREATE LIST
-// ===============================
-export const createShoppingList = async ({ name, items }) => {
-  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, items }),
-  });
-
-  if (!res.ok) {
-    throw new Error("Error creating shopping list");
-  }
-
-  return res.json(); // { id, name, items }
+// ============================
+// GET LIST
+// ============================
+export const getShoppingList = async (id) => {
+  const res = await fetch(`${API_BASE}/shopping-lists/${id}`);
+  if (!res.ok) throw new Error("Failed to load list");
+  return res.json();
 };
 
-// ===============================
+// ============================
+// CREATE LIST
+// ============================
+export const createShoppingList = async (data) => {
+  const res = await fetch(`${API_BASE}/shopping-lists`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) throw new Error("Failed to save list");
+  return res.json();
+};
+
+// ============================
 // UPDATE LIST
-// ===============================
-export const updateShoppingList = async (id, { name, items }) => {
-  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists/${id}`, {
+// ============================
+export const updateShoppingList = async (id, data) => {
+  const res = await fetch(`${API_BASE}/shopping-lists/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, items }),
+    body: JSON.stringify(data),
   });
 
-  if (!res.ok) {
-    throw new Error("Error updating shopping list");
-  }
-
-  return res.json();
-};
-
-// ===============================
-// DELETE LIST
-// ===============================
-export const deleteShoppingList = async (id) => {
-  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists/${id}`, {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-  });
-
-  if (!res.ok) {
-    throw new Error("Error deleting shopping list");
-  }
-
-  return res.json();
-};
-
-// ===============================
-// COMPARE LIST
-// ===============================
-export const compareList = async (items) => {
-  const res = await fetch(`${PRODUCT_API_BASE}/compare-list`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ products: items }), // IMPORTANT
-  });
-
-  if (!res.ok) {
-    throw new Error("Compare failed");
-  }
-
+  if (!res.ok) throw new Error("Failed to update list");
   return res.json();
 };
