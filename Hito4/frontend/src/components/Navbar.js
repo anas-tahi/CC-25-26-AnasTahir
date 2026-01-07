@@ -81,6 +81,7 @@ const Navbar = ({ setToken }) => {
           <span className="title">CompraSmart</span>
         </Link>
 
+        {/* DESKTOP LINKS */}
         <div className="nav-links desktop-only">
           <Link to="/home" className="nav-link"><AiOutlineHome /> {t.home}</Link>
           <Link to="/products" className="nav-link"><FiBox /> {t.products}</Link>

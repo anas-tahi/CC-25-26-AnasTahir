@@ -17,7 +17,7 @@ import { FavoritesProvider } from './context/FavoritesContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { UserProvider } from './context/UserContext';
 import { ThemeProvider, ThemeContext } from './context/ThemeContext';
-import ShoppingListCompare from "./pages/ShoppingListCompare";
+import ShoppingListCompare from "./styles/ShoppingListCompare";
 
 
 
