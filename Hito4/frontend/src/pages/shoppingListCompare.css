@@ -1,0 +1,187 @@
+/* Container */
+.shopping-container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Headings */
+.shopping-container h1 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.shopping-container h2 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+/* Create list input & button */
+.create-list {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.create-list input {
+  flex: 1;
+  padding: 8px;
+  font-size: 16px;
+}
+
+.create-list button {
+  padding: 8px 12px;
+  cursor: pointer;
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+}
+
+.create-list button:hover {
+  background-color: #45a049;
+}
+
+/* Lists */
+.lists-container {
+  margin-bottom: 20px;
+}
+
+.list-item {
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-bottom: 5px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-item.selected {
+  background-color: #def;
+  border-color: #4CAF50;
+}
+
+/* Editor */
+.list-editor {
+  border: 1px solid #aaa;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+}
+
+.list-editor input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+.suggestions-list {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 10;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.suggestions-list li {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.suggestions-list li:hover {
+  background-color: #def;
+}
+
+/* Items in list */
+.items-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.item-card {
+  padding: 5px 10px;
+  border: 1px solid #888;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #fff;
+}
+
+.item-card input[type="number"] {
+  width: 50px;
+  padding: 4px;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: red;
+  cursor: pointer;
+}
+
+/* Buttons */
+button {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 8px 12px;
+  border: none;
+  background-color: #2196F3;
+  color: #fff;
+}
+
+button:hover {
+  background-color: #1976d2;
+}
+
+/* Compare Results */
+.compare-results {
+  margin-top: 20px;
+}
+
+.compare-results .supermarket {
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+.compare-results .supermarket.best {
+  background-color: #def;
+  border-color: #4CAF50;
+}
+
+/* Map */
+#map {
+  width: 100%;
+  height: 300px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* Google Maps Link */
+.google-maps-link {
+  display: inline-block;
+  margin-top: 5px;
+  text-decoration: none;
+  color: #2196F3;
+}
+
+.google-maps-link:hover {
+  text-decoration: underline;
+}
