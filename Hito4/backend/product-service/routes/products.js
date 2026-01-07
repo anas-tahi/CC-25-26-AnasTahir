@@ -37,7 +37,6 @@ router.get("/", async (req, res) => {
 
 /* ============================
    RECOMMENDED PRODUCTS
-   GET /products/recommended
 ============================ */
 router.get("/recommended", async (req, res) => {
   try {
@@ -50,9 +49,8 @@ router.get("/recommended", async (req, res) => {
 });
 
 /* ============================
-   UNIQUE NAMES (prefix search)
+   AUTOCOMPLETE PREFIX SEARCH
    GET /products/names/:prefix
-   Used by autocomplete in ShoppingList
 ============================ */
 router.get("/names/:prefix", async (req, res) => {
   try {
@@ -64,7 +62,6 @@ router.get("/names/:prefix", async (req, res) => {
 
     const uniqueNames = [...new Set(products.map((p) => p.name))];
 
-    // IMPORTANT: frontend expects [{ name }]
     res.json(uniqueNames.map((name) => ({ name })));
   } catch (err) {
     console.error("Prefix search error:", err);
@@ -74,7 +71,6 @@ router.get("/names/:prefix", async (req, res) => {
 
 /* ============================
    SINGLE PRODUCT COMPARISON
-   GET /products/compare/:name
 ============================ */
 router.get("/compare/:name", async (req, res) => {
   try {
@@ -120,7 +116,6 @@ router.get("/compare/:name", async (req, res) => {
 
 /* ============================
    GET ALL PRODUCTS
-   GET /products/all
 ============================ */
 router.get("/all", async (req, res) => {
   try {
@@ -132,26 +127,4 @@ router.get("/all", async (req, res) => {
   }
 });
 
-/* ============================
-============================ */
-
-router.get("/names/:prefix", async (req, res) => {
-  try {
-    const prefix = req.params.prefix.toLowerCase();
-
-    // Find products starting with the prefix
-    const products = await Product.find({
-      name: { $regex: `^${prefix}`, $options: "i" }
-    });
-
-    // Remove duplicates
-    const uniqueNames = [...new Set(products.map(p => p.name))];
-
-    // Return format expected by frontend
-    res.json(uniqueNames.map(name => ({ name })));
-  } catch (err) {
-    console.error("Autocomplete error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
 module.exports = router;

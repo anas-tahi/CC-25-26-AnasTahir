@@ -1,0 +1,135 @@
+:root {
+  --primary: #4a90e2;
+  --primary-dark: #357ab8;
+  --danger: #ff4d4d;
+  --border-light: #dcdcdc;
+  --bg-light: #f7f7f7;
+  --card-bg: #ffffff;
+  --shadow: rgba(0, 0, 0, 0.08);
+}
+
+.list-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.list-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.list-input-box {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.list-input {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  font-size: 1rem;
+}
+
+.list-add-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.list-add-btn:hover {
+  background: var(--primary-dark);
+}
+
+.list-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  margin-top: 4px;
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.list-suggestion-item {
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+}
+
+.list-suggestion-item:hover {
+  background: var(--bg-light);
+}
+
+.list-items {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  padding: 0.7rem;
+  background: var(--bg-light);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.list-remove-btn {
+  background: var(--danger);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.list-compare-btn {
+  width: 100%;
+  padding: 0.9rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.list-results {
+  margin-top: 2rem;
+}
+
+.list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.list-card {
+  background: var(--card-bg);
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px var(--shadow);
+}
+
+.heart {
+  cursor: pointer;
+  margin-left: 8px;
+  font-size: 1.2rem;
+}

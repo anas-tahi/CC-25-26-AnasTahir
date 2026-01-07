@@ -16,24 +16,17 @@ function useQuery() {
 const ShoppingList = () => {
   const query = useQuery();
 
-  // Search + autocomplete
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
 
-  // Items in the list
   const [items, setItems] = useState([{ name: "leche", quantity: 1 }]);
 
-  // Compare results
   const [result, setResult] = useState(null);
   const [loadingCompare, setLoadingCompare] = useState(false);
 
-  // Save list
   const [saving, setSaving] = useState(false);
-
-  // Errors
   const [error, setError] = useState("");
 
-  // Editing existing list
   const [currentListId, setCurrentListId] = useState(null);
   const [listNameForEdit, setListNameForEdit] = useState("");
 
@@ -159,7 +152,7 @@ const ShoppingList = () => {
   };
 
   // ============================
-  // SAVE LIST (BUTTON)
+  // SAVE LIST
   // ============================
   const handleSaveList = async () => {
     setError("");
@@ -202,7 +195,7 @@ const ShoppingList = () => {
   };
 
   // ============================
-  // SAVE CHEAPEST (❤️)
+  // SAVE CHEAPEST ❤️
   // ============================
   const handleSaveBest = async (supermarket) => {
     const name = window.prompt(
