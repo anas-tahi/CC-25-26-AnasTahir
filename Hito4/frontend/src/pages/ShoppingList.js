@@ -6,7 +6,8 @@ import {
   createShoppingList,
   updateShoppingList,
 } from "../api/shoppingLists";
-import "../pages/shoppingList.css";
+import { PRODUCT_API_BASE } from "../config";
+import "../styles/shoppingList.css";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -15,16 +16,28 @@ function useQuery() {
 const ShoppingList = () => {
   const query = useQuery();
 
+  // Search + autocomplete
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+
+  // Items in the list
   const [items, setItems] = useState([{ name: "leche", quantity: 1 }]);
+
+  // Compare results
   const [result, setResult] = useState(null);
   const [loadingCompare, setLoadingCompare] = useState(false);
+
+  // Save list
   const [saving, setSaving] = useState(false);
+
+  // Errors
   const [error, setError] = useState("");
+
+  // Editing existing list
   const [currentListId, setCurrentListId] = useState(null);
   const [listNameForEdit, setListNameForEdit] = useState("");
 
+  // Load list from URL
   useEffect(() => {
     const listId = query.get("listId");
     if (!listId) return;
@@ -48,6 +61,9 @@ const ShoppingList = () => {
     })();
   }, [query]);
 
+  // ============================
+  // AUTOCOMPLETE
+  // ============================
   const fetchSuggestions = async (text) => {
     if (!text.trim()) {
       setSuggestions([]);
@@ -56,14 +72,14 @@ const ShoppingList = () => {
 
     try {
       const res = await fetch(
-        `${process.env.REACT_APP_PRODUCT_API_BASE}/products/names/${encodeURIComponent(
-          text
-        )}`
+        `${PRODUCT_API_BASE}/products/names/${encodeURIComponent(text)}`
       );
+
       if (!res.ok) {
         setSuggestions([]);
         return;
       }
+
       const data = await res.json(); // [{ name }]
       setSuggestions(data.map((d) => d.name));
     } catch (err) {
@@ -82,6 +98,9 @@ const ShoppingList = () => {
     setSuggestions([]);
   };
 
+  // ============================
+  // ADD / REMOVE ITEMS
+  // ============================
   const handleAddItem = () => {
     const trimmed = searchTerm.trim();
     if (!trimmed) return;
@@ -108,6 +127,9 @@ const ShoppingList = () => {
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // ============================
+  // COMPARE
+  // ============================
   const handleCompare = async () => {
     setError("");
     setResult(null);
@@ -136,6 +158,9 @@ const ShoppingList = () => {
     }
   };
 
+  // ============================
+  // SAVE LIST (BUTTON)
+  // ============================
   const handleSaveList = async () => {
     setError("");
     if (!result) {
@@ -176,6 +201,9 @@ const ShoppingList = () => {
     }
   };
 
+  // ============================
+  // SAVE CHEAPEST (❤️)
+  // ============================
   const handleSaveBest = async (supermarket) => {
     const name = window.prompt(
       `Save this list (cheapest: ${supermarket})`,
@@ -205,6 +233,7 @@ const ShoppingList = () => {
 
       {error && <div className="shopping-list-error">{error}</div>}
 
+      {/* SEARCH + ADD */}
       <div className="list-input-box">
         <div style={{ position: "relative", flex: 1 }}>
           <input
@@ -214,6 +243,7 @@ const ShoppingList = () => {
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
+
           {suggestions.length > 0 && (
             <div className="list-suggestions">
               {suggestions.map((s, i) => (
@@ -229,20 +259,17 @@ const ShoppingList = () => {
           )}
         </div>
 
-        <button
-          type="button"
-          className="list-add-btn"
-          onClick={handleAddItem}
-        >
+        <button type="button" className="list-add-btn" onClick={handleAddItem}>
           + Add item
         </button>
       </div>
 
+      {/* ITEMS */}
       <ul className="list-items">
         {items.map((item, index) => (
           <li key={index} className="list-item">
             <span style={{ flex: 1, marginRight: "0.5rem" }}>
-              {item.name || <span style={{ opacity: 0.6 }}>Unnamed item</span>}
+              {item.name}
             </span>
 
             <input
@@ -272,6 +299,7 @@ const ShoppingList = () => {
         ))}
       </ul>
 
+      {/* COMPARE + SAVE */}
       <button
         type="button"
         className="list-compare-btn"
@@ -291,6 +319,7 @@ const ShoppingList = () => {
         {saving ? "Saving..." : "Save this list"}
       </button>
 
+      {/* RESULTS */}
       {result && (
         <div className="list-results">
           <h2>Comparison</h2>
@@ -303,7 +332,7 @@ const ShoppingList = () => {
               <strong>{result.best.missing}</strong>
             </p>
           ) : (
-            <p>No supermarkets found for these products.</p>
+            <p>No supermarkets found.</p>
           )}
 
           <div className="list-grid">

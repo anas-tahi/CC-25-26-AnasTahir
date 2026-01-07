@@ -133,34 +133,25 @@ router.get("/all", async (req, res) => {
 });
 
 /* ============================
-   GET PRODUCT BY EXACT NAME
-   GET /products/:name
 ============================ */
-router.get("/:name", async (req, res) => {
+
+router.get("/names/:prefix", async (req, res) => {
   try {
-    const nameParam = req.params.name
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase();
+    const prefix = req.params.prefix.toLowerCase();
 
-    const products = await Product.find({});
-    const filtered = products.filter(
-      (p) =>
-        p.name
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase() === nameParam
-    );
+    // Find products starting with the prefix
+    const products = await Product.find({
+      name: { $regex: `^${prefix}`, $options: "i" }
+    });
 
-    if (filtered.length === 0) {
-      return res.status(404).json({ message: "No products found" });
-    }
+    // Remove duplicates
+    const uniqueNames = [...new Set(products.map(p => p.name))];
 
-    res.json(filtered.map(sanitizeProduct));
+    // Return format expected by frontend
+    res.json(uniqueNames.map(name => ({ name })));
   } catch (err) {
-    console.error("Exact name search error:", err);
-    res.status(500).json({ message: err.message });
+    console.error("Autocomplete error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
-
 module.exports = router;
