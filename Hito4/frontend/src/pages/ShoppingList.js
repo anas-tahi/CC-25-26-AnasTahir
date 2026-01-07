@@ -7,7 +7,6 @@ import {
   deleteShoppingList,
   compareList,
 } from "../api/shoppingLists";
-import "./ShoppingList.css";
 
 const ShoppingList = () => {
   const [lists, setLists] = useState([]);
@@ -96,7 +95,9 @@ const ShoppingList = () => {
         {lists.map((list) => (
           <div
             key={list._id}
-            className={`list-item ${selectedList?._id === list._id ? "selected" : ""}`}
+            className={`list-item ${
+              selectedList?._id === list._id ? "selected" : ""
+            }`}
             onClick={() => handleSelect(list)}
           >
             {list.name}
@@ -136,6 +137,85 @@ const ShoppingList = () => {
           <pre>{JSON.stringify(compareResults, null, 2)}</pre>
         </div>
       )}
+
+      {/* Embed CSS directly */}
+      <style>{`
+        .shopping-list-page {
+          font-family: Arial, sans-serif;
+          padding: 20px;
+          max-width: 800px;
+          margin: auto;
+        }
+        .new-list {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+        .new-list input {
+          flex: 1;
+          padding: 8px;
+          font-size: 16px;
+        }
+        .new-list button {
+          padding: 8px 16px;
+          font-size: 16px;
+        }
+        .lists-container {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .list-item {
+          padding: 10px;
+          border: 1px solid #ccc;
+          cursor: pointer;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .list-item.selected {
+          background-color: #f0f0f0;
+          border-color: #333;
+        }
+        .list-editor {
+          margin-top: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .list-editor textarea {
+          width: 100%;
+          height: 100px;
+          padding: 8px;
+          font-size: 16px;
+        }
+        .list-editor button {
+          width: fit-content;
+          padding: 8px 16px;
+          font-size: 16px;
+          margin-right: 10px;
+        }
+        .autocomplete-suggestions {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          border: 1px solid #ccc;
+          max-width: 300px;
+        }
+        .autocomplete-suggestions li {
+          padding: 5px 10px;
+          cursor: pointer;
+        }
+        .autocomplete-suggestions li:hover {
+          background-color: #eee;
+        }
+        .compare-results {
+          margin-top: 20px;
+          background-color: #f9f9f9;
+          padding: 10px;
+          border: 1px solid #ccc;
+        }
+      `}</style>
     </div>
   );
 };
