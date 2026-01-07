@@ -3,7 +3,6 @@ import axios from "axios";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { productAPI } from "../services/api"; // your product service
-import React from "react";
 import "./shoppingListCompare.css";
 
 
