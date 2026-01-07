@@ -7,7 +7,7 @@ import {
   deleteShoppingList,
   compareList,
 } from "../api/shoppingLists";
-import "../styles/ShoppingList.css";
+import "./ShoppingList.css";
 
 const ShoppingList = () => {
   const [lists, setLists] = useState([]);
