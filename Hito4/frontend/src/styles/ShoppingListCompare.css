@@ -1,0 +1,14 @@
+/* ShoppingListCompare.css */
+.container {
+  padding: 1rem;
+}
+
+.compare-item {
+  border: 1px solid #ccc;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+}
+
+.compare-item h3 {
+  font-size: 1.2rem;
+}
