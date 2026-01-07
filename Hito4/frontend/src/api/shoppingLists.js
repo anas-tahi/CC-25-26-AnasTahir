@@ -1,43 +1,45 @@
 import { SHOPPING_API_BASE } from "../config";
 
-// Get a single shopping list by ID
-export const getShoppingList = async (id) => {
-  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists/${id}`);
+// GET a shopping list by ID
+export async function getShoppingList(listId) {
+  const res = await fetch(`${SHOPPING_API_BASE}/shopping-list/${listId}`);
   if (!res.ok) throw new Error("Failed to fetch shopping list");
   return res.json();
-};
+}
 
-// Get all shopping lists
-export const getShoppingLists = async () => {
-  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists`);
-  if (!res.ok) throw new Error("Failed to fetch shopping lists");
-  return res.json();
-};
-
-// Create a new shopping list
-export const createShoppingList = async (list) => {
-  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists`, {
+// CREATE a new shopping list
+export async function createShoppingList(data) {
+  const res = await fetch(`${SHOPPING_API_BASE}/shopping-list`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(list),
+    body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Failed to create shopping list");
   return res.json();
-};
+}
 
-// Update an existing shopping list by ID
-export const updateShoppingList = async (id, list) => {
-  const res = await fetch(`${SHOPPING_API_BASE}/shopping-lists/${id}`, {
+// UPDATE an existing shopping list
+export async function updateShoppingList(listId, data) {
+  const res = await fetch(`${SHOPPING_API_BASE}/shopping-list/${listId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(list),
+    body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Failed to update shopping list");
   return res.json();
-};
+}
 
-// Compare a list with supermarkets
-export const compareList = async (items) => {
+// DELETE a shopping list
+export async function deleteShoppingList(listId) {
+  const res = await fetch(`${SHOPPING_API_BASE}/shopping-list/${listId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to delete shopping list");
+  return res.json();
+}
+
+// COMPARE a list
+export async function compareList(items) {
   const res = await fetch(`${SHOPPING_API_BASE}/compare-list`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -45,4 +47,4 @@ export const compareList = async (items) => {
   });
   if (!res.ok) throw new Error("Failed to compare list");
   return res.json();
-};
+}

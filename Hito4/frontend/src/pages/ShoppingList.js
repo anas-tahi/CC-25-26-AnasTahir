@@ -4,6 +4,7 @@ import {
   getShoppingList,
   createShoppingList,
   updateShoppingList,
+  deleteShoppingList, // ✅ add this
   compareList,
 } from "../api/shoppingLists";
 import { PRODUCT_API_BASE } from "../config";
