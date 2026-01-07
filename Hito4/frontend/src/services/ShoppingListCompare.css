@@ -1,0 +1,14 @@
+.list-container {
+  max-width: 600px;
+  margin: auto;
+}
+
+.suggestion {
+  cursor: pointer;
+  padding: 5px;
+}
+
+.best {
+  font-weight: bold;
+  color: green;
+}

@@ -11,15 +11,16 @@ import Navbar from './components/Navbar';
 import Favorites from './pages/Favorites';
 import Profile from './pages/Profile';
 import UserGuide from './pages/UserGuide';
-import ShoppingList from './pages/ShoppingListCompare';
-
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 import { FavoritesProvider } from './context/FavoritesContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { UserProvider } from './context/UserContext';
 import { ThemeProvider, ThemeContext } from './context/ThemeContext';
+import ShoppingListCompare from "./pages/ShoppingListCompare";
+
+
+
 
 
 const AppContent = () => {
@@ -92,10 +93,11 @@ const AppContent = () => {
           path="/shopping-list"
           element={
             <ProtectedRoute>
-              <ShoppingList />
+              <ShoppingListCompare />
             </ProtectedRoute>
           }
         />
+
 
         <Route
           path="/settings"

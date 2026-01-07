@@ -2,100 +2,71 @@ const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
 
-// Helper to normalize products input
-// Accepts:
-// - ["Milk", "Eggs"]
-// - [{ name: "Milk", quantity: 2 }, { name: "Eggs", quantity: 12 }]
+// Normalize products
 function normalizeProducts(rawProducts) {
   if (!Array.isArray(rawProducts)) return [];
 
-  // Case 1: array of strings
   if (typeof rawProducts[0] === "string") {
-    return rawProducts.map((name) => ({
-      name,
-      quantity: 1,
-    }));
+    return rawProducts.map(name => ({ name, quantity: 1 }));
   }
 
-  // Case 2: array of objects
   return rawProducts
-    .filter((p) => p && typeof p.name === "string")
-    .map((p) => ({
+    .filter(p => p && typeof p.name === "string")
+    .map(p => ({
       name: p.name,
-      quantity: p.quantity && p.quantity > 0 ? p.quantity : 1,
+      quantity: p.quantity > 0 ? p.quantity : 1
     }));
 }
 
-// POST /compare-list
 router.post("/", async (req, res) => {
   try {
     const { products } = req.body;
 
-    if (!products || !Array.isArray(products) || products.length === 0) {
-      return res.status(400).json({ message: "Product list is required" });
+    if (!products || !products.length) {
+      return res.status(400).json({ message: "Products required" });
     }
 
-    // Normalize input → always: [{ name, quantity }]
     const normalized = normalizeProducts(products);
-    if (normalized.length === 0) {
-      return res.status(400).json({ message: "Product names are required" });
-    }
+    const names = normalized.map(p => p.name);
 
-    const productNames = normalized.map((p) => p.name);
+    const allItems = await Product.find({ name: { $in: names } });
 
-    // Fetch all product documents for these names
-    const allItems = await Product.find({ name: { $in: productNames } });
+    const totals = {};
+    const missing = {};
 
-    const supermarketTotals = {};
-    const supermarketMissing = {};
-
-    // For each requested product
     for (const { name, quantity } of normalized) {
-      const items = allItems.filter((i) => i.name === name);
+      const items = allItems.filter(i => i.name === name);
 
-      if (items.length === 0) {
-        continue;
-      }
-
-      const availableMarkets = items.map((i) => i.supermarket);
-
-      // Add cost per supermarket, multiplied by quantity
       for (const item of items) {
         const market = item.supermarket;
-
-        if (!supermarketTotals[market]) {
-          supermarketTotals[market] = 0;
-          supermarketMissing[market] = 0;
-        }
-
-        supermarketTotals[market] += item.price * quantity;
+        totals[market] = (totals[market] || 0) + item.price * quantity;
+        missing[market] = missing[market] || 0;
       }
 
-      // For any supermarket that exists in totals but doesn't have this product → mark as missing
-      for (const market of Object.keys(supermarketTotals)) {
-        if (!availableMarkets.includes(market)) {
-          supermarketMissing[market] = (supermarketMissing[market] || 0) + 1;
+      for (const market of Object.keys(totals)) {
+        if (!items.find(i => i.supermarket === market)) {
+          missing[market]++;
         }
       }
     }
 
-    const result = Object.keys(supermarketTotals).map((market) => ({
+    const result = Object.keys(totals).map(market => ({
       supermarket: market,
-      total: parseFloat(supermarketTotals[market].toFixed(2)),
-      missing: supermarketMissing[market] || 0,
+      total: +totals[market].toFixed(2),
+      missing: missing[market]
     }));
 
     result.sort((a, b) => a.total - b.total);
 
     res.json({
-      products: productNames,
       items: normalized,
       supermarkets: result,
-      best: result[0] || null,
+      best: result[0]
     });
+
   } catch (err) {
-    console.error("Compare list error:", err);
-    res.status(500).json({ message: "Server error comparing list" });
+    console.error(err);
+    res.status(500).json({ message: "Compare list failed" });
   }
 });
 
