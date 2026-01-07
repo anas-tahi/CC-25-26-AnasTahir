@@ -8,6 +8,7 @@
   --shadow: rgba(0, 0, 0, 0.08);
 }
 
+/* Container */
 .list-container {
   max-width: 900px;
   margin: 2rem auto;
@@ -15,14 +16,25 @@
   background: var(--card-bg);
   border-radius: 12px;
   box-shadow: 0 4px 12px var(--shadow);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Title */
 .list-title {
   text-align: center;
   font-size: 2rem;
   margin-bottom: 1.5rem;
 }
 
+/* Error message */
+.shopping-list-error {
+  color: var(--danger);
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* Search box */
 .list-input-box {
   display: flex;
   gap: 1rem;
@@ -35,8 +47,16 @@
   border-radius: 8px;
   border: 1px solid var(--border-light);
   font-size: 1rem;
+  outline: none;
+  transition: 0.2s;
 }
 
+.list-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* Add item button */
 .list-add-btn {
   background: var(--primary);
   color: white;
@@ -51,29 +71,33 @@
   background: var(--primary-dark);
 }
 
+/* Autocomplete suggestions */
 .list-suggestions {
   position: absolute;
   top: 100%;
   left: 0;
   width: 100%;
-  background: white;
+  background: var(--card-bg);
   border: 1px solid var(--border-light);
   border-radius: 8px;
   margin-top: 4px;
   z-index: 10;
   max-height: 200px;
   overflow-y: auto;
+  box-shadow: 0 3px 6px var(--shadow);
 }
 
 .list-suggestion-item {
   padding: 0.6rem 1rem;
   cursor: pointer;
+  transition: 0.15s;
 }
 
 .list-suggestion-item:hover {
   background: var(--bg-light);
 }
 
+/* Item list */
 .list-items {
   list-style: none;
   padding: 0;
@@ -87,8 +111,14 @@
   background: var(--bg-light);
   border-radius: 8px;
   margin-bottom: 0.5rem;
+  transition: 0.2s;
 }
 
+.list-item:hover {
+  background: #eaeaea;
+}
+
+/* Remove button */
 .list-remove-btn {
   background: var(--danger);
   color: white;
@@ -96,8 +126,14 @@
   padding: 0.4rem 0.7rem;
   border-radius: 6px;
   cursor: pointer;
+  transition: 0.2s;
 }
 
+.list-remove-btn:hover {
+  background: #cc3a3a;
+}
+
+/* Compare / Save buttons */
 .list-compare-btn {
   width: 100%;
   padding: 0.9rem;
@@ -108,8 +144,19 @@
   font-size: 1.1rem;
   cursor: pointer;
   margin-top: 1rem;
+  transition: 0.2s;
 }
 
+.list-compare-btn:hover {
+  background: var(--primary-dark);
+}
+
+.list-compare-btn:disabled {
+  background: #a0c4f0;
+  cursor: not-allowed;
+}
+
+/* Results */
 .list-results {
   margin-top: 2rem;
 }
@@ -126,10 +173,32 @@
   padding: 1rem;
   border-radius: 10px;
   box-shadow: 0 3px 8px var(--shadow);
+  transition: 0.2s;
 }
 
+.list-card:hover {
+  box-shadow: 0 6px 14px var(--shadow);
+}
+
+/* Heart/save cheapest indicator */
 .heart {
   cursor: pointer;
   margin-left: 8px;
   font-size: 1.2rem;
+  transition: 0.2s;
+}
+
+.heart:hover {
+  transform: scale(1.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .list-input-box {
+    flex-direction: column;
+  }
+
+  .list-compare-btn {
+    font-size: 1rem;
+  }
 }
