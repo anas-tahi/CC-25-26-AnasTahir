@@ -14,9 +14,11 @@ export const UserProvider = ({ children }) => {
       setUser(res.data);
     } catch (err) {
       console.error("Failed to fetch user:", err);
+      setUser(null);
     }
   };
 
+  // fetch user on mount
   useEffect(() => {
     fetchUser();
   }, [token]);
