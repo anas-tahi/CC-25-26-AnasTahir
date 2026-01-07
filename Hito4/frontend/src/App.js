@@ -11,7 +11,7 @@ import Navbar from './components/Navbar';
 import Favorites from './pages/Favorites';
 import Profile from './pages/Profile';
 import UserGuide from './pages/UserGuide';
-import ShoppingList from './pages/ShoppingList';
+import ShoppingList from './pages/ShoppingListCompare';
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
