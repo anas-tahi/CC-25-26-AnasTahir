@@ -18,27 +18,29 @@ const app = express();
 // Parse JSON bodies
 app.use(express.json());
 
+// ----------------------------
 // CORS configuration
+// ----------------------------
 const allowedOrigins = [
   "https://frontend-12gl.onrender.com", // deployed frontend
-  "http://localhost:3000"               // local frontend for dev
+  "http://localhost:3000"               // local dev frontend
 ];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    // allow requests with no origin (like Postman)
+app.use(cors({
+  origin: function(origin, callback) {
+    // allow requests like Postman with no origin
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
-      return callback(new Error(msg), false);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS policy blocked origin: ${origin}`), false);
     }
-    return callback(null, true);
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true, // allows cookies and auth headers
-};
-app.use(cors(corsOptions));
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"],
+  credentials: true, // allow cookies / auth headers
+}));
 
 // Log every request
 app.use((req, res, next) => {
@@ -59,6 +61,18 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => logger.info("✅ Connected to MongoDB"))
   .catch((err) => logger.error(`❌ MongoDB connection error: ${err.message}`));
+
+// ============================
+// Error handler
+// ============================
+app.use((err, req, res, next) => {
+  if (err.message.startsWith("CORS")) {
+    logger.warn(err.message);
+    return res.status(403).json({ message: err.message });
+  }
+  logger.error(err.stack);
+  res.status(500).json({ message: "Server error" });
+});
 
 // ============================
 // Start Server

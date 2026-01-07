@@ -1,23 +1,16 @@
-/* Container */
+/* ===== Page layout ===== */
 .shopping-container {
+  max-width: 900px;
+  margin: 0 auto;
   padding: 20px;
   font-family: Arial, sans-serif;
-  max-width: 800px;
-  margin: 0 auto;
 }
 
-/* Headings */
-.shopping-container h1 {
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.shopping-container h2 {
-  margin-top: 10px;
+h1, h2, h3 {
   margin-bottom: 10px;
 }
 
-/* Create list input & button */
+/* ===== Create list ===== */
 .create-list {
   display: flex;
   gap: 10px;
@@ -26,162 +19,187 @@
 
 .create-list input {
   flex: 1;
-  padding: 8px;
+  padding: 10px;
   font-size: 16px;
 }
 
 .create-list button {
-  padding: 8px 12px;
-  cursor: pointer;
-  background-color: #4CAF50;
+  padding: 10px 16px;
+  background: #007bff;
   color: #fff;
   border: none;
+  cursor: pointer;
   border-radius: 4px;
 }
 
 .create-list button:hover {
-  background-color: #45a049;
+  background: #0056b3;
 }
 
-/* Lists */
-.lists-container {
+/* ===== Lists ===== */
+.lists {
   margin-bottom: 20px;
 }
 
 .list-item {
-  padding: 10px;
+  padding: 12px;
   border: 1px solid #ccc;
-  margin-bottom: 5px;
-  cursor: pointer;
+  margin-bottom: 6px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  cursor: pointer;
+  background: #fff;
 }
 
 .list-item.selected {
-  background-color: #def;
-  border-color: #4CAF50;
+  background: #e6f2ff;
 }
 
-/* Editor */
-.list-editor {
-  border: 1px solid #aaa;
-  padding: 10px;
-  margin-bottom: 20px;
-  border-radius: 6px;
-  background-color: #f9f9f9;
-}
-
-.list-editor input[type="text"] {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-}
-
-.suggestions-list {
-  position: absolute;
-  top: 38px;
-  left: 0;
-  right: 0;
-  background: #fff;
-  border: 1px solid #ccc;
-  max-height: 150px;
-  overflow-y: auto;
-  z-index: 10;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.suggestions-list li {
-  padding: 8px;
-  cursor: pointer;
-  border-bottom: 1px solid #eee;
-}
-
-.suggestions-list li:hover {
-  background-color: #def;
-}
-
-/* Items in list */
-.items-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.item-card {
-  padding: 5px 10px;
-  border: 1px solid #888;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background-color: #fff;
-}
-
-.item-card input[type="number"] {
-  width: 50px;
-  padding: 4px;
-}
-
-.remove-btn {
+.list-item button {
   background: none;
   border: none;
   color: red;
   cursor: pointer;
 }
 
-/* Buttons */
-button {
+/* ===== Editor ===== */
+.editor {
+  border: 1px solid #aaa;
+  padding: 15px;
+  margin-bottom: 20px;
+  background: #fafafa;
+}
+
+.autocomplete {
+  position: relative;
+}
+
+.autocomplete input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.suggestions {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 160px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.suggestions li {
+  padding: 10px;
   cursor: pointer;
+}
+
+.suggestions li:hover {
+  background: #f0f0f0;
+}
+
+/* ===== Items ===== */
+.items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.item {
+  border: 1px solid #888;
   border-radius: 4px;
-  padding: 8px 12px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.item input {
+  width: 55px;
+  padding: 4px;
+}
+
+.item button {
+  background: none;
   border: none;
-  background-color: #2196F3;
-  color: #fff;
+  color: red;
+  cursor: pointer;
 }
 
-button:hover {
-  background-color: #1976d2;
+/* ===== Buttons ===== */
+.editor-buttons {
+  margin-top: 10px;
 }
 
-/* Compare Results */
-.compare-results {
+.editor-buttons button {
+  padding: 10px 14px;
+  margin-right: 8px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+}
+
+.save-btn {
+  background: #28a745;
+  color: white;
+}
+
+.compare-btn {
+  background: #ffc107;
+  color: black;
+}
+
+/* ===== Results ===== */
+.results {
   margin-top: 20px;
 }
 
-.compare-results .supermarket {
-  padding: 10px;
+.market {
+  padding: 12px;
   border: 1px solid #ccc;
-  margin-bottom: 5px;
-  border-radius: 4px;
-  background-color: #fff;
+  margin-bottom: 6px;
 }
 
-.compare-results .supermarket.best {
-  background-color: #def;
-  border-color: #4CAF50;
+.market.best {
+  background: #e6f7ff;
+  border-color: #007bff;
 }
 
-/* Map */
-#map {
-  width: 100%;
-  height: 300px;
+/* ===== Map ===== */
+.map-container {
   margin-top: 10px;
+  height: 300px;
+  width: 100%;
   border: 1px solid #ccc;
-  border-radius: 6px;
 }
 
-/* Google Maps Link */
-.google-maps-link {
+.map-link {
   display: inline-block;
-  margin-top: 5px;
+  margin-top: 8px;
+  color: #007bff;
   text-decoration: none;
-  color: #2196F3;
 }
 
-.google-maps-link:hover {
+.map-link:hover {
   text-decoration: underline;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+  .create-list {
+    flex-direction: column;
+  }
+
+  .editor-buttons button {
+    width: 100%;
+    margin-bottom: 6px;
+  }
 }
