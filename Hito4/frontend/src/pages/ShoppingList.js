@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import {
   compareList,
   getShoppingList,
+  getShoppingLists,  // included now!
   createShoppingList,
   updateShoppingList,
 } from "../api/shoppingLists";
