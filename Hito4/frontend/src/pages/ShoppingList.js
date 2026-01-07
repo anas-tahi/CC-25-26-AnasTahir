@@ -30,7 +30,9 @@ const ShoppingList = () => {
   const [currentListId, setCurrentListId] = useState(null);
   const [listNameForEdit, setListNameForEdit] = useState("");
 
-  // Load list from URL
+  /* ============================
+     LOAD LIST FROM URL
+  ============================ */
   useEffect(() => {
     const listId = query.get("listId");
     if (!listId) return;
@@ -39,7 +41,7 @@ const ShoppingList = () => {
       try {
         const list = await getShoppingList(listId);
         setItems(
-          list.items && list.items.length > 0
+          list.items?.length
             ? list.items.map((i) => ({
                 name: i.name,
                 quantity: i.quantity || 1,
@@ -49,51 +51,58 @@ const ShoppingList = () => {
         setCurrentListId(list.id);
         setListNameForEdit(list.name || "");
       } catch (err) {
-        console.error("Error loading list:", err);
+        console.error("Load list error:", err);
       }
     })();
   }, [query]);
 
-  // ============================
-  // AUTOCOMPLETE
-  // ============================
-  const fetchSuggestions = async (text) => {
-    if (!text.trim()) {
+  /* ============================
+     AUTOCOMPLETE (FIXED)
+  ============================ */
+  useEffect(() => {
+    if (searchTerm.trim().length < 1) {
       setSuggestions([]);
       return;
     }
 
-    try {
-      const res = await fetch(
-        `${PRODUCT_API_BASE}/products/names/${encodeURIComponent(text)}`
-      );
+    const controller = new AbortController();
 
-      if (!res.ok) {
+    const fetchSuggestions = async () => {
+      try {
+        const res = await fetch(
+          `${PRODUCT_API_BASE}/products/names/${encodeURIComponent(
+            searchTerm
+          )}`,
+          { signal: controller.signal }
+        );
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        const filtered = [
+          ...new Set(
+            data
+              .map((d) => d.name)
+              .filter((name) =>
+                name.toLowerCase().startsWith(searchTerm.toLowerCase())
+              )
+          ),
+        ];
+
+        setSuggestions(filtered);
+      } catch {
         setSuggestions([]);
-        return;
       }
+    };
 
-      const data = await res.json(); // [{ name }]
-      setSuggestions(data.map((d) => d.name));
-    } catch (err) {
-      console.error("Autocomplete error:", err);
-      setSuggestions([]);
-    }
-  };
+    fetchSuggestions();
+    return () => controller.abort();
+  }, [searchTerm]);
 
-  const handleSearchChange = (value) => {
-    setSearchTerm(value);
-    fetchSuggestions(value);
-  };
-
-  const handleSelectSuggestion = (name) => {
-    setSearchTerm(name);
-    setSuggestions([]);
-  };
-
-  // ============================
-  // ADD / REMOVE ITEMS
-  // ============================
+  /* ============================
+     ITEMS
+  ============================ */
   const handleAddItem = () => {
     const trimmed = searchTerm.trim();
     if (!trimmed) return;
@@ -101,18 +110,22 @@ const ShoppingList = () => {
     setItems((prev) => [...prev, { name: trimmed, quantity: 1 }]);
     setSearchTerm("");
     setSuggestions([]);
-    setError("");
   };
 
   const handleItemChange = (index, field, value) => {
-    const updated = [...items];
-    if (field === "quantity") {
-      const num = parseInt(value, 10);
-      updated[index].quantity = isNaN(num) || num < 1 ? 1 : num;
-    } else {
-      updated[index].name = value;
-    }
-    setItems(updated);
+    setItems((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              [field]:
+                field === "quantity"
+                  ? Math.max(1, Number(value))
+                  : value,
+            }
+          : item
+      )
+    );
   };
 
   const handleRemoveItem = (index) => {
@@ -120,22 +133,22 @@ const ShoppingList = () => {
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // ============================
-  // COMPARE
-  // ============================
+  /* ============================
+     COMPARE (FIXED)
+  ============================ */
   const handleCompare = async () => {
     setError("");
     setResult(null);
 
     const normalized = items
-      .map((item) => ({
-        name: item.name.trim(),
-        quantity: item.quantity || 1,
+      .map((i) => ({
+        name: i.name.trim(),
+        quantity: i.quantity || 1,
       }))
-      .filter((item) => item.name);
+      .filter((i) => i.name);
 
-    if (normalized.length === 0) {
-      setError("Please add at least one product.");
+    if (!normalized.length) {
+      setError("Add at least one product.");
       return;
     }
 
@@ -144,97 +157,89 @@ const ShoppingList = () => {
       const data = await compareList(normalized);
       setResult(data);
     } catch (err) {
-      console.error("Compare error:", err);
-      setError("Error comparing list");
+      console.error(err);
+      setError("Compare failed.");
     } finally {
       setLoadingCompare(false);
     }
   };
 
-  // ============================
-  // SAVE LIST
-  // ============================
+  /* ============================
+     SAVE LIST (FIXED)
+  ============================ */
   const handleSaveList = async () => {
-    setError("");
     if (!result) {
-      setError("Compare the list before saving.");
+      setError("Compare before saving.");
       return;
     }
 
-    const defaultName = listNameForEdit || "My shopping list";
-    const name = window.prompt("Enter a name for this list:", defaultName);
+    const name = window.prompt(
+      "List name:",
+      listNameForEdit || "My shopping list"
+    );
     if (!name) return;
 
-    const normalized = items
-      .map((item) => ({
-        name: item.name.trim(),
-        quantity: item.quantity || 1,
-      }))
-      .filter((item) => item.name);
+    const normalized = items.map((i) => ({
+      name: i.name.trim(),
+      quantity: i.quantity || 1,
+    }));
 
     try {
       setSaving(true);
-      let saved;
-      if (currentListId) {
-        saved = await updateShoppingList(currentListId, {
-          name,
-          items: normalized,
-        });
-      } else {
-        saved = await createShoppingList({ name, items: normalized });
-      }
+      const saved = currentListId
+        ? await updateShoppingList(currentListId, {
+            name,
+            items: normalized,
+          })
+        : await createShoppingList({ name, items: normalized });
+
       setCurrentListId(saved.id);
       setListNameForEdit(saved.name);
       alert("List saved!");
-    } catch (err) {
-      console.error("Save error:", err);
-      setError("Error saving list.");
+    } catch {
+      setError("Save failed.");
     } finally {
       setSaving(false);
     }
   };
 
-  // ============================
-  // SAVE CHEAPEST ❤️
-  // ============================
-  const handleSaveBest = async (supermarket) => {
+  /* ============================
+     SAVE CHEAPEST ❤️
+  ============================ */
+  const handleSaveBest = async () => {
+    if (!result?.best) return;
+
     const name = window.prompt(
-      `Save this list (cheapest: ${supermarket})`,
+      `Save cheapest list (${result.best.supermarket})`,
       "Cheapest list"
     );
     if (!name) return;
 
-    const normalized = items
-      .map((item) => ({
-        name: item.name.trim(),
-        quantity: item.quantity || 1,
-      }))
-      .filter((item) => item.name);
+    const normalized = items.map((i) => ({
+      name: i.name.trim(),
+      quantity: i.quantity || 1,
+    }));
 
-    try {
-      await createShoppingList({ name, items: normalized });
-      alert("List saved!");
-    } catch (err) {
-      console.error("Save best error:", err);
-      alert("Error saving list");
-    }
+    await createShoppingList({ name, items: normalized });
+    alert("Saved!");
   };
 
+  /* ============================
+     RENDER
+  ============================ */
   return (
     <div className="list-container">
-      <h1 className="list-title">Shopping List</h1>
+      <h1 className="list-title">🛒 Shopping List</h1>
 
       {error && <div className="shopping-list-error">{error}</div>}
 
-      {/* SEARCH + ADD */}
       <div className="list-input-box">
         <div style={{ position: "relative", flex: 1 }}>
           <input
             className="list-input"
-            type="text"
-            placeholder="Type a product (e.g. leche, pan...)"
+            placeholder="Type a product..."
             value={searchTerm}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
 
           {suggestions.length > 0 && (
@@ -243,7 +248,10 @@ const ShoppingList = () => {
                 <div
                   key={i}
                   className="list-suggestion-item"
-                  onClick={() => handleSelectSuggestion(s)}
+                  onClick={() => {
+                    setSearchTerm(s);
+                    setSuggestions([]);
+                  }}
                 >
                   {s}
                 </div>
@@ -252,39 +260,26 @@ const ShoppingList = () => {
           )}
         </div>
 
-        <button type="button" className="list-add-btn" onClick={handleAddItem}>
-          + Add item
+        <button className="list-add-btn" onClick={handleAddItem}>
+          + Add
         </button>
       </div>
 
-      {/* ITEMS */}
       <ul className="list-items">
-        {items.map((item, index) => (
-          <li key={index} className="list-item">
-            <span style={{ flex: 1, marginRight: "0.5rem" }}>
-              {item.name}
-            </span>
-
+        {items.map((item, i) => (
+          <li key={i} className="list-item">
+            <span style={{ flex: 1 }}>{item.name}</span>
             <input
               type="number"
               min="1"
               value={item.quantity}
               onChange={(e) =>
-                handleItemChange(index, "quantity", e.target.value)
+                handleItemChange(i, "quantity", e.target.value)
               }
-              style={{
-                width: "70px",
-                marginRight: "0.5rem",
-                borderRadius: "8px",
-                border: "1px solid var(--border-light)",
-                padding: "0.25rem 0.5rem",
-              }}
             />
-
             <button
-              type="button"
               className="list-remove-btn"
-              onClick={() => handleRemoveItem(index)}
+              onClick={() => handleRemoveItem(i)}
             >
               ✕
             </button>
@@ -292,62 +287,43 @@ const ShoppingList = () => {
         ))}
       </ul>
 
-      {/* COMPARE + SAVE */}
-      <button
-        type="button"
-        className="list-compare-btn"
-        onClick={handleCompare}
-        disabled={loadingCompare}
-      >
+      <button className="list-compare-btn" onClick={handleCompare}>
         {loadingCompare ? "Comparing..." : "Compare prices"}
       </button>
 
       <button
-        type="button"
-        onClick={handleSaveList}
-        disabled={saving || !result}
         className="list-compare-btn"
-        style={{ marginTop: "0.8rem", background: "#007bff" }}
+        style={{ background: "#007bff", marginTop: "0.8rem" }}
+        onClick={handleSaveList}
+        disabled={saving}
       >
-        {saving ? "Saving..." : "Save this list"}
+        {saving ? "Saving..." : "Save list"}
       </button>
 
-      {/* RESULTS */}
       {result && (
         <div className="list-results">
-          <h2>Comparison</h2>
+          <h2>Results</h2>
 
-          {result.best ? (
-            <p>
-              Best supermarket:{" "}
-              <strong>{result.best.supermarket}</strong> — total:{" "}
-              <strong>{result.best.total}€</strong> — missing items:{" "}
-              <strong>{result.best.missing}</strong>
-            </p>
-          ) : (
-            <p>No supermarkets found.</p>
-          )}
+          <p>
+            Best: <strong>{result.best.supermarket}</strong> —{" "}
+            <strong>{result.best.total}€</strong>
+          </p>
 
           <div className="list-grid">
-            {result.supermarkets &&
-              result.supermarkets.map((s) => (
-                <div key={s.supermarket} className="list-card">
-                  <h4>
-                    {s.supermarket}
-                    {result.best &&
-                      result.best.supermarket === s.supermarket && (
-                        <span
-                          className="heart"
-                          onClick={() => handleSaveBest(s.supermarket)}
-                        >
-                          ❤️
-                        </span>
-                      )}
-                  </h4>
-                  <p>Total: {s.total}€</p>
-                  <p>Missing items: {s.missing}</p>
-                </div>
-              ))}
+            {result.supermarkets.map((s) => (
+              <div key={s.supermarket} className="list-card">
+                <h4>
+                  {s.supermarket}
+                  {s.supermarket === result.best.supermarket && (
+                    <span className="heart" onClick={handleSaveBest}>
+                      ❤️
+                    </span>
+                  )}
+                </h4>
+                <p>Total: {s.total}€</p>
+                <p>Missing: {s.missing}</p>
+              </div>
+            ))}
           </div>
         </div>
       )}
