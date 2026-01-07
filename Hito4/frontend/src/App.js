@@ -21,36 +21,22 @@ import ShoppingListCompare from "./pages/ShoppingListCompare";
 
 const AppContent = () => {
   const { theme } = useContext(ThemeContext);
+  const [token, setToken] = useState(null);
 
-  // ✅ Set the new JWT for dev/testing
-  localStorage.setItem(
-    'token',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IlVTRVJfSURfSEVSRSIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTc2NzgyMTc4NCwiZXhwIjoxNzY3ODI1Mzg0fQ.ODh_KIIpVYZ1e-BbRHdocenaEr0A7taMSc3IjiZM81A'
-  );
-
-  const [token, setToken] = useState(localStorage.getItem('token'));
-
-  // Restore token on refresh
+  // Restore token once
   useEffect(() => {
     const savedToken = localStorage.getItem('token');
     if (savedToken) setToken(savedToken);
   }, []);
 
-  // Sync token across tabs
-  useEffect(() => {
-    const syncToken = () => setToken(localStorage.getItem('token'));
-    window.addEventListener('storage', syncToken);
-    return () => window.removeEventListener('storage', syncToken);
-  }, []);
-
-  // Welcome toast (runs once)
+  // Welcome toast
   useEffect(() => {
     toast.info('Welcome to CompraSmart!', {
       position: 'top-right',
       autoClose: 3000,
       theme: theme === 'dark' ? 'dark' : 'light',
     });
-  }, []);
+  }, [theme]);
 
   return (
     <div className={`app-wrapper ${theme}`}>
@@ -130,15 +116,10 @@ const AppContent = () => {
           }
         />
 
-        {/* ⭐ REQUIRED FOR RENDER + REACT ROUTER V7 */}
-        <Route path="*" element={<Navigate to="/home" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        theme={theme === 'dark' ? 'dark' : 'light'}
-      />
+      <ToastContainer />
     </div>
   );
 };
