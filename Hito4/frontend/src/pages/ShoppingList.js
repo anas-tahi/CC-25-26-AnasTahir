@@ -22,7 +22,7 @@ const ShoppingList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
 
-  const [items, setItems] = useState([{ name: "", quantity: 1 }]);
+  const [items, setItems] = useState([{ name: "leche", quantity: 1 }]);
 
   const [result, setResult] = useState(null);
   const [loadingCompare, setLoadingCompare] = useState(false);
@@ -49,7 +49,7 @@ const ShoppingList = () => {
                 name: i.name,
                 quantity: i.quantity || 1,
               }))
-            : [{ name: "", quantity: 1 }]
+            : [{ name: "leche", quantity: 1 }]
         );
         setCurrentListId(list.id);
         setListNameForEdit(list.name || "");
@@ -63,26 +63,35 @@ const ShoppingList = () => {
   // AUTOCOMPLETE (PREFIX ONLY)
   // ============================
   const fetchSuggestions = async (text) => {
-    if (!text.trim()) {
+    const value = text.trim().toLowerCase();
+    if (value.length < 1) {
       setSuggestions([]);
       return;
     }
 
     try {
       const res = await fetch(
-        `${PRODUCT_API_BASE}/products/names/${encodeURIComponent(text)}`
+        `${PRODUCT_API_BASE}/products/names/${encodeURIComponent(value)}`
       );
 
-      if (!res.ok) {
-        setSuggestions([]);
-        return;
-      }
+      if (!res.ok) return setSuggestions([]);
 
       const data = await res.json(); // [{ name }]
-      const unique = [...new Set(data.map((d) => d.name))];
+
+      // ✅ dedupe + prefix filter
+      const unique = [
+        ...new Set(
+          data
+            .map((p) => p.name)
+            .filter((name) =>
+              name.toLowerCase().startsWith(value)
+            )
+        ),
+      ];
 
       setSuggestions(unique);
-    } catch {
+    } catch (err) {
+      console.error("Autocomplete error:", err);
       setSuggestions([]);
     }
   };
@@ -98,13 +107,13 @@ const ShoppingList = () => {
   };
 
   // ============================
-  // ADD / REMOVE ITEMS
+  // ITEMS
   // ============================
   const handleAddItem = () => {
-    const trimmed = searchTerm.trim();
-    if (!trimmed) return;
+    const name = searchTerm.trim();
+    if (!name) return;
 
-    setItems((prev) => [...prev, { name: trimmed, quantity: 1 }]);
+    setItems((prev) => [...prev, { name, quantity: 1 }]);
     setSearchTerm("");
     setSuggestions([]);
     setError("");
@@ -112,14 +121,12 @@ const ShoppingList = () => {
 
   const handleItemChange = (index, field, value) => {
     setItems((prev) => {
-      const updated = [...prev];
+      const copy = [...prev];
       if (field === "quantity") {
-        const num = parseInt(value, 10);
-        updated[index].quantity = isNaN(num) || num < 1 ? 1 : num;
-      } else {
-        updated[index].name = value;
+        const q = parseInt(value, 10);
+        copy[index].quantity = isNaN(q) || q < 1 ? 1 : q;
       }
-      return updated;
+      return copy;
     });
   };
 
@@ -129,7 +136,7 @@ const ShoppingList = () => {
   };
 
   // ============================
-  // COMPARE
+  // COMPARE (FIXED PAYLOAD)
   // ============================
   const handleCompare = async () => {
     setError("");
@@ -152,7 +159,7 @@ const ShoppingList = () => {
       const data = await compareList({ products: normalized });
       setResult(data);
     } catch (err) {
-      console.error("Compare error:", err);
+      console.error("Compare failed:", err);
       setError(err.message || "Compare failed");
     } finally {
       setLoadingCompare(false);
@@ -163,66 +170,39 @@ const ShoppingList = () => {
   // SAVE LIST
   // ============================
   const handleSaveList = async () => {
-    setError("");
-
     if (!result) {
-      setError("Compare the list before saving.");
+      setError("Compare before saving.");
       return;
     }
 
     const name = window.prompt(
-      "Enter a name for this list:",
+      "Enter list name:",
       listNameForEdit || "My shopping list"
     );
     if (!name) return;
 
-    const normalized = items
-      .map((i) => ({
+    const payload = {
+      name,
+      items: items.map((i) => ({
         name: i.name.trim(),
         quantity: i.quantity || 1,
-      }))
-      .filter((i) => i.name);
+      })),
+    };
 
     try {
       setSaving(true);
-
       const saved = currentListId
-        ? await updateShoppingList(currentListId, { name, items: normalized })
-        : await createShoppingList({ name, items: normalized });
+        ? await updateShoppingList(currentListId, payload)
+        : await createShoppingList(payload);
 
       setCurrentListId(saved.id);
       setListNameForEdit(saved.name);
       alert("List saved!");
     } catch (err) {
       console.error("Save error:", err);
-      setError("Error saving list.");
+      setError("Save failed.");
     } finally {
       setSaving(false);
-    }
-  };
-
-  // ============================
-  // SAVE CHEAPEST ❤️
-  // ============================
-  const handleSaveBest = async (supermarket) => {
-    const name = window.prompt(
-      `Save cheapest list (${supermarket})`,
-      "Cheapest list"
-    );
-    if (!name) return;
-
-    const normalized = items
-      .map((i) => ({
-        name: i.name.trim(),
-        quantity: i.quantity || 1,
-      }))
-      .filter((i) => i.name);
-
-    try {
-      await createShoppingList({ name, items: normalized });
-      alert("List saved!");
-    } catch {
-      alert("Error saving list");
     }
   };
 
@@ -240,17 +220,16 @@ const ShoppingList = () => {
         <div style={{ position: "relative", flex: 1 }}>
           <input
             className="list-input"
-            type="text"
-            placeholder="Type a product (e.g. leche, pan...)"
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Type product (e.g. leche)"
           />
 
           {suggestions.length > 0 && (
             <div className="list-suggestions">
-              {suggestions.map((s, i) => (
+              {suggestions.map((s) => (
                 <div
-                  key={i}
+                  key={s}
                   className="list-suggestion-item"
                   onClick={() => handleSelectSuggestion(s)}
                 >
@@ -279,7 +258,7 @@ const ShoppingList = () => {
               onChange={(e) =>
                 handleItemChange(i, "quantity", e.target.value)
               }
-              className="qty-input"
+              style={{ width: "70px" }}
             />
 
             <button
@@ -292,6 +271,7 @@ const ShoppingList = () => {
         ))}
       </ul>
 
+      {/* ACTIONS */}
       <button
         className="list-compare-btn"
         onClick={handleCompare}
@@ -301,9 +281,10 @@ const ShoppingList = () => {
       </button>
 
       <button
-        className="list-compare-btn save-btn"
+        className="list-compare-btn"
+        style={{ background: "#007bff" }}
         onClick={handleSaveList}
-        disabled={!result || saving}
+        disabled={saving || !result}
       >
         {saving ? "Saving..." : "Save list"}
       </button>
@@ -315,7 +296,7 @@ const ShoppingList = () => {
 
           {result.best && (
             <p>
-              Best supermarket: <strong>{result.best.supermarket}</strong> —{" "}
+              Best: <strong>{result.best.supermarket}</strong> —{" "}
               <strong>{result.best.total}€</strong>
             </p>
           )}
@@ -323,17 +304,7 @@ const ShoppingList = () => {
           <div className="list-grid">
             {result.supermarkets.map((s) => (
               <div key={s.supermarket} className="list-card">
-                <h4>
-                  {s.supermarket}
-                  {result.best?.supermarket === s.supermarket && (
-                    <span
-                      className="heart"
-                      onClick={() => handleSaveBest(s.supermarket)}
-                    >
-                      ❤️
-                    </span>
-                  )}
-                </h4>
+                <h4>{s.supermarket}</h4>
                 <p>Total: {s.total}€</p>
                 <p>Missing: {s.missing}</p>
               </div>
