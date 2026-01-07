@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "./ShoppingListCompare.css";
+import "./shoppingListCompare.css";
 
 
 const API_BASE = "https://auth-service-3lsh.onrender.com"; // auth-service backend
