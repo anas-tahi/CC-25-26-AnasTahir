@@ -1,18 +1,12 @@
-// server.js
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-const logger = require("./logger");
-
-const authRoutes = require("./routes/auth");
-const shoppingListsRoutes = require("./routes/shoppingLists");
 
 dotenv.config();
-
 const app = express();
 
 /* ============================
-   🔐 CORS — HARD FIX (Render-safe)
+   ✅ GLOBAL CORS (MUST BE FIRST)
 ============================ */
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "https://frontend-12gl.onrender.com");
@@ -27,35 +21,20 @@ app.use((req, res, next) => {
   next();
 });
 
-/* ============================
-   Middleware
-============================ */
 app.use(express.json());
-
-// Log requests
-app.use((req, res, next) => {
-  logger.info(`[${req.method}] ${req.url}`);
-  next();
-});
 
 /* ============================
    Routes
 ============================ */
-app.use("/auth", authRoutes);
-app.use("/shopping-lists", shoppingListsRoutes);
+app.use("/auth", require("./routes/auth"));
+app.use("/shopping-lists", require("./routes/shoppingLists"));
 
 /* ============================
-   MongoDB
+   Mongo
 ============================ */
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => logger.info("✅ MongoDB connected"))
-  .catch((err) => logger.error("❌ Mongo error:", err.message));
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("Mongo connected"))
+  .catch(console.error);
 
-/* ============================
-   Start server
-============================ */
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  logger.info(`🚀 Auth service running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Auth service on ${PORT}`));

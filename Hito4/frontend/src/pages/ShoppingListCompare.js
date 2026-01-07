@@ -1,55 +1,63 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./shoppingListCompare.css";
+import "./ShoppingListCompare.css";
 
 const AUTH_API = "https://auth-service-3lsh.onrender.com";
 const PRODUCT_API = "https://product-service-3lsh.onrender.com/compare-list";
 
 export default function ShoppingListCompare() {
   const [lists, setLists] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [name, setName] = useState("");
+  const [selectedList, setSelectedList] = useState(null);
+  const [listName, setListName] = useState("");
   const [items, setItems] = useState([]);
-  const [product, setProduct] = useState("");
+  const [productName, setProductName] = useState("");
   const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const token = localStorage.getItem("token");
 
   /* ============================
-     Load user lists
+     Load user shopping lists
   ============================ */
   useEffect(() => {
     fetchLists();
+    // eslint-disable-next-line
   }, []);
 
   const fetchLists = async () => {
     try {
       const res = await axios.get(`${AUTH_API}/shopping-lists`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       setLists(res.data);
     } catch (err) {
-      console.error("Failed to fetch lists:", err);
+      console.error("❌ Failed to fetch lists:", err);
     }
   };
 
   /* ============================
-     Create list
+     Create new list
   ============================ */
   const createList = async () => {
-    if (!name.trim()) return;
+    if (!listName.trim()) return;
 
     try {
       const res = await axios.post(
         `${AUTH_API}/shopping-lists`,
-        { name, items: [] },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { name: listName, items: [] },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       setLists([res.data, ...lists]);
-      setName("");
+      setListName("");
     } catch (err) {
-      console.error("Create list error:", err);
+      console.error("❌ Create list error:", err);
     }
   };
 
@@ -57,24 +65,30 @@ export default function ShoppingListCompare() {
      Select list
   ============================ */
   const selectList = (list) => {
-    setSelected(list);
+    setSelectedList(list);
     setItems(list.items || []);
     setResults(null);
   };
 
   /* ============================
-     Add / remove items
+     Item management
   ============================ */
   const addItem = () => {
-    if (!product.trim()) return;
+    if (!productName.trim()) return;
 
-    setItems([...items, { name: product, quantity: 1 }]);
-    setProduct("");
+    setItems([
+      ...items,
+      {
+        name: productName.trim(),
+        quantity: 1,
+      },
+    ]);
+    setProductName("");
   };
 
-  const updateQty = (index, qty) => {
+  const updateQuantity = (index, quantity) => {
     const updated = [...items];
-    updated[index].quantity = qty;
+    updated[index].quantity = quantity < 1 ? 1 : quantity;
     setItems(updated);
   };
 
@@ -86,24 +100,38 @@ export default function ShoppingListCompare() {
      Save list
   ============================ */
   const saveList = async () => {
+    if (!selectedList) return;
+
     try {
       const res = await axios.put(
-        `${AUTH_API}/shopping-lists/${selected.id}`,
-        { name: selected.name, items },
-        { headers: { Authorization: `Bearer ${token}` } }
+        `${AUTH_API}/shopping-lists/${selectedList.id}`,
+        {
+          name: selectedList.name,
+          items,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
-      setSelected(res.data);
+      setSelectedList(res.data);
       fetchLists();
     } catch (err) {
-      console.error("Save error:", err);
+      console.error("❌ Save list error:", err);
     }
   };
 
   /* ============================
      Compare prices
   ============================ */
-  const compare = async () => {
+  const comparePrices = async () => {
+    if (!items.length) return;
+
+    setLoading(true);
+    setResults(null);
+
     try {
       const res = await axios.post(PRODUCT_API, {
         products: items,
@@ -111,83 +139,92 @@ export default function ShoppingListCompare() {
 
       setResults(res.data);
     } catch (err) {
-      console.error("Compare error:", err);
+      console.error("❌ Compare error:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="shopping-container">
-      <h1>🛒 Shopping Lists</h1>
+      <h1>🛒 Shopping List Comparison</h1>
 
-      {/* Create list */}
+      {/* CREATE LIST */}
       <div className="create-list">
         <input
+          type="text"
           placeholder="New list name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={listName}
+          onChange={(e) => setListName(e.target.value)}
         />
         <button onClick={createList}>Create</button>
       </div>
 
-      {/* Lists */}
+      {/* LISTS */}
       <div className="lists">
-        {lists.map((l) => (
+        {lists.map((list) => (
           <div
-            key={l.id}
-            className={`list-item ${selected?.id === l.id ? "selected" : ""}`}
-            onClick={() => selectList(l)}
+            key={list.id}
+            className={`list-item ${
+              selectedList?.id === list.id ? "selected" : ""
+            }`}
+            onClick={() => selectList(list)}
           >
-            {l.name}
+            {list.name}
           </div>
         ))}
       </div>
 
-      {/* Editor */}
-      {selected && (
+      {/* LIST EDITOR */}
+      {selectedList && (
         <div className="editor">
-          <h2>{selected.name}</h2>
+          <h2>{selectedList.name}</h2>
 
           <div className="add-item">
             <input
-              placeholder="Product name"
-              value={product}
-              onChange={(e) => setProduct(e.target.value)}
+              type="text"
+              placeholder="Product name (e.g. eggs)"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
             />
             <button onClick={addItem}>Add</button>
           </div>
 
           <div className="items">
-            {items.map((i, idx) => (
-              <div className="item" key={idx}>
-                {i.name}
+            {items.map((item, index) => (
+              <div className="item" key={index}>
+                <span>{item.name}</span>
                 <input
                   type="number"
                   min="1"
-                  value={i.quantity}
+                  value={item.quantity}
                   onChange={(e) =>
-                    updateQty(idx, parseInt(e.target.value))
+                    updateQuantity(index, parseInt(e.target.value))
                   }
                 />
-                <button onClick={() => removeItem(idx)}>✕</button>
+                <button onClick={() => removeItem(index)}>✕</button>
               </div>
             ))}
           </div>
 
           <div className="editor-buttons">
             <button className="save-btn" onClick={saveList}>
-              Save
+              Save List
             </button>
-            <button className="compare-btn" onClick={compare}>
+            <button className="compare-btn" onClick={comparePrices}>
               Compare Prices
             </button>
           </div>
         </div>
       )}
 
-      {/* Results */}
+      {/* RESULTS */}
+      {loading && <p className="loading">Comparing prices…</p>}
+
       {results && (
         <div className="results">
-          <h3>🏪 Price Comparison</h3>
+          <h3>🏪 Supermarket Comparison</h3>
+
           {results.supermarkets.map((s) => (
             <div
               key={s.supermarket}
@@ -195,7 +232,8 @@ export default function ShoppingListCompare() {
                 results.best?.supermarket === s.supermarket ? "best" : ""
               }`}
             >
-              {s.supermarket}: <strong>{s.total} €</strong>
+              <strong>{s.supermarket}</strong> — {s.total} €
+              {results.best?.supermarket === s.supermarket && " ✅ Cheapest"}
             </div>
           ))}
         </div>
