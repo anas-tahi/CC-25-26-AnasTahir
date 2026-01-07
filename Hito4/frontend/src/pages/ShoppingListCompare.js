@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./ShoppingListCompare.css";
+import "./shoppingListCompare.css";
 
 const AUTH_API = "https://auth-service-3lsh.onrender.com";
 const PRODUCT_API = "https://product-service-3lsh.onrender.com/compare-list";
