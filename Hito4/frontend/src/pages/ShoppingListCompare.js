@@ -6,7 +6,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Swal from "sweetalert2";
 import { FavoritesContext } from "../context/FavoritesContext";
-import './pages/styles/shoppingListCompare.css';
+import './styles/ShoppingListCompare.css';
 
 
 const ShoppingListCompare = () => {

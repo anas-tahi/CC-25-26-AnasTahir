@@ -17,14 +17,17 @@ import { FavoritesProvider } from './context/FavoritesContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { UserProvider } from './context/UserContext';
 import { ThemeProvider, ThemeContext } from './context/ThemeContext';
-import ShoppingListCompare from "./styles/ShoppingListCompare";
-
-
-
-
+import ShoppingListCompare from "./pages/ShoppingListCompare";
 
 const AppContent = () => {
   const { theme } = useContext(ThemeContext);
+
+  // ✅ Set the new JWT for dev/testing
+  localStorage.setItem(
+    'token',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IlVTRVJfSURfSEVSRSIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTc2NzgyMTc4NCwiZXhwIjoxNzY3ODI1Mzg0fQ.ODh_KIIpVYZ1e-BbRHdocenaEr0A7taMSc3IjiZM81A'
+  );
+
   const [token, setToken] = useState(localStorage.getItem('token'));
 
   // Restore token on refresh
@@ -98,7 +101,6 @@ const AppContent = () => {
           }
         />
 
-
         <Route
           path="/settings"
           element={
@@ -140,7 +142,6 @@ const AppContent = () => {
     </div>
   );
 };
-
 
 const App = () => {
   return (
