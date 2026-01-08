@@ -1,214 +1,166 @@
-// src/pages/ShoppingListCompare.js
 import { useState, useEffect, useRef, useContext } from "react";
-import axios from "axios";
 import { productAPI } from "../services/api";
-import { FavoritesContext } from "../context/FavoritesContext";
-import { UserContext } from "../context/UserContext";
+import axios from "axios";
 import Swal from "sweetalert2";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "../styles/ShoppingListCompare.css";
-
-const recommendedLists = {
-  Students: [
-    { name: "Back to Campus", products: ["Pasta", "Milk", "Eggs"] },
-    { name: "Quick Meals", products: ["Bread", "Cheese", "Tomato"] },
-    { name: "Budget Essentials", products: ["Rice", "Chicken", "Lettuce"] },
-  ],
-  Family: [
-    { name: "Weekly Grocery", products: ["Milk", "Eggs", "Bread", "Rice"] },
-    { name: "Healthy Family", products: ["Salmon", "Spinach", "Oats"] },
-    { name: "Party Snacks", products: ["Chips", "Soda", "Chocolate"] },
-  ],
-};
+import { FavoritesContext } from "../context/FavoritesContext";
 
 const ShoppingListCompare = () => {
-  const { user, fetchUser } = useContext(UserContext);
-  const token = localStorage.getItem("token");
-
-  const [selectedList, setSelectedList] = useState(null);
-  const [productList, setProductList] = useState([]);
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const [highlightIndex, setHighlightIndex] = useState(-1);
+  const [products, setProducts] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
-  const [totalPrices, setTotalPrices] = useState({});
-  const [cheapestSupermarket, setCheapestSupermarket] = useState("");
   const [userLocation, setUserLocation] = useState(null);
-  const mapRef = useRef(null);
+  const [mapReady, setMapReady] = useState(false);
 
-  // =======================
-  // USER LOCATION (optional)
-  // =======================
+  const mapRef = useRef(null);
+  const token = localStorage.getItem("token");
+  const { fetchFavoritesCount } = useContext(FavoritesContext);
+
+  /* =========================
+     LOCATION
+  ========================= */
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => setUserLocation(null)
-      );
-    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        setUserLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        }),
+      () => setUserLocation(null)
+    );
   }, []);
 
-  // =======================
-  // FETCH SUGGESTIONS
-  // =======================
+  /* =========================
+     AUTOCOMPLETE
+  ========================= */
   useEffect(() => {
     if (!query.trim()) {
       setSuggestions([]);
       return;
     }
-    const fetchSuggestions = async () => {
+
+    const load = async () => {
       try {
-        const res = await productAPI.get(`/names/${encodeURIComponent(query)}`);
-        setSuggestions((res.data || []).map((p) => p.name));
-        setHighlightIndex(-1);
-      } catch (err) {
-        console.error(err);
+        const res = await productAPI.get(`/names/${query}`);
+        setSuggestions(res.data.map((p) => p.name));
+      } catch {
         setSuggestions([]);
       }
     };
-    fetchSuggestions();
+    load();
   }, [query]);
 
-  // =======================
-  // ADD PRODUCT
-  // =======================
-  const handleAddProduct = async (name) => {
-    if (!name) return;
-    if (productList.find((p) => p.product === name)) {
-      Swal.fire({ icon: "info", title: "Already added", text: name });
-      return;
-    }
+  /* =========================
+     ADD PRODUCT (NO PRICES)
+  ========================= */
+  const addProduct = async (name) => {
+    if (products.find((p) => p.product === name)) return;
+
     try {
-      const res = await productAPI.get(`/compare/${encodeURIComponent(name)}`);
-      setProductList((prev) => [...prev, res.data]);
+      const res = await productAPI.get(`/compare/${name}`);
+      setProducts((prev) => [...prev, res.data]);
       setQuery("");
       setSuggestions([]);
-    } catch (err) {
-      console.error(err);
-      Swal.fire({ icon: "error", title: "Error", text: "Product not found." });
+      setShowCompare(false);
+    } catch {
+      Swal.fire("Error", "Product not found", "error");
     }
   };
 
-  // =======================
-  // REMOVE PRODUCT
-  // =======================
-  const handleRemoveProduct = (name) => {
-    setProductList((prev) => prev.filter((p) => p.product !== name));
-  };
+  /* =========================
+     COMPARE LOGIC
+  ========================= */
+  const totals = {};
+  products.forEach((p) =>
+    p.supermarkets.forEach((s) => {
+      totals[s.supermarket] = (totals[s.supermarket] || 0) + s.price;
+    })
+  );
 
-  // =======================
-  // COMPARE PRICES
-  // =======================
-  const handleCompare = () => {
-    const totals = {};
-    productList.forEach((p) => {
-      p.supermarkets.forEach((s) => {
-        if (!totals[s.supermarket]) totals[s.supermarket] = 0;
-        totals[s.supermarket] += s.price;
-      });
-    });
-    setTotalPrices(totals);
-    const cheapest = Object.keys(totals).reduce((a, b) => (totals[a] < totals[b] ? a : b));
-    setCheapestSupermarket(cheapest);
-    setShowCompare(true);
-  };
+  const cheapestMarket =
+    Object.keys(totals).length > 0
+      ? Object.keys(totals).reduce((a, b) =>
+          totals[a] < totals[b] ? a : b
+        )
+      : null;
 
-  // =======================
-  // ADD CHEAPEST TO PROFILE
-  // =======================
-  const handleAddCheapestToProfile = async () => {
-    if (!showCompare || productList.length === 0) {
-      Swal.fire({ icon: "info", title: "Compare first!" });
-      return;
-    }
+  /* =========================
+     SAVE LIST TO PROFILE ✅
+  ========================= */
+  const saveListToProfile = async () => {
+    if (!cheapestMarket) return;
+
     try {
-      const listData = {
-        name: "My List",
-        items: productList.map((p) => {
-          const cheapest = p.supermarkets.find((s) => s.supermarket === cheapestSupermarket);
-          return { product: p.product, id: cheapest.id, supermarket: cheapest.supermarket, price: cheapest.price };
-        }),
-      };
-      await axios.post("https://product-service-3lsh.onrender.com/shopping-lists", listData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      Swal.fire({ icon: "success", title: "List saved to your profile!" });
-      fetchUser();
+      await axios.post(
+        "https://auth-service-a73r.onrender.com/shopping-lists",
+        {
+          name: "My Shopping List",
+          items: products.map((p) => {
+            const cheapest = p.supermarkets.find(
+              (s) => s.supermarket === cheapestMarket
+            );
+            return {
+              product: p.product,
+              supermarket: cheapest.supermarket,
+              price: cheapest.price,
+            };
+          }),
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      Swal.fire("Saved!", "List added to your profile ❤️", "success");
+      fetchFavoritesCount();
     } catch (err) {
       console.error(err);
-      Swal.fire({ icon: "error", title: "Failed to save list." });
+      Swal.fire("Error", "Failed to save list.", "error");
     }
   };
 
-  // =======================
-  // KEYBOARD NAV
-  // =======================
-  const handleKeyDown = (e) => {
-    if (!suggestions.length) return;
-    if (e.key === "ArrowDown") setHighlightIndex((prev) => (prev + 1) % suggestions.length);
-    else if (e.key === "ArrowUp") setHighlightIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
-    else if (e.key === "Enter") handleAddProduct(highlightIndex >= 0 ? suggestions[highlightIndex] : query);
-  };
+  /* =========================
+     MAP (ONLY AFTER COMPARE)
+  ========================= */
+  useEffect(() => {
+    if (!showCompare || !mapRef.current || !userLocation) return;
 
-  // =======================
-  // LOAD RECOMMENDED LIST
-  // =======================
-  const selectRecommendedList = (list) => {
-    setSelectedList(list.name);
-    const products = list.products;
-    products.forEach((p) => handleAddProduct(p));
-  };
-
-  const startPersonalList = () => setSelectedList("Personal List");
-
-  // =======================
-  // RENDER
-  // =======================
-  if (!selectedList) {
-    return (
-      <div className="compare-container">
-        <h2 className="compare-heading">🎯 Recommended Lists</h2>
-        {Object.keys(recommendedLists).map((category) => (
-          <div key={category} className="recommended-category">
-            <h3>{category}</h3>
-            <div className="recommended-list-grid">
-              {recommendedLists[category].map((list, idx) => (
-                <button key={idx} onClick={() => selectRecommendedList(list)} className="recommended-btn">
-                  {list.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-        <div style={{ marginTop: "2rem" }}>
-          <button className="recommended-btn personal" onClick={startPersonalList}>
-            ➕ Create Personal List
-          </button>
-        </div>
-      </div>
+    const map = L.map(mapRef.current).setView(
+      [userLocation.lat, userLocation.lng],
+      13
     );
-  }
 
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+    mapReady && map.remove();
+    setMapReady(true);
+
+    return () => map.remove();
+  }, [showCompare]);
+
+  /* =========================
+     UI
+  ========================= */
   return (
-    <div className="compare-container">
-      <h2 className="compare-heading">🛒 {selectedList}</h2>
+    <div className="sl-container">
+      <h2>🛒 Shopping List Compare</h2>
 
-      {/* Search Box */}
-      <div className="search-box">
+      {/* SEARCH */}
+      <div className="sl-search">
         <input
-          type="text"
-          placeholder="Search products..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
+          placeholder="Search products..."
         />
-        <button onClick={() => handleAddProduct(query)}>Add Product</button>
+        <button onClick={() => addProduct(query)}>Add</button>
 
         {suggestions.length > 0 && (
-          <ul className="dropdown">
+          <ul className="sl-suggestions">
             {suggestions.map((s, i) => (
-              <li key={i} className={highlightIndex === i ? "active" : ""} onClick={() => handleAddProduct(s)}>
+              <li key={i} onClick={() => addProduct(s)}>
                 {s}
               </li>
             ))}
@@ -216,35 +168,43 @@ const ShoppingListCompare = () => {
         )}
       </div>
 
-      {/* Product List */}
-      {productList.length > 0 && (
-        <div className="result-box">
-          <div className="result-grid">
-            {productList.map((p, idx) => (
-              <div key={idx} className="result-card">
-                <div className="result-product">{p.product}</div>
-                {/* Prices only after compare */}
-                {showCompare && (
-                  <div className="result-supermarket-prices">
-                    {p.supermarkets.map((s, i) => {
-                      const isCheapest = s.supermarket === cheapestSupermarket;
-                      return (
-                        <div key={i} className={`result-price ${isCheapest ? "best" : ""}`}>
-                          {s.supermarket}: {s.price.toFixed(2)} € {isCheapest && "❤️"}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                <button className="exit-btn" onClick={() => handleRemoveProduct(p.product)}>Remove</button>
-              </div>
-            ))}
-          </div>
+      {/* LIST (NO PRICES) */}
+      {products.length > 0 && (
+        <div className="sl-products">
+          {products.map((p, i) => (
+            <div key={i} className="sl-item">
+              {p.product}
+            </div>
+          ))}
 
-          <div className="action-buttons">
-            {!showCompare && <button onClick={handleCompare} className="compare-btn">Compare Prices</button>}
-            {showCompare && <button onClick={handleAddCheapestToProfile} className="wishlist-btn">❤️ Add Cheapest to Profile</button>}
-          </div>
+          <button className="compare-btn" onClick={() => setShowCompare(true)}>
+            Compare
+          </button>
+        </div>
+      )}
+
+      {/* RESULTS */}
+      {showCompare && (
+        <div className="sl-results">
+          <h3>Totals</h3>
+
+          {Object.keys(totals).map((m) => (
+            <div
+              key={m}
+              className={`sl-total ${
+                m === cheapestMarket ? "best" : ""
+              }`}
+            >
+              {m}: €{totals[m].toFixed(2)}
+              {m === cheapestMarket && <span> ❤️</span>}
+            </div>
+          ))}
+
+          <button className="save-btn" onClick={saveListToProfile}>
+            Save Cheapest to Profile
+          </button>
+
+          <div ref={mapRef} className="sl-map" />
         </div>
       )}
     </div>
