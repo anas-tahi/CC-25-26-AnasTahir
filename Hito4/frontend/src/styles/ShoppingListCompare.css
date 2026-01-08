@@ -1,200 +1,234 @@
-/* ===== Container ===== */
-.compare-container {
-  max-width: 1200px;
+/* =========================
+   CONTAINER
+========================= */
+.sl-container {
+  max-width: 900px;
   margin: 2rem auto;
-  padding: 1rem;
-  font-family: 'Inter', sans-serif;
-  color: #111827;
+  padding: 2rem;
+  background: var(--bg, #ffffff);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  animation: fadeIn 0.5s ease;
 }
 
-/* ===== Heading ===== */
-.compare-container h2 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
+.sl-container h2 {
   text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2rem;
 }
 
-/* ===== Recommended Lists ===== */
-.recommended-lists {
+/* =========================
+   MODE SELECT
+========================= */
+.sl-mode-select {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.recommended-lists button {
-  padding: 0.5rem 1rem;
-  background-color: #8b5cf6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background 0.3s;
-}
-
-.recommended-lists button:hover {
-  background-color: #7c3aed;
-}
-
-/* ===== Search Box ===== */
-.search-box {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  margin-bottom: 1rem;
-  position: relative;
-}
-
-.search-box input {
-  padding: 0.5rem 1rem;
-  width: 250px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  outline: none;
-  font-size: 1rem;
-}
-
-.search-box button {
-  padding: 0.5rem 1rem;
-  background-color: #10b981;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background 0.3s;
-}
-
-.search-box button:hover {
-  background-color: #059669;
-}
-
-/* ===== Suggestions Dropdown ===== */
-.dropdown {
-  position: absolute;
-  top: 40px;
-  left: 0;
-  width: 250px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 10;
-}
-
-.dropdown li {
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-}
-
-.dropdown li:hover {
-  background-color: #f3f4f6;
-}
-
-/* ===== Product List Cards ===== */
-.result-box {
-  margin-top: 2rem;
-}
-
-.result-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
 }
 
-.result-card {
-  background-color: #f9fafb;
+.sl-mode-select button {
+  padding: 0.9rem 1.4rem;
   border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  position: relative;
-}
-
-.result-product {
-  font-weight: 600;
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-/* Prices (hidden until compare) */
-.result-card div.best {
-  font-weight: 600;
-  color: #10b981;
-}
-
-/* Remove Button */
-.remove-btn {
-  align-self: flex-end;
-  padding: 0.3rem 0.5rem;
-  background-color: #ef4444;
-  color: white;
   border: none;
-  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 0.85rem;
-  transition: background 0.3s;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.remove-btn:hover {
-  background-color: #b91c1c;
+.sl-mode-select button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.35);
 }
 
-/* ===== Compare & Wishlist Buttons ===== */
-.compare-btn, .wishlist-btn {
+/* =========================
+   RECOMMENDED LIST BUTTONS
+========================= */
+.sl-list-btn {
   display: block;
-  margin: 1rem auto;
-  padding: 0.6rem 1.5rem;
-  border: none;
-  border-radius: 10px;
+  width: 100%;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  border: 2px dashed #c7d2fe;
+  background: #eef2ff;
+  font-size: 1.05rem;
   font-weight: 600;
   cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.3s;
+  transition: all 0.25s ease;
 }
 
-.compare-btn {
-  background-color: #3b82f6;
+.sl-list-btn:hover {
+  background: #e0e7ff;
+  transform: scale(1.01);
+}
+
+/* =========================
+   SEARCH / ADD
+========================= */
+.sl-search {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.sl-search input {
+  flex: 1;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 1rem;
+}
+
+.sl-search button {
+  padding: 0.9rem 1.4rem;
+  border-radius: 10px;
+  border: none;
+  background: #10b981;
   color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.sl-search button:hover {
+  background: #059669;
+}
+
+/* =========================
+   PRODUCT LIST
+========================= */
+.sl-products {
+  margin-top: 1.5rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sl-item {
+  padding: 0.9rem 1.2rem;
+  background: #f9fafb;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  border-left: 4px solid #6366f1;
+}
+
+/* =========================
+   COMPARE BUTTON
+========================= */
+.compare-btn {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .compare-btn:hover {
-  background-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4);
 }
 
-.wishlist-btn {
-  background-color: #f97316;
-  color: white;
+/* =========================
+   RESULTS
+========================= */
+.sl-results {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px dashed #e5e7eb;
 }
 
-.wishlist-btn:hover {
-  background-color: #c2410c;
-}
-
-/* ===== Totals Section ===== */
-.totals {
-  margin-top: 1rem;
-  text-align: center;
+.sl-total {
+  padding: 1rem;
+  border-radius: 10px;
+  background: #f3f4f6;
+  margin-bottom: 0.75rem;
   font-weight: 600;
+  display: flex;
+  justify-content: space-between;
 }
 
-.totals div.best {
-  color: #10b981;
-  font-size: 1.1rem;
+.sl-total.best {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 2px solid #f59e0b;
+  animation: pulse 1.5s infinite;
 }
 
-/* ===== Responsive ===== */
+/* =========================
+   SAVE BUTTON
+========================= */
+.save-btn {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  color: white;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.save-btn:hover {
+  transform: scale(1.02);
+}
+
+/* =========================
+   MAP
+========================= */
+.sl-map {
+  margin-top: 2rem;
+  height: 300px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* =========================
+   ANIMATIONS
+========================= */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
 @media (max-width: 600px) {
-  .search-box input {
-    width: 150px;
+  .sl-mode-select {
+    flex-direction: column;
   }
 
-  .result-grid {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  .sl-search {
+    flex-direction: column;
   }
 }

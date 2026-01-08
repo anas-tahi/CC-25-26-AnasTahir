@@ -1,15 +1,40 @@
-import { useState, useEffect, useRef, useContext } from "react";
+import { useState, useEffect, useRef } from "react";
 import { productAPI } from "../services/api";
 import axios from "axios";
 import Swal from "sweetalert2";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "../styles/ShoppingListCompare.css";
-import { FavoritesContext } from "../context/FavoritesContext";
+
+/* =========================
+   RECOMMENDED LISTS
+========================= */
+const RECOMMENDED = {
+  student: [
+    {
+      name: "Student Basic",
+      items: ["Milk", "Bread", "Eggs", "Pasta", "Tomato Sauce"],
+    },
+    {
+      name: "Student Budget",
+      items: ["Rice", "Frozen Pizza", "Chicken Breast", "Apples"],
+    },
+  ],
+  family: [
+    {
+      name: "Family Weekly",
+      items: ["Milk", "Bread", "Chicken", "Rice", "Vegetables", "Fruit"],
+    },
+    {
+      name: "Family Big Basket",
+      items: ["Pasta", "Tomato Sauce", "Cheese", "Yogurt", "Eggs", "Juice"],
+    },
+  ],
+};
 
 const ShoppingListCompare = () => {
+  const [mode, setMode] = useState(null); // student | family | custom
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
   const [products, setProducts] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
@@ -18,9 +43,10 @@ const ShoppingListCompare = () => {
   const mapInstance = useRef(null);
 
   const token = localStorage.getItem("token");
-  const { fetchFavoritesCount } = useContext(FavoritesContext);
 
-  /* ========= LOCATION ========= */
+  /* =========================
+     LOCATION
+  ========================= */
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) =>
@@ -32,40 +58,52 @@ const ShoppingListCompare = () => {
     );
   }, []);
 
-  /* ========= AUTOCOMPLETE ========= */
-  useEffect(() => {
-    if (!query.trim()) {
-      setSuggestions([]);
-      return;
-    }
+  /* =========================
+     LOAD PRODUCT
+  ========================= */
+  const loadProduct = async (name) => {
+    const res = await productAPI.get(`/compare/${name}`);
+    return res.data;
+  };
 
-    const load = async () => {
-      try {
-        const res = await productAPI.get(`/names/${query}`);
-        setSuggestions(res.data.map((p) => p.name));
-      } catch {
-        setSuggestions([]);
+  /* =========================
+     LOAD RECOMMENDED LIST
+  ========================= */
+  const loadRecommendedList = async (list) => {
+    try {
+      setProducts([]);
+      setShowCompare(false);
+
+      const loaded = [];
+      for (const item of list.items) {
+        const p = await loadProduct(item);
+        loaded.push(p);
       }
-    };
-    load();
-  }, [query]);
+      setProducts(loaded);
+    } catch {
+      Swal.fire("Error", "Failed to load list", "error");
+    }
+  };
 
-  /* ========= ADD PRODUCT (NO PRICE SHOWN) ========= */
-  const addProduct = async (name) => {
-    if (!name || products.find((p) => p.product === name)) return;
+  /* =========================
+     ADD CUSTOM PRODUCT
+  ========================= */
+  const addProduct = async () => {
+    if (!query.trim()) return;
+    if (products.find((p) => p.product === query)) return;
 
     try {
-      const res = await productAPI.get(`/compare/${name}`);
-      setProducts((prev) => [...prev, res.data]);
+      const p = await loadProduct(query);
+      setProducts((prev) => [...prev, p]);
       setQuery("");
-      setSuggestions([]);
-      setShowCompare(false);
     } catch {
       Swal.fire("Error", "Product not found", "error");
     }
   };
 
-  /* ========= COMPARE ========= */
+  /* =========================
+     COMPARE LOGIC
+  ========================= */
   const totals = {};
   products.forEach((p) =>
     p.supermarkets.forEach((s) => {
@@ -80,11 +118,13 @@ const ShoppingListCompare = () => {
         )
       : null;
 
-  /* ========= SAVE LIST (FIXED) ========= */
+  /* =========================
+     SAVE LIST
+  ========================= */
   const saveListToProfile = async () => {
     if (!cheapestMarket) return;
 
-    const itemsAsStrings = products.map((p) => {
+    const items = products.map((p) => {
       const cheapest = p.supermarkets.find(
         (s) => s.supermarket === cheapestMarket
       );
@@ -97,29 +137,25 @@ const ShoppingListCompare = () => {
       await axios.post(
         "https://auth-service-a73r.onrender.com/shopping-lists",
         {
-          name: "Cheapest Shopping List",
-          items: itemsAsStrings,
+          name: "Saved Shopping List",
+          items,
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       Swal.fire("Saved!", "List added to your profile ❤️", "success");
-      fetchFavoritesCount();
-    } catch (err) {
-      console.error(err);
+    } catch {
       Swal.fire("Error", "Failed to save list.", "error");
     }
   };
 
-  /* ========= MAP ========= */
+  /* =========================
+     MAP
+  ========================= */
   useEffect(() => {
     if (!showCompare || !mapRef.current || !userLocation) return;
 
-    if (mapInstance.current) {
-      mapInstance.current.remove();
-    }
+    if (mapInstance.current) mapInstance.current.remove();
 
     mapInstance.current = L.map(mapRef.current).setView(
       [userLocation.lat, userLocation.lng],
@@ -130,35 +166,56 @@ const ShoppingListCompare = () => {
       mapInstance.current
     );
 
-    return () => {
-      mapInstance.current?.remove();
-      mapInstance.current = null;
-    };
+    return () => mapInstance.current?.remove();
   }, [showCompare, userLocation]);
 
-  /* ========= UI ========= */
+  /* =========================
+     UI
+  ========================= */
   return (
     <div className="sl-container">
       <h2>🛒 Shopping List Compare</h2>
 
-      <div className="sl-search">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search products..."
-        />
-        <button onClick={() => addProduct(query)}>Add</button>
+      {!mode && (
+        <div className="sl-mode-select">
+          <button onClick={() => setMode("student")}>🎓 Student Lists</button>
+          <button onClick={() => setMode("family")}>👨‍👩‍👧 Family Lists</button>
+          <button onClick={() => setMode("custom")}>✍️ Create My Own List</button>
+        </div>
+      )}
 
-        {suggestions.length > 0 && (
-          <ul className="sl-suggestions">
-            {suggestions.map((s, i) => (
-              <li key={i} onClick={() => addProduct(s)}>
-                {s}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {mode === "student" &&
+        RECOMMENDED.student.map((l, i) => (
+          <button
+            key={i}
+            className="sl-list-btn"
+            onClick={() => loadRecommendedList(l)}
+          >
+            {l.name}
+          </button>
+        ))}
+
+      {mode === "family" &&
+        RECOMMENDED.family.map((l, i) => (
+          <button
+            key={i}
+            className="sl-list-btn"
+            onClick={() => loadRecommendedList(l)}
+          >
+            {l.name}
+          </button>
+        ))}
+
+      {mode === "custom" && (
+        <div className="sl-search">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Add product..."
+          />
+          <button onClick={addProduct}>Add</button>
+        </div>
+      )}
 
       {products.length > 0 && (
         <div className="sl-products">
@@ -167,7 +224,6 @@ const ShoppingListCompare = () => {
               {p.product}
             </div>
           ))}
-
           <button className="compare-btn" onClick={() => setShowCompare(true)}>
             Compare
           </button>
@@ -176,20 +232,20 @@ const ShoppingListCompare = () => {
 
       {showCompare && (
         <div className="sl-results">
-          <h3>Totals</h3>
-
           {Object.keys(totals).map((m) => (
             <div
               key={m}
-              className={`sl-total ${m === cheapestMarket ? "best" : ""}`}
+              className={`sl-total ${
+                m === cheapestMarket ? "best" : ""
+              }`}
             >
               {m}: €{totals[m].toFixed(2)}
-              {m === cheapestMarket && <span> ❤️</span>}
+              {m === cheapestMarket && " ❤️"}
             </div>
           ))}
 
           <button className="save-btn" onClick={saveListToProfile}>
-            Save Cheapest to Profile
+            Save to Profile
           </button>
 
           <div ref={mapRef} className="sl-map" />
