@@ -1,234 +1,217 @@
 /* =========================
-   CONTAINER
+   ShoppingListCompare.css
 ========================= */
+
 .sl-container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 2rem auto;
-  padding: 2rem;
-  background: var(--bg, #ffffff);
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-  animation: fadeIn 0.5s ease;
+  padding: 1rem;
+  font-family: 'Inter', sans-serif;
+  background: #f5f5f5;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
 .sl-container h2 {
   text-align: center;
-  margin-bottom: 2rem;
-  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #111827;
 }
 
-/* =========================
-   MODE SELECT
-========================= */
-.sl-mode-select {
+.sl-modes {
   display: flex;
-  gap: 1rem;
   justify-content: center;
-  margin-bottom: 2rem;
-}
-
-.sl-mode-select button {
-  padding: 0.9rem 1.4rem;
-  border-radius: 12px;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: white;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.sl-mode-select button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.35);
-}
-
-/* =========================
-   RECOMMENDED LIST BUTTONS
-========================= */
-.sl-list-btn {
-  display: block;
-  width: 100%;
-  padding: 1rem;
+  gap: 1rem;
   margin-bottom: 1rem;
-  border-radius: 12px;
-  border: 2px dashed #c7d2fe;
-  background: #eef2ff;
-  font-size: 1.05rem;
+}
+
+.sl-modes button {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  background: #4f46e5;
+  color: #fff;
+  transition: all 0.2s;
+}
+
+.sl-modes button:hover {
+  background: #4338ca;
+}
+
+.sl-recommended-lists {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sl-recommended-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 250px;
+  padding: 0.6rem 1rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.sl-recommended-item span {
+  font-weight: 500;
+  color: #111827;
+}
+
+.sl-recommended-item button {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 6px;
+  background: #10b981;
+  color: #fff;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.2s;
 }
 
-.sl-list-btn:hover {
-  background: #e0e7ff;
-  transform: scale(1.01);
+.sl-recommended-item button:hover {
+  background: #059669;
 }
 
-/* =========================
-   SEARCH / ADD
-========================= */
 .sl-search {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .sl-search input {
   flex: 1;
-  padding: 0.9rem 1rem;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
   font-size: 1rem;
 }
 
 .sl-search button {
-  padding: 0.9rem 1.4rem;
-  border-radius: 10px;
-  border: none;
-  background: #10b981;
-  color: white;
+  padding: 0.6rem 1rem;
+  background: #4f46e5;
+  color: #fff;
   font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sl-search button:hover {
+  background: #4338ca;
+}
+
+.sl-suggestions {
+  position: absolute;
+  max-width: 400px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  margin-top: 0.2rem;
+  z-index: 100;
+  list-style: none;
+  padding: 0;
+}
+
+.sl-suggestions li {
+  padding: 0.5rem 1rem;
   cursor: pointer;
   transition: background 0.2s;
 }
 
-.sl-search button:hover {
-  background: #059669;
+.sl-suggestions li:hover {
+  background: #f3f4f6;
 }
 
-/* =========================
-   PRODUCT LIST
-========================= */
 .sl-products {
-  margin-top: 1.5rem;
-  display: grid;
-  gap: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1rem;
 }
 
 .sl-item {
-  padding: 0.9rem 1.2rem;
-  background: #f9fafb;
-  border-radius: 10px;
-  font-size: 1rem;
+  background: #fff;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.05);
   font-weight: 500;
-  border-left: 4px solid #6366f1;
+  min-width: 120px;
+  text-align: center;
 }
 
-/* =========================
-   COMPARE BUTTON
-========================= */
 .compare-btn {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  border-radius: 12px;
+  display: block;
+  margin: 1rem auto;
+  padding: 0.6rem 1.5rem;
+  background: #f59e0b;
+  color: #fff;
   border: none;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  color: white;
-  font-size: 1.1rem;
-  font-weight: 700;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s;
 }
 
 .compare-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4);
+  background: #d97706;
 }
 
-/* =========================
-   RESULTS
-========================= */
 .sl-results {
-  margin-top: 2.5rem;
-  padding-top: 1.5rem;
-  border-top: 2px dashed #e5e7eb;
+  margin-top: 1rem;
+  background: #fff;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.sl-results h3 {
+  margin-bottom: 0.8rem;
+  text-align: center;
+  color: #111827;
 }
 
 .sl-total {
-  padding: 1rem;
-  border-radius: 10px;
-  background: #f3f4f6;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-  display: flex;
-  justify-content: space-between;
+  padding: 0.4rem 0.6rem;
+  font-weight: 500;
+  margin-bottom: 0.3rem;
 }
 
 .sl-total.best {
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  border: 2px solid #f59e0b;
-  animation: pulse 1.5s infinite;
+  color: #10b981;
+  font-weight: 700;
 }
 
-/* =========================
-   SAVE BUTTON
-========================= */
 .save-btn {
-  width: 100%;
-  margin-top: 1.5rem;
-  padding: 1rem;
-  border-radius: 12px;
+  display: block;
+  margin: 1rem auto 0;
+  padding: 0.6rem 1.5rem;
+  background: #3b82f6;
+  color: #fff;
   border: none;
-  background: linear-gradient(135deg, #ec4899, #db2777);
-  color: white;
-  font-size: 1.05rem;
-  font-weight: 700;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: all 0.2s;
 }
 
 .save-btn:hover {
-  transform: scale(1.02);
+  background: #2563eb;
 }
 
-/* =========================
-   MAP
-========================= */
 .sl-map {
-  margin-top: 2rem;
+  margin-top: 1rem;
+  width: 100%;
   height: 300px;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-}
-
-/* =========================
-   ANIMATIONS
-========================= */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-@media (max-width: 600px) {
-  .sl-mode-select {
-    flex-direction: column;
-  }
-
-  .sl-search {
-    flex-direction: column;
-  }
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
 }
