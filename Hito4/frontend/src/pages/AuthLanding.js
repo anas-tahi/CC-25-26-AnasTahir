@@ -43,6 +43,7 @@ const AuthLanding = () => {
       }
     } catch (err) {
       console.error("❌ Auth error:", err.response?.data || err.message);
+      alert(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
@@ -58,11 +59,13 @@ const AuthLanding = () => {
         }}
       >
         <div style={styles.inner}>
+          {/* Left Side */}
           <div style={styles.side}>
             {mode === "login" ? (
               <div style={styles.formContainer}>
                 <h2 style={styles.title}>Welcome Back</h2>
                 <p style={styles.subtitle}>Log in to continue your journey</p>
+
                 <input
                   name="email"
                   type="email"
@@ -79,12 +82,17 @@ const AuthLanding = () => {
                   onChange={handleChange}
                   style={styles.input}
                 />
+
                 <button onClick={handleSubmit} style={styles.button}>
                   {loading ? <div className="spinner"></div> : "Login"}
                 </button>
+
                 <p style={styles.switchText}>
                   New here?{" "}
-                  <span onClick={() => setMode("register")} style={styles.switchLink}>
+                  <span
+                    onClick={() => setMode("register")}
+                    style={styles.switchLink}
+                  >
                     Create an account
                   </span>
                 </p>
@@ -96,6 +104,7 @@ const AuthLanding = () => {
             )}
           </div>
 
+          {/* Right Side */}
           <div style={styles.side}>
             {mode === "login" ? (
               <div style={styles.imageWrapper}>
@@ -105,6 +114,7 @@ const AuthLanding = () => {
               <div style={styles.formContainer}>
                 <h2 style={styles.title}>Create Account</h2>
                 <p style={styles.subtitle}>Join us and start saving today</p>
+
                 <input
                   name="name"
                   type="text"
@@ -129,12 +139,17 @@ const AuthLanding = () => {
                   onChange={handleChange}
                   style={styles.input}
                 />
+
                 <button onClick={handleSubmit} style={styles.button}>
                   {loading ? <div className="spinner"></div> : "Register"}
                 </button>
+
                 <p style={styles.switchText}>
                   Already have an account?{" "}
-                  <span onClick={() => setMode("login")} style={styles.switchLink}>
+                  <span
+                    onClick={() => setMode("login")}
+                    style={styles.switchLink}
+                  >
                     Log in
                   </span>
                 </p>
@@ -144,6 +159,7 @@ const AuthLanding = () => {
         </div>
       </div>
 
+      {/* Animations */}
       <style>
         {`
           @keyframes gradientMove {
@@ -167,6 +183,7 @@ const AuthLanding = () => {
             border-top: 3px solid transparent;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
+            margin: 0 auto;
           }
         `}
       </style>
@@ -174,6 +191,120 @@ const AuthLanding = () => {
   );
 };
 
-const styles = { /* keep all your existing styles here, omitted for brevity */ };
+const styles = {
+  wrapper: {
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    overflow: "hidden",
+    fontFamily: "'Inter', sans-serif",
+    background: "transparent",
+  },
+
+  gradientBg: {
+    position: "absolute",
+    width: "200%",
+    height: "200%",
+    background: "linear-gradient(135deg, #7c3aed, #8b5cf6, #a855f7)",
+    backgroundSize: "400% 400%",
+    animation: "gradientMove 30s ease infinite",
+    zIndex: -3,
+  },
+
+  card: {
+    width: "900px",
+    maxWidth: "95%",
+    height: "520px",
+    background: "#ffffff",
+    borderRadius: "20px",
+    padding: "1.5rem",
+    boxShadow: "0 20px 40px rgba(15,23,42,0.3)",
+    overflow: "hidden",
+    position: "relative",
+  },
+
+  inner: {
+    display: "flex",
+    width: "100%",
+    height: "100%",
+  },
+
+  side: {
+    width: "50%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  formContainer: {
+    width: "80%",
+    display: "flex",
+    flexDirection: "column",
+    gap: "1rem",
+  },
+
+  imageWrapper: {
+    width: "80%",
+    display: "flex",
+    justifyContent: "center",
+  },
+
+  image: {
+    width: "100%",
+    borderRadius: "20px",
+    boxShadow: "0 10px 25px rgba(15,23,42,0.35)",
+  },
+
+  title: {
+    fontSize: "2rem",
+    fontWeight: "700",
+    color: "#111827",
+  },
+
+  subtitle: {
+    fontSize: "1rem",
+    color: "#6b7280",
+    marginBottom: "0.5rem",
+  },
+
+  input: {
+    width: "100%",
+    padding: "0.9rem",
+    borderRadius: "10px",
+    border: "1px solid #e5e7eb",
+    background: "#f9fafb",
+    color: "#111827",
+    fontSize: "1rem",
+    outline: "none",
+  },
+
+  button: {
+    width: "100%",
+    padding: "0.9rem",
+    background: "#10b981",
+    color: "#ffffff",
+    border: "none",
+    borderRadius: "10px",
+    fontSize: "1rem",
+    fontWeight: "600",
+    cursor: "pointer",
+  },
+
+  switchText: {
+    marginTop: "0.5rem",
+    color: "#6b7280",
+    textAlign: "center",
+  },
+
+  switchLink: {
+    color: "#4f46e5",
+    cursor: "pointer",
+    textDecoration: "underline",
+    fontWeight: "600",
+  },
+};
 
 export default AuthLanding;

@@ -1,19 +1,21 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
 import { productAPI } from "../services/api";
+import { FavoritesContext } from "../context/FavoritesContext";
+import { UserContext } from "../context/UserContext";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Swal from "sweetalert2";
-import { FavoritesContext } from "../context/FavoritesContext";
 import "../styles/ShoppingListCompare.css";
-import { UserContext } from "../context/UserContext";
 
 const ShoppingListCompare = () => {
+  const { fetchFavoritesCount } = useContext(FavoritesContext);
+  const { user, fetchUser } = useContext(UserContext);
+
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [productList, setProductList] = useState([]);
-  const [matches, setMatches] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
   const [googleMapsLink, setGoogleMapsLink] = useState("");
   const [mapLoading, setMapLoading] = useState(false);
@@ -24,14 +26,9 @@ const ShoppingListCompare = () => {
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
   const dragOffset = useRef({ x: 0, y: 0 });
 
-  const { fetchFavoritesCount } = useContext(FavoritesContext);
-  const { user } = useContext(UserContext);
-
   const token = localStorage.getItem("token");
   const mapRef = useRef(null);
-  const dropdownRef = useRef(null);
   const inputRef = useRef(null);
-  const modalRef = useRef(null);
 
   // ============================
   // GET USER LOCATION
@@ -39,19 +36,18 @@ const ShoppingListCompare = () => {
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        (position) =>
           setUserLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
-          });
-        },
+          }),
         () => setShowAddressModal(true)
       );
     } else setShowAddressModal(true);
   }, []);
 
   // ============================
-  // MANUAL ADDRESS SUBMIT
+  // MANUAL ADDRESS
   // ============================
   const handleManualAddressSubmit = async () => {
     setAddressError("");
@@ -69,31 +65,29 @@ const ShoppingListCompare = () => {
       if (data.length > 0) {
         setUserLocation({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
         setShowAddressModal(false);
-        setAddressError("");
-      } else setAddressError("Address not found. Try again.");
+      } else setAddressError("Address not found.");
     } catch (err) {
-      console.error("Geocode error:", err);
-      setAddressError("Unable to resolve address. Try again later.");
+      console.error(err);
+      setAddressError("Unable to resolve address.");
     }
   };
 
   // ============================
-  // FETCH PRODUCT SUGGESTIONS
+  // FETCH SUGGESTIONS
   // ============================
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (!query.trim()) {
         setSuggestions([]);
-        setMatches([]);
         return;
       }
       try {
         const res = await productAPI.get(`/names/${encodeURIComponent(query)}`);
-        const names = (res.data || []).map((p) => p.name);
+        const names = res.data.map((p) => p.name);
         setSuggestions(names);
         setHighlightIndex(-1);
       } catch (err) {
-        console.error("Failed to load suggestions:", err);
+        console.error("Failed to fetch suggestions:", err);
         setSuggestions([]);
       }
     };
@@ -104,24 +98,19 @@ const ShoppingListCompare = () => {
   // ADD PRODUCT
   // ============================
   const handleAddProduct = async (name) => {
-    if (!userLocation) {
-      setShowAddressModal(true);
-      return;
-    }
+    if (!userLocation) return setShowAddressModal(true);
     if (productList.find((p) => p.product === name)) {
       Swal.fire({ icon: "info", title: "Already added", text: name });
       return;
     }
-
     try {
       const res = await productAPI.get(`/compare/${encodeURIComponent(name)}`);
       setProductList((prev) => [...prev, res.data]);
       setQuery("");
       setSuggestions([]);
-      setMatches([]);
       setHighlightIndex(-1);
     } catch (err) {
-      console.error("Compare error:", err);
+      console.error(err);
       Swal.fire({ icon: "error", title: "Error", text: "Product not found." });
     }
   };
@@ -134,7 +123,7 @@ const ShoppingListCompare = () => {
   };
 
   // ============================
-  // KEYBOARD NAVIGATION
+  // KEYBOARD NAV
   // ============================
   const handleKeyDown = (e) => {
     if (suggestions.length === 0) return;
@@ -151,116 +140,95 @@ const ShoppingListCompare = () => {
   };
 
   // ============================
-  // CALCULATE TOTAL PRICES
+  // TOTALS & CHEAPEST
   // ============================
   const totalPrices = {};
-  productList.forEach((p) => {
+  productList.forEach((p) =>
     p.supermarkets.forEach((s) => {
       if (!totalPrices[s.supermarket]) totalPrices[s.supermarket] = 0;
       totalPrices[s.supermarket] += s.price;
-    });
-  });
-  const cheapestSupermarket = Object.keys(totalPrices).reduce((a, b) =>
-    totalPrices[a] < totalPrices[b] ? a : b
+    })
   );
 
+  const cheapestSupermarket = Object.keys(totalPrices).reduce((a, b) =>
+    totalPrices[a] < totalPrices[b] ? a : b
+  , null);
+
   // ============================
-  // ADD CHEAPEST TO USER PROFILE
+  // ADD CHEAPEST TO WISHLIST
   // ============================
   const handleAddCheapestToWishlist = async () => {
-    if (!user || productList.length === 0) return;
+    if (!user) return Swal.fire({ icon: "error", title: "Login required" });
 
-    const listData = {
-      name: `Shopping List - ${new Date().toLocaleDateString()}`,
-      items: productList.map((p) => {
-        const s = p.supermarkets.find((s) => s.supermarket === cheapestSupermarket);
-        return {
-          id: s.id,
-          name: p.product,
-          supermarket: s.supermarket,
-          price: s.price,
-        };
-      }),
-    };
+    const cheapestProducts = productList.map((p) => {
+      const s = p.supermarkets.find((s) => s.supermarket === cheapestSupermarket);
+      return { productId: s.id, name: p.product };
+    });
 
     try {
       await axios.post(
-        "https://product-service-3lsh.onrender.com/shopping-lists",
-        listData,
+        "https://product-service-3lsh.onrender.com/wishlist",
+        { items: cheapestProducts },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      Swal.fire({ icon: "success", title: "❤️ Cheapest products added to your profile!" });
+      Swal.fire({ icon: "success", title: "❤️ Cheapest products saved to your profile!" });
       fetchFavoritesCount();
+      fetchUser();
     } catch (err) {
-      console.error("Failed to save list:", err);
-      Swal.fire({ icon: "error", title: "Failed to save list", text: "Please try again." });
+      console.error(err);
+      Swal.fire({ icon: "error", title: "Failed to save list." });
     }
   };
 
   // ============================
-  // MAP LOGIC
+  // MAP
   // ============================
   useEffect(() => {
     if (!mapRef.current || productList.length === 0 || !userLocation) return;
     setMapLoading(true);
 
-    const map = L.map(mapRef.current);
+    const map = L.map(mapRef.current).setView([userLocation.lat, userLocation.lng], 13);
+
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
 
-    const storeName = productList[0].cheapest.supermarket;
-    const q = encodeURIComponent(storeName);
+    // User location marker
+    L.marker([userLocation.lat, userLocation.lng]).addTo(map).bindPopup("You are here").openPopup();
 
-    const addStoreMarker = ({ lat, lon }) => {
-      L.marker([parseFloat(lat), parseFloat(lon)], {
-        icon: L.icon({
-          iconUrl: "https://cdn-icons-png.flaticon.com/512/190/190411.png",
-          iconSize: [35, 35],
-        }),
-      })
-        .addTo(map)
-        .bindPopup(`${storeName} ✅ Cheapest store`)
-        .openPopup();
+    // Cheapest product store marker (first product only)
+    const storeName = productList[0].supermarkets.find(s => s.supermarket === cheapestSupermarket)?.supermarket;
+    if (storeName) {
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(storeName)}&limit=1`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.length > 0) {
+            const { lat, lon } = data[0];
+            L.marker([parseFloat(lat), parseFloat(lon)], {
+              icon: L.icon({
+                iconUrl: "https://cdn-icons-png.flaticon.com/512/190/190411.png",
+                iconSize: [35, 35],
+              }),
+            }).addTo(map).bindPopup(`${storeName} ✅ Cheapest store`).openPopup();
 
-      L.marker([userLocation.lat, userLocation.lng], {
-        icon: L.icon({
-          iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
-          iconSize: [35, 35],
-        }),
-      }).addTo(map).bindPopup("You are here");
+            map.fitBounds([
+              [userLocation.lat, userLocation.lng],
+              [parseFloat(lat), parseFloat(lon)]
+            ], { padding: [50,50] });
 
-      map.fitBounds(
-        [
-          [userLocation.lat, userLocation.lng],
-          [parseFloat(lat), parseFloat(lon)],
-        ],
-        { padding: [50, 50] }
-      );
-
-      setGoogleMapsLink(
-        `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${lat},${lon}`
-      );
-      setMapLoading(false);
-    };
-
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.length > 0) addStoreMarker(data[0]);
-        else setMapLoading(false);
-      })
-      .catch((err) => {
-        console.error("Map error:", err);
-        setMapLoading(false);
-      });
+            setGoogleMapsLink(`https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${lat},${lon}`);
+          }
+          setMapLoading(false);
+        })
+        .catch(err => { console.error(err); setMapLoading(false); });
+    } else setMapLoading(false);
 
     return () => map.remove();
-  }, [productList, userLocation]);
+  }, [productList, userLocation, cheapestSupermarket]);
 
   // ============================
-  // MODAL DRAG LOGIC
+  // DRAG MODAL
   // ============================
   const startDrag = (e) => {
     setDragging(true);
@@ -290,62 +258,52 @@ const ShoppingListCompare = () => {
   });
 
   // ============================
-  // EXIT COMPARISON
+  // EXIT
   // ============================
   const exitComparison = () => {
     setProductList([]);
     setGoogleMapsLink("");
     setQuery("");
     setSuggestions([]);
-    setMatches([]);
     setHighlightIndex(-1);
   };
 
-  // ============================
-  // RENDER
-  // ============================
   return (
     <div className="compare-container">
       <h2 className="compare-heading">🛒 Shopping List Compare</h2>
 
-      <div className="search-box" ref={dropdownRef}>
+      {/* SEARCH */}
+      <div className="search-box">
         <input
-          ref={inputRef}
           type="text"
-          placeholder="Search for products..."
+          placeholder="Search products..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="search-input"
         />
+        <button onClick={() => handleAddProduct(query)}>Add Product</button>
 
         {suggestions.length > 0 && (
           <ul className="dropdown">
-            {suggestions.map((name, i) => (
+            {suggestions.map((s, i) => (
               <li
                 key={i}
-                className={`suggestion ${highlightIndex === i ? "active" : ""}`}
+                className={highlightIndex === i ? "active" : ""}
                 onMouseEnter={() => setHighlightIndex(i)}
-                onClick={() => handleAddProduct(name)}
+                onClick={() => handleAddProduct(s)}
               >
-                {name}
+                {s}
               </li>
             ))}
           </ul>
         )}
-
-        <button onClick={() => handleAddProduct(query)} className="compare-button">
-          Add Product
-        </button>
       </div>
 
+      {/* PRODUCT LIST */}
       {productList.length > 0 && (
         <div className="result-box">
-          <div className="exit-btn-wrapper">
-            <button className="exit-btn" onClick={exitComparison}>× Clear List</button>
-          </div>
-
-          <h3>Shopping List ({productList.length} items)</h3>
+          <button className="exit-btn" onClick={exitComparison}>× Clear List</button>
+          <h3>Shopping List ({productList.length})</h3>
 
           <div className="result-grid">
             {productList.map((p, i) => (
@@ -354,21 +312,18 @@ const ShoppingListCompare = () => {
                 {p.supermarkets.map((s, idx) => {
                   const isCheapest = s.supermarket === cheapestSupermarket;
                   return (
-                    <div key={idx} className="result-price-row">
-                      <div className={`result-price ${isCheapest ? "best" : ""}`}>
-                        {s.supermarket}: {s.price.toFixed(2)} €
-                        {isCheapest && <span className="best-badge">✅ Cheapest</span>}
-                      </div>
+                    <div key={idx} className={`result-price ${isCheapest ? "best" : ""}`}>
+                      {s.supermarket}: {s.price.toFixed(2)} €
+                      {isCheapest && <span className="best-badge">✅ Cheapest</span>}
                     </div>
                   );
                 })}
-                <button className="exit-btn" onClick={() => handleRemoveProduct(p.product)}>
-                  Remove
-                </button>
+                <button onClick={() => handleRemoveProduct(p.product)} className="exit-btn">Remove</button>
               </div>
             ))}
           </div>
 
+          {/* TOTALS */}
           <h4>Total Prices:</h4>
           {Object.keys(totalPrices).map((s, idx) => (
             <div key={idx} className={s === cheapestSupermarket ? "best" : ""}>
@@ -380,11 +335,12 @@ const ShoppingListCompare = () => {
             ❤️ Add Cheapest Products to Profile
           </button>
 
+          {/* MAP */}
           <div className="map-section">
-            {mapLoading && <p className="map-loading">Loading map…</p>}
+            {mapLoading && <p>Loading map…</p>}
             <div id="map" ref={mapRef}></div>
             {googleMapsLink && (
-              <a href={googleMapsLink} target="_blank" rel="noopener noreferrer" className="google-link">
+              <a href={googleMapsLink} target="_blank" rel="noopener noreferrer">
                 Go to Google Maps 🚀
               </a>
             )}
@@ -392,21 +348,17 @@ const ShoppingListCompare = () => {
         </div>
       )}
 
+      {/* MODAL */}
       {showAddressModal && (
         <div className="modal-overlay">
           <div
-            ref={modalRef}
             className="modal-content"
             style={{ left: modalPosition.x, top: modalPosition.y, position: "absolute" }}
+            onMouseDown={startDrag} onTouchStart={startDrag}
           >
-            <div
-              className="modal-header"
-              onMouseDown={startDrag}
-              onTouchStart={startDrag}
-              style={{ cursor: "grab" }}
-            >
+            <div className="modal-header">
               <span>Enter your address</span>
-              <button className="modal-close" onClick={() => setShowAddressModal(false)}>×</button>
+              <button onClick={() => setShowAddressModal(false)}>×</button>
             </div>
             <input
               type="text"
