@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, useContext } from "react";
 import { ToastContainer, toast } from "react-toastify";
 
@@ -24,6 +24,11 @@ import "react-toastify/dist/ReactToastify.css";
 const AppContent = () => {
   const { theme } = useContext(ThemeContext);
   const { user } = useContext(UserContext);
+  const location = useLocation();
+
+  const hideNavbar =
+    location.pathname === "/login" ||
+    location.pathname === "/register";
 
   useEffect(() => {
     toast.info("Welcome to CompraSmart!", {
@@ -35,13 +40,10 @@ const AppContent = () => {
 
   return (
     <div className={`app-wrapper ${theme}`}>
-      {user && <Navbar />}
+      {user && !hideNavbar && <Navbar />}
 
       <Routes>
-        <Route
-          path="/"
-          element={user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />}
-        />
+        <Route path="/" element={user ? <Navigate to="/home" /> : <Navigate to="/login" />} />
         <Route path="/login" element={<AuthLanding />} />
         <Route path="/register" element={<AuthLanding />} />
 
@@ -54,7 +56,7 @@ const AppContent = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/user-guide" element={<ProtectedRoute><UserGuide /></ProtectedRoute>} />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
 
       <ToastContainer />

@@ -3,58 +3,47 @@ const router = express.Router();
 const ShoppingList = require("../models/ShoppingList");
 const auth = require("../middleware/auth");
 
-/* =======================
-   GET USER LISTS
-======================= */
+// GET logged-in user's lists
 router.get("/", auth, async (req, res) => {
   try {
     const lists = await ShoppingList.find({ user: req.user.id });
     res.json(lists);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-/* =======================
-   CREATE LIST
-======================= */
+// POST new list
 router.post("/", auth, async (req, res) => {
   try {
     const { name, items } = req.body;
+    if (!name) return res.status(400).json({ error: "Name is required" });
 
-    if (!name || !Array.isArray(items)) {
-      return res.status(400).json({ error: "Invalid payload" });
-    }
-
-    const list = await ShoppingList.create({
-      user: req.user.id, // ✅ MATCHES YOUR JWT
+    const newList = new ShoppingList({
+      user: req.user.id,
       name,
       items,
     });
 
-    res.status(201).json(list);
+    await newList.save();
+    res.status(201).json(newList);
   } catch (err) {
-    console.error("SAVE LIST ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-/* =======================
-   DELETE LIST
-======================= */
+// DELETE list
 router.delete("/:id", auth, async (req, res) => {
   try {
-    const list = await ShoppingList.findOneAndDelete({
+    const deleted = await ShoppingList.findOneAndDelete({
       _id: req.params.id,
       user: req.user.id,
     });
 
-    if (!list) {
-      return res.status(404).json({ error: "List not found" });
-    }
+    if (!deleted)
+      return res.status(404).json({ error: "Shopping list not found" });
 
-    res.json({ message: "Deleted", list });
+    res.json({ message: "Deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }

@@ -13,15 +13,14 @@ const ShoppingListCompare = () => {
   const [products, setProducts] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
-  const [mapReady, setMapReady] = useState(false);
 
   const mapRef = useRef(null);
+  const mapInstance = useRef(null);
+
   const token = localStorage.getItem("token");
   const { fetchFavoritesCount } = useContext(FavoritesContext);
 
-  /* =========================
-     LOCATION
-  ========================= */
+  /* ========= LOCATION ========= */
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) =>
@@ -33,9 +32,7 @@ const ShoppingListCompare = () => {
     );
   }, []);
 
-  /* =========================
-     AUTOCOMPLETE
-  ========================= */
+  /* ========= AUTOCOMPLETE ========= */
   useEffect(() => {
     if (!query.trim()) {
       setSuggestions([]);
@@ -53,11 +50,9 @@ const ShoppingListCompare = () => {
     load();
   }, [query]);
 
-  /* =========================
-     ADD PRODUCT (NO PRICES)
-  ========================= */
+  /* ========= ADD PRODUCT (NO PRICE SHOWN) ========= */
   const addProduct = async (name) => {
-    if (products.find((p) => p.product === name)) return;
+    if (!name || products.find((p) => p.product === name)) return;
 
     try {
       const res = await productAPI.get(`/compare/${name}`);
@@ -70,9 +65,7 @@ const ShoppingListCompare = () => {
     }
   };
 
-  /* =========================
-     COMPARE LOGIC
-  ========================= */
+  /* ========= COMPARE ========= */
   const totals = {};
   products.forEach((p) =>
     p.supermarkets.forEach((s) => {
@@ -87,27 +80,25 @@ const ShoppingListCompare = () => {
         )
       : null;
 
-  /* =========================
-     SAVE LIST TO PROFILE ✅
-  ========================= */
+  /* ========= SAVE LIST (FIXED) ========= */
   const saveListToProfile = async () => {
     if (!cheapestMarket) return;
+
+    const itemsAsStrings = products.map((p) => {
+      const cheapest = p.supermarkets.find(
+        (s) => s.supermarket === cheapestMarket
+      );
+      return `${p.product} - ${cheapest.supermarket} (€${cheapest.price.toFixed(
+        2
+      )})`;
+    });
 
     try {
       await axios.post(
         "https://auth-service-a73r.onrender.com/shopping-lists",
         {
-          name: "My Shopping List",
-          items: products.map((p) => {
-            const cheapest = p.supermarkets.find(
-              (s) => s.supermarket === cheapestMarket
-            );
-            return {
-              product: p.product,
-              supermarket: cheapest.supermarket,
-              price: cheapest.price,
-            };
-          }),
+          name: "Cheapest Shopping List",
+          items: itemsAsStrings,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -122,33 +113,34 @@ const ShoppingListCompare = () => {
     }
   };
 
-  /* =========================
-     MAP (ONLY AFTER COMPARE)
-  ========================= */
+  /* ========= MAP ========= */
   useEffect(() => {
     if (!showCompare || !mapRef.current || !userLocation) return;
 
-    const map = L.map(mapRef.current).setView(
+    if (mapInstance.current) {
+      mapInstance.current.remove();
+    }
+
+    mapInstance.current = L.map(mapRef.current).setView(
       [userLocation.lat, userLocation.lng],
       13
     );
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(
+      mapInstance.current
+    );
 
-    mapReady && map.remove();
-    setMapReady(true);
+    return () => {
+      mapInstance.current?.remove();
+      mapInstance.current = null;
+    };
+  }, [showCompare, userLocation]);
 
-    return () => map.remove();
-  }, [showCompare]);
-
-  /* =========================
-     UI
-  ========================= */
+  /* ========= UI ========= */
   return (
     <div className="sl-container">
       <h2>🛒 Shopping List Compare</h2>
 
-      {/* SEARCH */}
       <div className="sl-search">
         <input
           value={query}
@@ -168,7 +160,6 @@ const ShoppingListCompare = () => {
         )}
       </div>
 
-      {/* LIST (NO PRICES) */}
       {products.length > 0 && (
         <div className="sl-products">
           {products.map((p, i) => (
@@ -183,7 +174,6 @@ const ShoppingListCompare = () => {
         </div>
       )}
 
-      {/* RESULTS */}
       {showCompare && (
         <div className="sl-results">
           <h3>Totals</h3>
@@ -191,9 +181,7 @@ const ShoppingListCompare = () => {
           {Object.keys(totals).map((m) => (
             <div
               key={m}
-              className={`sl-total ${
-                m === cheapestMarket ? "best" : ""
-              }`}
+              className={`sl-total ${m === cheapestMarket ? "best" : ""}`}
             >
               {m}: €{totals[m].toFixed(2)}
               {m === cheapestMarket && <span> ❤️</span>}
