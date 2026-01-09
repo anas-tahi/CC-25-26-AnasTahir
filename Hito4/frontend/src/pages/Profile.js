@@ -119,11 +119,9 @@ const Profile = () => {
 
         <div className="profile-right">
           <h2 className="profile-welcome pulse">👋 Hello, {user.name}!</h2>
-
           <p className="profile-thank">
             Thanks for using our app! We appreciate you being here ❤️
           </p>
-
           <button onClick={handleLogout} className="profile-logout">
             🚪 Logout
           </button>
@@ -146,8 +144,7 @@ const Profile = () => {
             <div key={list.id} className="profile-list-card">
               <h3>{list.name}</h3>
               <p>
-                Items:{" "}
-                <strong>{list.items ? list.items.length : 0}</strong>
+                Items: <strong>{list.items ? list.items.length : 0}</strong>
               </p>
               {list.createdAt && (
                 <p className="profile-list-date">

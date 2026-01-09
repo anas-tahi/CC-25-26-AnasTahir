@@ -7,32 +7,33 @@ import "leaflet/dist/leaflet.css";
 import "../styles/ShoppingListCompare.css";
 import { FavoritesContext } from "../context/FavoritesContext";
 
+// Hardcoded recommended lists (Spanish product names)
 const recommendedLists = {
   student: [
     {
-      name: "Student Breakfast Pack",
-      items: ["Milk", "Bread", "Eggs", "Cereal", "Orange Juice"],
+      name: "Desayuno Estudiantil",
+      items: ["Leche", "Pan", "Huevos", "Cereal", "Jugo de Naranja"],
     },
     {
-      name: "Student Snacks Pack",
-      items: ["Chips", "Chocolate", "Cookies", "Soda", "Nuts"],
+      name: "Snacks Estudiantiles",
+      items: ["Papas", "Chocolate", "Galletas", "Refresco", "Frutos Secos"],
     },
   ],
   family: [
     {
-      name: "Family Weekly Essentials",
-      items: ["Rice", "Pasta", "Chicken", "Tomato Sauce", "Cheese"],
+      name: "Esenciales Familiares Semanales",
+      items: ["Arroz", "Pasta", "Pollo", "Salsa de Tomate", "Queso"],
     },
     {
-      name: "Family Snacks & Drinks",
-      items: ["Juice", "Yogurt", "Cookies", "Cereal", "Soda"],
+      name: "Snacks y Bebidas Familiares",
+      items: ["Jugo", "Yogur", "Galletas", "Cereal", "Refresco"],
     },
   ],
 };
 
 const ShoppingListCompare = () => {
-  const [mode, setMode] = useState(""); // "" | "student" | "family" | "custom"
-  const [selectedList, setSelectedList] = useState(null); // selected recommended list
+  const [mode, setMode] = useState(""); // student | family | custom
+  const [selectedList, setSelectedList] = useState(null);
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [products, setProducts] = useState([]);
@@ -45,7 +46,7 @@ const ShoppingListCompare = () => {
   const token = localStorage.getItem("token");
   const { fetchFavoritesCount } = useContext(FavoritesContext);
 
-  /* ========= LOCATION ========= */
+  /* ================== LOCATION ================== */
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) =>
@@ -57,7 +58,7 @@ const ShoppingListCompare = () => {
     );
   }, []);
 
-  /* ========= AUTOCOMPLETE ========= */
+  /* ================== AUTOCOMPLETE ================== */
   useEffect(() => {
     if (mode !== "custom" || !query.trim()) {
       setSuggestions([]);
@@ -75,7 +76,7 @@ const ShoppingListCompare = () => {
     load();
   }, [query, mode]);
 
-  /* ========= ADD PRODUCT (NO PRICE SHOWN) ========= */
+  /* ================== ADD PRODUCT ================== */
   const addProduct = async (name) => {
     if (!name || products.find((p) => p.product === name)) return;
 
@@ -86,30 +87,38 @@ const ShoppingListCompare = () => {
       setSuggestions([]);
       setShowCompare(false);
     } catch {
-      Swal.fire("Error", "Product not found", "error");
+      Swal.fire("Error", "Producto no encontrado", "error");
     }
   };
 
-  /* ========= SELECT RECOMMENDED LIST ========= */
+  /* ================== SELECT RECOMMENDED LIST ================== */
   const selectRecommendedList = async (list) => {
     setSelectedList(list);
-    setProducts([]); // clear previous products
+    setProducts(list.items.map((i) => ({ product: i, supermarkets: [] })));
     setShowCompare(false);
-
-    // fetch product info for each item
-    const fetchedProducts = [];
-    for (const name of list.items) {
-      try {
-        const res = await productAPI.get(`/compare/${name}`);
-        fetchedProducts.push(res.data);
-      } catch {
-        console.warn(`Product ${name} not found`);
-      }
-    }
-    setProducts(fetchedProducts);
   };
 
-  /* ========= COMPARE ========= */
+  /* ================== EDIT PRODUCT NAME ================== */
+  const handleEditProduct = (index, newName) => {
+    const updated = [...products];
+    updated[index].product = newName;
+    setProducts(updated);
+  };
+
+  /* ================== COMPARE ================== */
+  const fetchPricesForProducts = async () => {
+    const fetched = [];
+    for (let p of products) {
+      try {
+        const res = await productAPI.get(`/compare/${p.product}`);
+        fetched.push(res.data);
+      } catch {
+        console.warn(`Producto ${p.product} no encontrado`);
+      }
+    }
+    setProducts(fetched);
+  };
+
   const totals = {};
   products.forEach((p) =>
     p.supermarkets.forEach((s) => {
@@ -119,17 +128,15 @@ const ShoppingListCompare = () => {
 
   const cheapestMarket =
     Object.keys(totals).length > 0
-      ? Object.keys(totals).reduce((a, b) =>
-          totals[a] < totals[b] ? a : b
-        )
+      ? Object.keys(totals).reduce((a, b) => (totals[a] < totals[b] ? a : b))
       : null;
 
-  /* ========= SAVE LIST (FIXED) ========= */
+  /* ================== SAVE LIST ================== */
   const saveListToProfile = async () => {
     if (!products.length) return;
 
     const itemsAsStrings = products.map((p) => {
-      if (!cheapestMarket) return p.product;
+      if (!cheapestMarket || p.supermarkets.length === 0) return p.product;
       const cheapest = p.supermarkets.find(
         (s) => s.supermarket === cheapestMarket
       );
@@ -142,7 +149,7 @@ const ShoppingListCompare = () => {
       await axios.post(
         "https://auth-service-a73r.onrender.com/shopping-lists",
         {
-          name: selectedList ? selectedList.name : "Cheapest Shopping List",
+          name: selectedList ? selectedList.name : "Mi Lista de Compras",
           items: itemsAsStrings,
         },
         {
@@ -150,21 +157,19 @@ const ShoppingListCompare = () => {
         }
       );
 
-      Swal.fire("Saved!", "List added to your profile ❤️", "success");
+      Swal.fire("¡Guardado!", "Lista agregada a tu perfil ❤️", "success");
       fetchFavoritesCount();
     } catch (err) {
       console.error(err);
-      Swal.fire("Error", "Failed to save list.", "error");
+      Swal.fire("Error", "No se pudo guardar la lista.", "error");
     }
   };
 
-  /* ========= MAP ========= */
+  /* ================== MAP ================== */
   useEffect(() => {
     if (!showCompare || !mapRef.current || !userLocation) return;
 
-    if (mapInstance.current) {
-      mapInstance.current.remove();
-    }
+    if (mapInstance.current) mapInstance.current.remove();
 
     mapInstance.current = L.map(mapRef.current).setView(
       [userLocation.lat, userLocation.lng],
@@ -181,45 +186,63 @@ const ShoppingListCompare = () => {
     };
   }, [showCompare, userLocation]);
 
-  /* ========= UI ========= */
+  /* ================== UI ================== */
   return (
     <div className="sl-container">
-      <h2>🛒 Shopping List Compare</h2>
+      <h2>🛒 Comparador de Listas de Compras</h2>
 
-      {/* MODE BUTTONS */}
+      {/* Mode Buttons */}
       <div className="sl-modes">
-        <button onClick={() => { setMode("student"); setSelectedList(null); setProducts([]); }}>
-          Student Lists
+        <button
+          onClick={() => {
+            setMode("student");
+            setSelectedList(null);
+            setProducts([]);
+          }}
+        >
+          Listas para Estudiantes
         </button>
-        <button onClick={() => { setMode("family"); setSelectedList(null); setProducts([]); }}>
-          Family Lists
+        <button
+          onClick={() => {
+            setMode("family");
+            setSelectedList(null);
+            setProducts([]);
+          }}
+        >
+          Listas para Familias
         </button>
-        <button onClick={() => { setMode("custom"); setSelectedList(null); setProducts([]); }}>
-          Create My Own List
+        <button
+          onClick={() => {
+            setMode("custom");
+            setSelectedList(null);
+            setProducts([]);
+          }}
+        >
+          Crear mi propia lista
         </button>
       </div>
 
-      {/* RECOMMENDED LISTS */}
+      {/* Recommended Lists */}
       {(mode === "student" || mode === "family") && (
         <div className="sl-recommended-lists">
           {recommendedLists[mode].map((l, i) => (
             <div key={i} className="sl-recommended-item">
               <span>{l.name}</span>
-              <button onClick={() => selectRecommendedList(l)}>Select</button>
+              <button onClick={() => selectRecommendedList(l)}>Seleccionar</button>
             </div>
           ))}
         </div>
       )}
 
-      {/* SEARCH / CUSTOM */}
+      {/* Custom Search */}
       {(mode === "custom" || products.length > 0) && (
         <div className="sl-search">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search products..."
+            placeholder="Buscar productos..."
           />
-          <button onClick={() => addProduct(query)}>Add</button>
+          <button onClick={() => addProduct(query)}>Agregar</button>
 
           {suggestions.length > 0 && (
             <ul className="sl-suggestions">
@@ -233,26 +256,31 @@ const ShoppingListCompare = () => {
         </div>
       )}
 
-      {/* LIST */}
+      {/* Editable Products List */}
       {products.length > 0 && (
         <div className="sl-products">
           {products.map((p, i) => (
-            <div key={i} className="sl-item">
-              {p.product}
+            <div key={i} className="sl-item-editable">
+              <input
+                value={p.product}
+                onChange={(e) => handleEditProduct(i, e.target.value)}
+              />
             </div>
           ))}
 
-          <button className="compare-btn" onClick={() => setShowCompare(true)}>
-            Compare
+          <button
+            className="compare-btn"
+            onClick={() => fetchPricesForProducts() || setShowCompare(true)}
+          >
+            Comparar
           </button>
         </div>
       )}
 
-      {/* RESULTS */}
+      {/* Results */}
       {showCompare && (
         <div className="sl-results">
-          <h3>Totals</h3>
-
+          <h3>Totales</h3>
           {Object.keys(totals).map((m) => (
             <div
               key={m}
@@ -264,7 +292,7 @@ const ShoppingListCompare = () => {
           ))}
 
           <button className="save-btn" onClick={saveListToProfile}>
-            Save Cheapest to Profile
+            Guardar lista en mi perfil
           </button>
 
           <div ref={mapRef} className="sl-map" />
