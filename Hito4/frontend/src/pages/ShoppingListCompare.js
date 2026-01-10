@@ -1,14 +1,27 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { productAPI } from "../services/api";
 import axios from "axios";
 import Swal from "sweetalert2";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "../styles/ShoppingListCompare.css";
+import { FavoritesContext } from "../context/FavoritesContext";
+
+// Recommended lists (read-only)
+const recommendedLists = {
+  student: [
+    { name: "Lista Básica Estudiante", items: ["Leche", "Pan", "Huevos", "Cereal", "Jugo"] },
+    { name: "Snacks para Estudiantes", items: ["Chips", "Chocolate", "Galletas", "Refresco", "Frutos Secos"] },
+  ],
+  family: [
+    { name: "Lista Semanal Familiar", items: ["Arroz", "Pasta", "Pollo", "Salsa de Tomate", "Queso"] },
+    { name: "Snacks y Bebidas Familiar", items: ["Jugo", "Yogur", "Galletas", "Cereal", "Refresco"] },
+  ],
+};
 
 const ShoppingListCompare = () => {
-  const [mode, setMode] = useState(""); // "" | "custom"
-  const [listName, setListName] = useState("");
+  const [mode, setMode] = useState(""); // student | family | custom
+  const [selectedList, setSelectedList] = useState(null);
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [products, setProducts] = useState([]);
@@ -17,11 +30,11 @@ const ShoppingListCompare = () => {
 
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
-  const token = localStorage.getItem("token");
 
-  /* =======================
-     LOCATION
-  ======================= */
+  const token = localStorage.getItem("token");
+  const { fetchFavoritesCount } = useContext(FavoritesContext);
+
+  /* ========= LOCATION ========= */
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) =>
@@ -33,9 +46,7 @@ const ShoppingListCompare = () => {
     );
   }, []);
 
-  /* =======================
-     AUTOCOMPLETE (WORKS)
-  ======================= */
+  /* ========= AUTOCOMPLETE (custom lists only) ========= */
   useEffect(() => {
     if (mode !== "custom" || !query.trim()) {
       setSuggestions([]);
@@ -50,13 +61,10 @@ const ShoppingListCompare = () => {
         setSuggestions([]);
       }
     };
-
     load();
   }, [query, mode]);
 
-  /* =======================
-     ADD PRODUCT
-  ======================= */
+  /* ========= ADD PRODUCT ========= */
   const addProduct = async (name) => {
     if (!name || products.find((p) => p.product === name)) return;
 
@@ -71,14 +79,29 @@ const ShoppingListCompare = () => {
     }
   };
 
-  /* =======================
-     COMPARE
-  ======================= */
+  /* ========= SELECT RECOMMENDED LIST ========= */
+  const selectRecommendedList = async (list) => {
+    setSelectedList(list);
+    setProducts([]); // clear previous
+    setShowCompare(false);
+
+    const fetchedProducts = [];
+    for (const name of list.items) {
+      try {
+        const res = await productAPI.get(`/compare/${name}`);
+        fetchedProducts.push(res.data);
+      } catch {
+        console.warn(`Producto ${name} no encontrado`);
+      }
+    }
+    setProducts(fetchedProducts);
+  };
+
+  /* ========= COMPARE ========= */
   const totals = {};
   products.forEach((p) =>
     p.supermarkets.forEach((s) => {
-      totals[s.supermarket] =
-        (totals[s.supermarket] || 0) + Number(s.price);
+      totals[s.supermarket] = (totals[s.supermarket] || 0) + s.price;
     })
   );
 
@@ -89,54 +112,45 @@ const ShoppingListCompare = () => {
         )
       : null;
 
-  /* =======================
-     SAVE LIST (FIXED)
-  ======================= */
+  /* ========= SAVE LIST ========= */
   const saveListToProfile = async () => {
-    if (!products.length) {
-      Swal.fire("Error", "La lista está vacía", "error");
-      return;
-    }
+    if (!products.length) return;
 
-    if (!listName.trim()) {
-      Swal.fire("Error", "Pon un nombre a tu lista", "error");
-      return;
-    }
-
-    const items = products.map((p) => {
+    const itemsAsStrings = products.map((p) => {
+      if (!cheapestMarket) return p.product;
       const cheapest = p.supermarkets.find(
         (s) => s.supermarket === cheapestMarket
       );
-      return `${p.product} - ${cheapest.supermarket} (€${cheapest.price.toFixed(
-        2
-      )})`;
+      return `${p.product} - ${cheapest.supermarket} (€${cheapest.price.toFixed(2)})`;
     });
 
     try {
       await axios.post(
         "https://auth-service-a73r.onrender.com/shopping-lists",
         {
-          name: listName,
-          items,
+          name: selectedList ? selectedList.name : "Mi Lista Personal",
+          items: itemsAsStrings,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      Swal.fire("Guardado", "Lista guardada correctamente ❤️", "success");
-    } catch {
-      Swal.fire("Error", "No se pudo guardar la lista", "error");
+      Swal.fire("Guardado", "Lista agregada a tu perfil ❤️", "success");
+      fetchFavoritesCount();
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "No se pudo guardar la lista.", "error");
     }
   };
 
-  /* =======================
-     MAP
-  ======================= */
+  /* ========= MAP ========= */
   useEffect(() => {
     if (!showCompare || !mapRef.current || !userLocation) return;
 
-    mapInstance.current?.remove();
+    if (mapInstance.current) {
+      mapInstance.current.remove();
+    }
 
     mapInstance.current = L.map(mapRef.current).setView(
       [userLocation.lat, userLocation.lng],
@@ -146,87 +160,97 @@ const ShoppingListCompare = () => {
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(
       mapInstance.current
     );
+
+    return () => {
+      mapInstance.current?.remove();
+      mapInstance.current = null;
+    };
   }, [showCompare, userLocation]);
 
-  /* =======================
-     UI
-  ======================= */
+  /* ========= UI ========= */
   return (
     <div className="sl-container">
-      <h2>🛒 Crear mi propia lista</h2>
+      <h2>🛒 Comparar Precios</h2>
 
-      <button
-        className="create-btn"
-        onClick={() => {
-          setMode("custom");
-          setProducts([]);
-          setListName("");
-        }}
-      >
-        ➕ Create My Own List
-      </button>
+      {/* MODE BUTTONS */}
+      <div className="sl-modes">
+        <button onClick={() => { setMode("student"); setSelectedList(null); setProducts([]); }}>
+          Listas para Estudiantes
+        </button>
+        <button onClick={() => { setMode("family"); setSelectedList(null); setProducts([]); }}>
+          Listas para Familias
+        </button>
+        <button onClick={() => { setMode("custom"); setSelectedList(null); setProducts([]); }}>
+          Crear Mi Propia Lista
+        </button>
+      </div>
 
-      {mode === "custom" && (
-        <>
-          <input
-            className="list-name-input"
-            placeholder="Nombre de la lista"
-            value={listName}
-            onChange={(e) => setListName(e.target.value)}
-          />
-
-          <div className="sl-search">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar productos..."
-            />
-            <button onClick={() => addProduct(query)}>Add</button>
-
-            {suggestions.length > 0 && (
-              <ul className="sl-suggestions">
-                {suggestions.map((s, i) => (
-                  <li key={i} onClick={() => addProduct(s)}>
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </>
+      {/* RECOMMENDED LISTS (read-only) */}
+      {(mode === "student" || mode === "family") && (
+        <div className="sl-recommended-lists">
+          {recommendedLists[mode].map((l, i) => (
+            <div key={i} className="sl-recommended-item">
+              <span>{l.name}</span>
+              <button onClick={() => selectRecommendedList(l)}>Ver</button>
+            </div>
+          ))}
+        </div>
       )}
 
+      {/* SEARCH / CUSTOM LIST */}
+      {(mode === "custom" || products.length > 0) && (
+        <div className="sl-search">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar productos..."
+          />
+          <button onClick={() => addProduct(query)}>Agregar</button>
+
+          {suggestions.length > 0 && (
+            <ul className="sl-suggestions">
+              {suggestions.map((s, i) => (
+                <li key={i} onClick={() => addProduct(s)}>
+                  {s}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* PRODUCTS LIST */}
       {products.length > 0 && (
-        <>
-          <div className="sl-products">
-            {products.map((p, i) => (
-              <div key={i} className="sl-item">
-                {p.product}
-              </div>
-            ))}
-          </div>
+        <div className="sl-products">
+          {products.map((p, i) => (
+            <div key={i} className="sl-item">
+              {p.product}
+            </div>
+          ))}
 
           <button className="compare-btn" onClick={() => setShowCompare(true)}>
             Comparar
           </button>
-        </>
+        </div>
       )}
 
+      {/* COMPARE RESULTS */}
       {showCompare && (
         <div className="sl-results">
+          <h3>Totales por Supermercado</h3>
+
           {Object.keys(totals).map((m) => (
             <div
               key={m}
-              className={`sl-total ${
-                m === cheapestMarket ? "best" : ""
-              }`}
+              className={`sl-total ${m === cheapestMarket ? "best" : ""}`}
             >
               {m}: €{totals[m].toFixed(2)}
+              {m === cheapestMarket && <span> ❤️</span>}
             </div>
           ))}
 
           <button className="save-btn" onClick={saveListToProfile}>
-            Guardar en Perfil
+            Guardar Lista en Perfil
           </button>
 
           <div ref={mapRef} className="sl-map" />
