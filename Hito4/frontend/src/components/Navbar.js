@@ -5,32 +5,24 @@ import {
   AiOutlineShoppingCart,
 } from "react-icons/ai";
 import { MdCompareArrows } from "react-icons/md";
-import { FiUser, FiHeart, FiSettings, FiLogOut } from "react-icons/fi";
-import { BsMoon, BsSun } from "react-icons/bs";
-
+import { FiUser, FiHeart, FiLogOut, FiMoon, FiSun } from "react-icons/fi";
 import mainLogo from "./mainlogo.png";
 
 import { UserContext } from "../context/UserContext";
 import { FavoritesContext } from "../context/FavoritesContext";
-import { LanguageContext } from "../context/LanguageContext";
 import "./navbar.css";
 
 const Navbar = () => {
   const { user } = useContext(UserContext);
   const { favoritesCount } = useContext(FavoritesContext);
-  const { lang, changeLanguage } = useContext(LanguageContext);
-
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
   const [open, setOpen] = useState(false);
-  const [dark, setDark] = useState(
-    localStorage.getItem("theme") === "dark"
-  );
-
+  const [dark, setDark] = useState(false);
+  const [lang, setLang] = useState("EN");
   const ref = useRef(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const close = (e) => {
       if (ref.current && !ref.current.contains(e.target)) {
@@ -41,26 +33,25 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", close);
   }, []);
 
-  // Theme toggle
-  useEffect(() => {
-    document.body.classList.toggle("dark-theme", dark);
-    localStorage.setItem("theme", dark ? "dark" : "light");
-  }, [dark]);
-
   const logout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
 
+  const toggleTheme = () => {
+    setDark(!dark);
+    document.body.classList.toggle("dark");
+  };
+
   return (
     <nav className="navbar">
-      {/* LEFT: Logo */}
+      {/* ===== LEFT ===== */}
       <Link to="/home" className="logo">
-        <img src={mainLogo} alt="logo" className="logo-img" />
-        CompraSmart
+        <img src={mainLogo} alt="logo" />
+        <span>CompraSmart</span>
       </Link>
 
-      {/* CENTER: Nav Links */}
+      {/* ===== CENTER ===== */}
       <div className="nav-links">
         <Link to="/home"><AiOutlineHome /> Inicio</Link>
         <Link to="/products"><AiOutlineShoppingCart /> Productos</Link>
@@ -75,28 +66,24 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* RIGHT: Controls */}
+      {/* ===== RIGHT ===== */}
       <div className="nav-right">
-        {/* Language */}
+        {/* LANGUAGE */}
         <select
           className="lang-select"
           value={lang}
-          onChange={(e) => changeLanguage(e.target.value)}
+          onChange={(e) => setLang(e.target.value)}
         >
-          <option value="es">🇪🇸 ES</option>
-          <option value="en">🇬🇧 EN</option>
+          <option value="EN">EN</option>
+          <option value="ES">ES</option>
         </select>
 
-        {/* Theme toggle */}
-        <button
-          className="theme-toggle"
-          onClick={() => setDark(!dark)}
-          title="Toggle theme"
-        >
-          {dark ? <BsSun /> : <BsMoon />}
+        {/* THEME */}
+        <button className="theme-btn" onClick={toggleTheme}>
+          {dark ? <FiSun /> : <FiMoon />}
         </button>
 
-        {/* Profile */}
+        {/* PROFILE */}
         {token && user && (
           <div className="profile-nav" ref={ref}>
             <div
@@ -106,20 +93,14 @@ const Navbar = () => {
               <img
                 src={user.avatar || "/default-avatar.png"}
                 alt="avatar"
-                className="nav-avatar"
               />
-              <span className="nav-username">
-                {user.name}
-              </span>
+              <span>{user.name}</span>
             </div>
 
             {open && (
               <div className="dropdown">
                 <button onClick={() => navigate("/profile")}>
                   <FiUser /> Perfil
-                </button>
-                <button onClick={() => navigate("/settings")}>
-                  <FiSettings /> Ajustes
                 </button>
                 <button onClick={logout}>
                   <FiLogOut /> Salir

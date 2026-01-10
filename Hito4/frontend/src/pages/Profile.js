@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
+import { authAPI } from "../services/api";
 import { UserContext } from "../context/UserContext";
 import "./profile.css";
 
@@ -11,15 +11,13 @@ const Profile = () => {
   const [lists, setLists] = useState([]);
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || "");
 
-  // LOAD LISTS
+  // ================= LOAD LISTS =================
   const loadLists = async () => {
     try {
-      const res = await axios.get(
-        "https://auth-service-a73r.onrender.com/shopping-lists",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await authAPI.get("/../shopping-lists");
       setLists(res.data);
-    } catch {
+    } catch (err) {
+      console.error(err);
       Swal.fire("Error", "Error loading your shopping lists", "error");
     }
   };
@@ -28,44 +26,49 @@ const Profile = () => {
     loadLists();
   }, []);
 
-  // DELETE LIST
+  // ================= DELETE LIST =================
   const deleteList = async (id) => {
     try {
-      await axios.delete(
-        `https://auth-service-a73r.onrender.com/shopping-lists/${id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await authAPI.delete(`/../shopping-lists/${id}`);
       loadLists();
     } catch {
       Swal.fire("Error", "Error deleting list", "error");
     }
   };
 
-  // AVATAR UPLOAD
+  // ================= AVATAR UPLOAD =================
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    if (!file.type.startsWith("image/")) {
+      Swal.fire("Error", "Please upload an image file", "error");
+      return;
+    }
+
     const reader = new FileReader();
     reader.onloadend = async () => {
       try {
-        const res = await axios.put(
-          "https://auth-service-a73r.onrender.com/auth/avatar",
-          { avatar: reader.result },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const res = await authAPI.put("/avatar", {
+          avatar: reader.result,
+        });
+
         setUser(res.data);
         setAvatarPreview(res.data.avatar);
-      } catch {
+
+        Swal.fire("Success", "Profile photo updated!", "success");
+      } catch (err) {
+        console.error("Avatar upload error:", err);
         Swal.fire("Error", "Failed to update avatar", "error");
       }
     };
+
     reader.readAsDataURL(file);
   };
 
   return (
     <div className="profile-container">
-      {/* WELCOME SECTION */}
+      {/* ===== WELCOME ===== */}
       <div className="profile-welcome-section">
         <div className="profile-avatar-box">
           <img
@@ -75,18 +78,22 @@ const Profile = () => {
           />
           <label className="upload-btn">
             Change Photo
-            <input type="file" hidden onChange={handleAvatarChange} />
+            <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
           </label>
         </div>
+
         <div className="profile-welcome-text">
           <h1>Welcome back, {user?.name} 👋</h1>
-          <p>Glad to see you! Here's your shopping dashboard.</p>
+          <p>Manage your shopping lists and profile settings</p>
         </div>
       </div>
 
-      {/* SHOPPING LISTS */}
+      {/* ===== LISTS ===== */}
       <h2 className="profile-lists-title">My Shopping Lists</h2>
-      {lists.length === 0 && <p className="profile-empty">No lists saved yet.</p>}
+
+      {lists.length === 0 && (
+        <p className="profile-empty">No lists saved yet.</p>
+      )}
 
       <div className="profile-lists-grid">
         {lists.map((list) => (
@@ -94,6 +101,7 @@ const Profile = () => {
             <h3>{list.name}</h3>
             <p>Items: {list.items.length}</p>
             <p>Created: {new Date(list.createdAt).toLocaleDateString()}</p>
+
             <div className="profile-list-actions">
               <button
                 className="profile-list-btn"
@@ -114,7 +122,7 @@ const Profile = () => {
         ))}
       </div>
 
-      {/* LOGOUT BUTTON */}
+      {/* ===== LOGOUT ===== */}
       <button
         className="profile-logout"
         onClick={() => {
