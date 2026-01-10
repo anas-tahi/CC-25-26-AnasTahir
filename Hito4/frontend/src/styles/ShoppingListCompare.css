@@ -1,202 +1,186 @@
 .sl-container {
-  max-width: 900px;
-  margin: 20px auto;
+  max-width: 1000px;
+  margin: 0 auto;
   padding: 20px;
-  background: #f9f9f9;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   font-family: 'Arial', sans-serif;
+  color: #333;
 }
 
 .sl-container h2 {
   text-align: center;
   margin-bottom: 20px;
-  color: #333;
 }
 
+/* ===== MODE BUTTONS ===== */
 .sl-modes {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 15px;
   margin-bottom: 20px;
 }
 
 .sl-modes button {
-  padding: 10px 18px;
+  padding: 8px 16px;
   border: none;
-  border-radius: 8px;
-  background: #4caf50;
+  border-radius: 6px;
+  background-color: #4caf50;
   color: #fff;
-  font-weight: bold;
   cursor: pointer;
-  transition: background 0.2s;
+  font-size: 14px;
+  transition: background-color 0.2s;
 }
 
 .sl-modes button:hover {
-  background: #45a049;
+  background-color: #388e3c;
 }
 
+/* ===== RECOMMENDED LISTS ===== */
 .sl-recommended-lists {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  margin-bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .sl-recommended-item {
-  background: #fff;
-  border-radius: 10px;
-  padding: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.sl-recommended-item span {
-  font-weight: bold;
-  color: #333;
+  background-color: #e8f5e9;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
 .sl-recommended-item button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  background: #2196f3;
+  background-color: #4caf50;
   color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9em;
+  font-size: 14px;
 }
 
 .sl-recommended-item button:hover {
-  background: #1976d2;
+  background-color: #388e3c;
 }
 
+/* ===== SEARCH ===== */
 .sl-search {
   display: flex;
-  align-items: center;
+  justify-content: center;
   gap: 10px;
   margin-bottom: 20px;
 }
 
 .sl-search input {
-  flex: 1;
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 1em;
+  width: 250px;
 }
 
 .sl-search button {
   padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: none;
-  background: #ff9800;
+  background-color: #4caf50;
   color: #fff;
   cursor: pointer;
-  font-weight: bold;
+  font-size: 14px;
 }
 
 .sl-search button:hover {
-  background: #f57c00;
+  background-color: #388e3c;
 }
 
+/* ===== AUTOCOMPLETE SUGGESTIONS ===== */
 .sl-suggestions {
+  position: absolute;
   background: #fff;
   border: 1px solid #ccc;
-  border-radius: 8px;
+  border-radius: 6px;
+  max-width: 270px;
   margin-top: 4px;
-  max-height: 200px;
-  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  z-index: 100;
 }
 
 .sl-suggestions li {
-  padding: 8px 12px;
+  padding: 6px 10px;
   cursor: pointer;
 }
 
 .sl-suggestions li:hover {
-  background: #eee;
+  background-color: #e8f5e9;
 }
 
+/* ===== PRODUCTS LIST ===== */
 .sl-products {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 10px;
-  margin-bottom: 20px;
+  max-width: 600px;
+  margin: 0 auto 20px auto;
 }
 
 .sl-item {
-  background: #fff;
-  padding: 8px 12px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  font-weight: bold;
+  padding: 10px 12px;
+  background-color: #f1f8e9;
+  border-radius: 6px;
+  font-weight: 500;
 }
 
-.compare-btn {
-  padding: 10px 18px;
-  background: #673ab7;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
+/* ===== COMPARE & SAVE BUTTON ===== */
+.compare-btn,
+.save-btn {
   margin-top: 10px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background-color: #4caf50;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  width: fit-content;
 }
 
-.compare-btn:hover {
-  background: #5e35b1;
+.compare-btn:hover,
+.save-btn:hover {
+  background-color: #388e3c;
 }
 
+/* ===== RESULTS ===== */
 .sl-results {
-  margin-top: 25px;
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-}
-
-.sl-results h3 {
-  margin-bottom: 15px;
-  text-align: center;
-  color: #333;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+  background-color: #e8f5e9;
+  border-radius: 10px;
 }
 
 .sl-total {
-  padding: 8px 12px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
   border-radius: 6px;
-  margin-bottom: 8px;
-  background: #f0f0f0;
-  display: flex;
-  justify-content: space-between;
-  font-weight: bold;
+  background-color: #c8e6c9;
+  font-weight: 500;
 }
 
 .sl-total.best {
-  background: #c8e6c9;
-  color: #256029;
+  background-color: #ffeb3b;
 }
 
-.save-btn {
-  margin-top: 12px;
-  padding: 10px 16px;
-  background: #4caf50;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.save-btn:hover {
-  background: #45a049;
-}
-
+/* ===== MAP ===== */
 .sl-map {
-  width: 100%;
   height: 250px;
-  margin-top: 20px;
-  border-radius: 12px;
+  margin-top: 12px;
+  border-radius: 10px;
   overflow: hidden;
+  border: 1px solid #ccc;
 }
