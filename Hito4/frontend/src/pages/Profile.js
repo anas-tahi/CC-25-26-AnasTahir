@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import "../pages/Profile.css";
+import "../pages/profile.css";
 
 const Profile = () => {
   const [lists, setLists] = useState([]);
