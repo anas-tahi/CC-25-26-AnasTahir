@@ -1,188 +1,39 @@
-.sl-container {
-  max-width: 900px;
-  margin: 0 auto;
+.sl-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.sl-card {
+  background: linear-gradient(135deg, #4caf50, #81c784);
+  color: white;
   padding: 20px;
-  font-family: 'Arial', sans-serif;
-}
-
-.sl-container h2 {
+  border-radius: 16px;
+  cursor: pointer;
   text-align: center;
-  margin-bottom: 20px;
-}
-
-/* Mode Buttons */
-.sl-modes {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.sl-modes button {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  background-color: #2196f3;
-  color: white;
   font-weight: bold;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.sl-modes button:hover {
-  background-color: #1976d2;
+.sl-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* Recommended Lists */
-.sl-recommended-lists {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.sl-recommended-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid #ddd;
-  padding: 10px;
-  border-radius: 8px;
-  background-color: #f0f0f0;
-}
-
-.sl-recommended-item button {
-  padding: 5px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  background-color: #4caf50;
-  color: white;
-  font-weight: bold;
-}
-
-.sl-recommended-item button:hover {
-  background-color: #45a049;
-}
-
-/* Search Bar */
-.sl-search {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.sl-search input {
-  flex: 1;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-
-.sl-search button {
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: none;
-  background-color: #4caf50;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.sl-search button:hover {
-  background-color: #45a049;
-}
-
-/* Suggestions List */
-.sl-suggestions {
-  border: 1px solid #ccc;
-  max-height: 150px;
-  overflow-y: auto;
-  background-color: white;
-  border-radius: 8px;
-  margin-top: 5px;
-  list-style: none;
-  padding: 0;
-}
-
-.sl-suggestions li {
-  padding: 6px 10px;
-  cursor: pointer;
-}
-
-.sl-suggestions li:hover {
-  background-color: #f0f0f0;
-}
-
-/* Products List */
-.sl-products {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.sl-item-editable input {
-  width: 100%;
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-
-/* Compare Button */
-.compare-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  background-color: #2196f3;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  align-self: flex-start;
-}
-
-.compare-btn:hover {
-  background-color: #1976d2;
-}
-
-/* Compare Results */
-.sl-results {
-  border-top: 1px solid #ccc;
-  padding-top: 15px;
+.compare-btn,
+.save-btn {
   margin-top: 20px;
-}
-
-.sl-total {
-  margin-bottom: 5px;
-  font-weight: bold;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #2196f3;
+  color: white;
+  cursor: pointer;
 }
 
 .sl-total.best {
-  color: #4caf50;
-}
-
-.save-btn {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  background-color: #4caf50;
-  color: white;
+  background: #e8f5e9;
   font-weight: bold;
-  margin: 10px 0;
-}
-
-.save-btn:hover {
-  background-color: #45a049;
-}
-
-/* Map */
-.sl-map {
-  height: 300px;
-  width: 100%;
-  margin-top: 10px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
+  border-left: 6px solid #4caf50;
 }
