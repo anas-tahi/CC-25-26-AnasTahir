@@ -36,11 +36,13 @@ const Navbar = () => {
 
   return (
     <nav className="navbar">
+      {/* LEFT: Logo */}
       <Link to="/home" className="logo">
-        <img src={mainLogo} alt="logo" />
+        <img src={mainLogo} alt="logo" className="logo-img" />
         CompraSmart
       </Link>
 
+      {/* CENTER: Nav Links */}
       <div className="nav-links">
         <Link to="/home"><AiOutlineHome /> Inicio</Link>
         <Link to="/products"><AiOutlineShoppingCart /> Productos</Link>
@@ -55,11 +57,13 @@ const Navbar = () => {
         )}
       </div>
 
+      {/* RIGHT: Profile Dropdown */}
       {token && user && (
         <div className="profile-nav" ref={ref}>
           <img
             src={user.avatar || "/default-avatar.png"}
             alt="avatar"
+            className="nav-avatar"
             onClick={() => setOpen(!open)}
           />
           {open && (
