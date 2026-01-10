@@ -1,145 +1,80 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useState, useContext, useEffect, useRef } from 'react';
-import { AiOutlineHome } from 'react-icons/ai';
-import { FiBox, FiSettings, FiUser, FiHeart, FiMenu, FiX } from 'react-icons/fi';
-import { MdCompareArrows } from 'react-icons/md';
-import { BsMoon, BsSun } from 'react-icons/bs';
-import mainLogo from './mainlogo.png';
+import { Link, useNavigate } from "react-router-dom";
+import { useContext, useState, useRef, useEffect } from "react";
+import {
+  AiOutlineHome,
+  AiOutlineShoppingCart,
+} from "react-icons/ai";
+import { MdCompareArrows } from "react-icons/md";
+import { FiUser, FiHeart, FiSettings, FiLogOut } from "react-icons/fi";
+import mainLogo from "./mainlogo.png";
 
-import { FavoritesContext } from '../context/FavoritesContext';
-import { LanguageContext } from '../context/LanguageContext';
-import { UserContext } from '../context/UserContext';
-import { ThemeContext } from '../context/ThemeContext';
+import { UserContext } from "../context/UserContext";
+import { FavoritesContext } from "../context/FavoritesContext";
+import "./navbar.css";
 
-import './navbar.css';
-
-const Navbar = ({ setToken }) => {
-  const { lang, changeLanguage } = useContext(LanguageContext);
-  const { favoritesCount } = useContext(FavoritesContext);
+const Navbar = () => {
   const { user } = useContext(UserContext);
-  const { theme, toggleTheme } = useContext(ThemeContext);
-
-  const token = localStorage.getItem('token');
+  const { favoritesCount } = useContext(FavoritesContext);
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
-  const [showProfile, setShowProfile] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setShowProfile(false);
-      }
+    const close = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    if (setToken) setToken(null);
-    navigate('/login');
+  const logout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
   };
-
-  const toggleProfile = () => setShowProfile((prev) => !prev);
-  const toggleMobile = () => setMobileOpen((prev) => !prev);
-
-  const labels = {
-    en: {
-      home: 'Home',
-      products: 'Products',
-      compare: 'Compare',
-      shoppingList: 'Shopping List',
-      settings: 'Settings',
-      favorites: 'My Favorites',
-      logout: 'Logout',
-      wishlist: 'Wishlist',
-      viewProfile: 'View Profile',
-    },
-    es: {
-      home: 'Inicio',
-      products: 'Productos',
-      compare: 'Comparar',
-      shoppingList: 'Lista de Compra',
-      settings: 'Ajustes',
-      favorites: 'Mis Favoritos',
-      logout: 'Salir',
-      wishlist: 'Lista de Deseos',
-      viewProfile: 'Ver Perfil',
-    },
-  };
-
-  const t = labels[lang];
 
   return (
     <nav className="navbar">
-      {/* LEFT SIDE */}
-      <div className="nav-left">
-        <Link to="/home" className="logo-link">
-          <img src={mainLogo} alt="CompraSmart Logo" className="logo" />
-          <span className="title">CompraSmart</span>
-        </Link>
+      <Link to="/home" className="logo">
+        <img src={mainLogo} alt="logo" />
+        CompraSmart
+      </Link>
 
-        {/* DESKTOP LINKS */}
-        <div className="nav-links desktop-only">
-          <Link to="/home" className="nav-link"><AiOutlineHome /> {t.home}</Link>
-          <Link to="/products" className="nav-link"><FiBox /> {t.products}</Link>
-          <Link to="/compare" className="nav-link"><MdCompareArrows /> {t.compare}</Link>
-          <Link to="/shopping-list" className="nav-link"><FiBox /> {t.shoppingList}</Link>
+      <div className="nav-links">
+        <Link to="/home"><AiOutlineHome /> Inicio</Link>
+        <Link to="/products"><AiOutlineShoppingCart /> Productos</Link>
+        <Link to="/compare"><MdCompareArrows /> Comparar</Link>
+        <Link to="/shopping-list"><AiOutlineShoppingCart /> Lista</Link>
 
-          {token && (
-            <div className="favorites-wrapper">
-              <Link to="/favorites" className="nav-link"><FiHeart /> {t.favorites}</Link>
-              {favoritesCount > 0 && <span className="badge">{favoritesCount}</span>}
+        {token && (
+          <Link to="/favorites" className="fav-link">
+            <FiHeart />
+            {favoritesCount > 0 && <span>{favoritesCount}</span>}
+          </Link>
+        )}
+      </div>
+
+      {token && user && (
+        <div className="profile-nav" ref={ref}>
+          <img
+            src={user.avatar || "/default-avatar.png"}
+            alt="avatar"
+            onClick={() => setOpen(!open)}
+          />
+          {open && (
+            <div className="dropdown">
+              <button onClick={() => navigate("/profile")}>
+                <FiUser /> Perfil
+              </button>
+              <button onClick={() => navigate("/settings")}>
+                <FiSettings /> Ajustes
+              </button>
+              <button onClick={logout}>
+                <FiLogOut /> Salir
+              </button>
             </div>
           )}
-
-          <Link to="/settings" className="nav-link"><FiSettings /> {t.settings}</Link>
-        </div>
-      </div>
-
-      {/* RIGHT SIDE */}
-      <div className="nav-right">
-        {token && user && (
-          <div className="profile-container" ref={dropdownRef}>
-            <button onClick={toggleProfile} className="profile-button">
-              <FiUser /> {user.name} ⏷
-            </button>
-            {showProfile && (
-              <div className="dropdown-menu">
-                <button onClick={() => navigate('/profile')} className="dropdown-item">{t.viewProfile}</button>
-                <button onClick={() => navigate('/favorites')} className="dropdown-item">{t.wishlist}</button>
-                <button onClick={() => navigate('/settings')} className="dropdown-item">{t.settings}</button>
-                <button onClick={handleLogout} className="dropdown-item logout">{t.logout}</button>
-              </div>
-            )}
-          </div>
-        )}
-
-        <select value={lang} onChange={(e) => changeLanguage(e.target.value)} className="lang-select">
-          <option value="en">English</option>
-          <option value="es">Español</option>
-        </select>
-
-        <button onClick={toggleTheme} className="theme-btn">
-          {theme === 'light' ? <BsMoon /> : <BsSun />}
-        </button>
-
-        <button className="mobile-menu-btn" onClick={toggleMobile}>
-          {mobileOpen ? <FiX /> : <FiMenu />}
-        </button>
-      </div>
-
-      {/* MOBILE MENU */}
-      {mobileOpen && (
-        <div className="mobile-menu">
-          <Link to="/home" className="mobile-link" onClick={toggleMobile}>{t.home}</Link>
-          <Link to="/products" className="mobile-link" onClick={toggleMobile}>{t.products}</Link>
-          <Link to="/compare" className="mobile-link" onClick={toggleMobile}>{t.compare}</Link>
-          <Link to="/shopping-list" className="mobile-link" onClick={toggleMobile}>{t.shoppingList}</Link>
-          <Link to="/favorites" className="mobile-link" onClick={toggleMobile}>{t.favorites}</Link>
-          <Link to="/settings" className="mobile-link" onClick={toggleMobile}>{t.settings}</Link>
         </div>
       )}
     </nav>

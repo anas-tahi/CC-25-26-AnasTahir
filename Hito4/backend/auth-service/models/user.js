@@ -1,20 +1,24 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
-}, {
-  timestamps: true // ⭐ optional but useful
-});
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
 
-// ⭐ Sanitize output (hide _id, __v, password)
+    // ✅ NEW
+    avatar: { type: String, default: "" },
+  },
+  { timestamps: true }
+);
+
 userSchema.methods.toJSON = function () {
   return {
     id: this._id,
     name: this.name,
-    email: this.email
+    email: this.email,
+    avatar: this.avatar,
   };
 };
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);

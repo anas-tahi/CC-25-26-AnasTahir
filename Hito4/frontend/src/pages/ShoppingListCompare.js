@@ -1,51 +1,45 @@
-import { useState, useEffect, useRef, useContext } from "react";
-import { productAPI } from "../services/api";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "../styles/ShoppingListCompare.css";
-import { FavoritesContext } from "../context/FavoritesContext";
+import { productAPI } from "../services/api";
+import "./ShoppingListCompare.css";
 
-const recommendedLists = {
+const RECOMMENDED = {
   student: [
     {
-      name: "Desayuno Estudiante",
-      items: ["Leche", "Pan", "Huevos", "Cereal", "Jugo de Naranja"],
+      name: "Lista Básica Estudiante",
+      items: ["Leche", "Pan", "Huevos", "Arroz", "Pasta"],
     },
     {
-      name: "Snacks Estudiante",
-      items: ["Chips", "Chocolate", "Galletas", "Refresco", "Nueces"],
+      name: "Snacks para Estudiantes",
+      items: ["Patatas", "Galletas", "Chocolate"],
     },
   ],
   family: [
     {
-      name: "Esenciales Familia",
-      items: ["Arroz", "Pasta", "Pollo", "Salsa de Tomate", "Queso"],
-    },
-    {
-      name: "Snacks y Bebidas Familia",
-      items: ["Jugo", "Yogur", "Galletas", "Cereal", "Refresco"],
+      name: "Lista Familiar Semanal",
+      items: ["Pollo", "Aceite", "Verduras", "Azúcar", "Harina"],
     },
   ],
 };
 
 const ShoppingListCompare = () => {
-  const [mode, setMode] = useState(""); // student | family | custom
-  const [selectedList, setSelectedList] = useState(null); // recommended list
-  const [listName, setListName] = useState("Crear Mi Propia Lista"); // name for custom list
+  const token = localStorage.getItem("token");
+
+  const [mode, setMode] = useState("");
+  const [listName, setListName] = useState("");
+  const [products, setProducts] = useState([]);
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const [products, setProducts] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
 
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
-  const token = localStorage.getItem("token");
-  const { fetchFavoritesCount } = useContext(FavoritesContext);
 
-  /* ========= LOCATION ========= */
+  // ================= LOCATION =================
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) =>
@@ -57,13 +51,12 @@ const ShoppingListCompare = () => {
     );
   }, []);
 
-  /* ========= AUTOCOMPLETE ========= */
+  // ================= AUTOCOMPLETE =================
   useEffect(() => {
-    if (mode !== "custom" || !query.trim()) {
+    if (!query.trim()) {
       setSuggestions([]);
       return;
     }
-
     const load = async () => {
       try {
         const res = await productAPI.get(`/names/${query}`);
@@ -73,9 +66,9 @@ const ShoppingListCompare = () => {
       }
     };
     load();
-  }, [query, mode]);
+  }, [query]);
 
-  /* ========= ADD PRODUCT ========= */
+  // ================= ADD PRODUCT =================
   const addProduct = async (name) => {
     if (!name || products.find((p) => p.product === name)) return;
 
@@ -84,37 +77,35 @@ const ShoppingListCompare = () => {
       setProducts((prev) => [...prev, res.data]);
       setQuery("");
       setSuggestions([]);
-      setShowCompare(false);
     } catch {
       Swal.fire("Error", "Producto no encontrado", "error");
     }
   };
 
-  /* ========= SELECT RECOMMENDED LIST ========= */
-  const selectRecommendedList = async (list) => {
-    setSelectedList(list);
+  // ================= LOAD RECOMMENDED =================
+  const loadRecommended = async (list) => {
     setProducts([]);
     setShowCompare(false);
+    setListName(list.name);
 
-    const fetchedProducts = [];
-    for (const name of list.items) {
+    const fetched = [];
+    for (const item of list.items) {
       try {
-        const res = await productAPI.get(`/compare/${name}`);
-        fetchedProducts.push(res.data);
-      } catch {
-        console.warn(`Producto ${name} no encontrado`);
-      }
+        const res = await productAPI.get(`/compare/${item}`);
+        fetched.push(res.data);
+      } catch {}
     }
-    setProducts(fetchedProducts);
+    setProducts(fetched);
   };
 
-  /* ========= COMPARE ========= */
+  // ================= COMPARE TOTALS =================
   const totals = {};
   products.forEach((p) =>
     p.supermarkets.forEach((s) => {
       totals[s.supermarket] = (totals[s.supermarket] || 0) + s.price;
     })
   );
+
   const cheapestMarket =
     Object.keys(totals).length > 0
       ? Object.keys(totals).reduce((a, b) =>
@@ -122,45 +113,33 @@ const ShoppingListCompare = () => {
         )
       : null;
 
-  /* ========= SAVE LIST ========= */
-  const saveListToProfile = async () => {
-    if (!products.length) return;
+  // ================= SAVE LIST =================
+  const saveList = async () => {
+    if (!listName.trim()) {
+      Swal.fire("Error", "Pon un nombre a la lista", "warning");
+      return;
+    }
 
-    const itemsAsStrings = products.map((p) => {
-      if (!cheapestMarket) return p.product;
-      const cheapest = p.supermarkets.find(
-        (s) => s.supermarket === cheapestMarket
-      );
-      return `${p.product} - ${cheapest.supermarket} (€${cheapest.price.toFixed(
-        2
-      )})`;
-    });
+    const items = products.map((p) => p.product);
 
     try {
       await axios.post(
         "https://auth-service-a73r.onrender.com/shopping-lists",
-        {
-          name: selectedList ? selectedList.name : listName,
-          items: itemsAsStrings,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { name: listName, items },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      Swal.fire("Guardado!", "Lista agregada a tu perfil ❤️", "success");
-      fetchFavoritesCount();
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "No se pudo guardar la lista.", "error");
+      Swal.fire("Guardado", "Lista añadida a tu perfil ❤️", "success");
+    } catch {
+      Swal.fire("Error", "No se pudo guardar", "error");
     }
   };
 
-  /* ========= MAP ========= */
+  // ================= MAP =================
   useEffect(() => {
-    if (!showCompare || !mapRef.current || !userLocation) return;
+    if (!showCompare || !userLocation || !mapRef.current) return;
 
-    if (mapInstance.current) mapInstance.current.remove();
+    mapInstance.current?.remove();
 
     mapInstance.current = L.map(mapRef.current).setView(
       [userLocation.lat, userLocation.lng],
@@ -171,74 +150,56 @@ const ShoppingListCompare = () => {
       mapInstance.current
     );
 
-    return () => {
-      mapInstance.current?.remove();
-      mapInstance.current = null;
-    };
+    L.marker([userLocation.lat, userLocation.lng])
+      .addTo(mapInstance.current)
+      .bindPopup("Tú estás aquí");
+
+    return () => mapInstance.current?.remove();
   }, [showCompare, userLocation]);
 
-  /* ========= UI ========= */
   return (
     <div className="sl-container">
-      <h2>🛒 Comparar Lista de Compras</h2>
+      <h2>🛒 Lista de Compra</h2>
 
-      {/* MODE BUTTONS */}
+      {/* MODES */}
       <div className="sl-modes">
-        <button
-          onClick={() => {
-            setMode("student");
-            setSelectedList(null);
-            setProducts([]);
-          }}
-        >
-          Listas para Estudiantes
-        </button>
-        <button
-          onClick={() => {
-            setMode("family");
-            setSelectedList(null);
-            setProducts([]);
-          }}
-        >
-          Listas para Familias
-        </button>
-        <button
-          onClick={() => {
-            setMode("custom");
-            setSelectedList(null);
-            setProducts([]);
-          }}
-        >
-          Crear Mi Propia Lista
-        </button>
+        <button onClick={() => setMode("student")}>Estudiantes</button>
+        <button onClick={() => setMode("family")}>Familias</button>
+        <button onClick={() => setMode("custom")}>Crear Mi Propia Lista</button>
       </div>
 
-      {/* RECOMMENDED LISTS */}
+      {/* RECOMMENDED */}
       {(mode === "student" || mode === "family") && (
-        <div className="sl-recommended-lists">
-          {recommendedLists[mode].map((l, i) => (
-            <div key={i} className="sl-recommended-item">
-              <span>{l.name}</span>
-              <button onClick={() => selectRecommendedList(l)}>Seleccionar</button>
+        <div className="sl-recommended">
+          {RECOMMENDED[mode].map((l, i) => (
+            <div key={i} className="sl-card">
+              <h4>{l.name}</h4>
+              <p>{l.items.join(", ")}</p>
+              <button onClick={() => loadRecommended(l)}>Usar</button>
             </div>
           ))}
         </div>
       )}
 
-      {/* CUSTOM SEARCH */}
+      {/* CUSTOM LIST */}
       {mode === "custom" && (
+        <input
+          className="list-name-input"
+          placeholder="Nombre de la lista"
+          value={listName}
+          onChange={(e) => setListName(e.target.value)}
+        />
+      )}
+
+      {/* SEARCH */}
+      {(mode === "custom" || products.length > 0) && (
         <div className="sl-search">
-          <input
-            value={listName}
-            onChange={(e) => setListName(e.target.value)}
-            placeholder="Nombre de tu lista"
-          />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar productos..."
+            placeholder="Buscar producto..."
           />
-          <button onClick={() => addProduct(query)}>Agregar</button>
+          <button onClick={() => addProduct(query)}>Añadir</button>
 
           {suggestions.length > 0 && (
             <ul className="sl-suggestions">
@@ -256,15 +217,10 @@ const ShoppingListCompare = () => {
       {products.length > 0 && (
         <div className="sl-products">
           {products.map((p, i) => (
-            <div key={i} className="sl-item">
-              {p.product}
-            </div>
+            <div key={i}>{p.product}</div>
           ))}
 
-          <button
-            className="compare-btn"
-            onClick={() => setShowCompare(true)}
-          >
+          <button className="compare-btn" onClick={() => setShowCompare(true)}>
             Comparar
           </button>
         </div>
@@ -273,20 +229,14 @@ const ShoppingListCompare = () => {
       {/* RESULTS */}
       {showCompare && (
         <div className="sl-results">
-          <h3>Totales</h3>
-
           {Object.keys(totals).map((m) => (
-            <div
-              key={m}
-              className={`sl-total ${m === cheapestMarket ? "best" : ""}`}
-            >
+            <div key={m} className={m === cheapestMarket ? "best" : ""}>
               {m}: €{totals[m].toFixed(2)}
-              {m === cheapestMarket && <span> ❤️</span>}
             </div>
           ))}
 
-          <button className="save-btn" onClick={saveListToProfile}>
-            Guardar Lista en Perfil
+          <button className="save-btn" onClick={saveList}>
+            Guardar en Perfil
           </button>
 
           <div ref={mapRef} className="sl-map" />
