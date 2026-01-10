@@ -6,34 +6,11 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "../styles/ShoppingListCompare.css";
 
-/* =============================
-   RECOMMENDED LISTS (SPANISH)
-============================= */
-const recommendedLists = {
-  student: [
-    {
-      name: "Lista Básica Estudiante",
-      items: ["Leche", "Pan", "Huevos", "Arroz", "Pasta"],
-    },
-    {
-      name: "Snacks para Estudiantes",
-      items: ["Galletas", "Chocolate", "Patatas", "Refrescos"],
-    },
-  ],
-  family: [
-    {
-      name: "Compra Semanal Familiar",
-      items: ["Pollo", "Arroz", "Aceite", "Verduras", "Fruta"],
-    },
-    {
-      name: "Desayuno Familiar",
-      items: ["Leche", "Cereales", "Pan", "Mantequilla", "Mermelada"],
-    },
-  ],
-};
-
 const ShoppingListCompare = () => {
-  const [selectedList, setSelectedList] = useState(null);
+  const [mode, setMode] = useState(""); // "" | "custom"
+  const [listName, setListName] = useState("");
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
   const [products, setProducts] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
@@ -42,9 +19,9 @@ const ShoppingListCompare = () => {
   const mapInstance = useRef(null);
   const token = localStorage.getItem("token");
 
-  /* =============================
-     USER LOCATION
-  ============================= */
+  /* =======================
+     LOCATION
+  ======================= */
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) =>
@@ -56,39 +33,54 @@ const ShoppingListCompare = () => {
     );
   }, []);
 
-  /* =============================
-     LOAD RECOMMENDED LIST
-  ============================= */
-  const selectRecommendedList = async (list) => {
-    setSelectedList(list);
-    setProducts([]);
-    setShowCompare(false);
-
-    const loadedProducts = [];
-
-    for (const productName of list.items) {
-      try {
-        const res = await productAPI.get(`/compare/${productName}`);
-        loadedProducts.push(res.data);
-      } catch {
-        console.warn("Producto no encontrado:", productName);
-      }
+  /* =======================
+     AUTOCOMPLETE (WORKS)
+  ======================= */
+  useEffect(() => {
+    if (mode !== "custom" || !query.trim()) {
+      setSuggestions([]);
+      return;
     }
 
-    setProducts(loadedProducts);
+    const load = async () => {
+      try {
+        const res = await productAPI.get(`/names/${query}`);
+        setSuggestions(res.data.map((p) => p.name));
+      } catch {
+        setSuggestions([]);
+      }
+    };
+
+    load();
+  }, [query, mode]);
+
+  /* =======================
+     ADD PRODUCT
+  ======================= */
+  const addProduct = async (name) => {
+    if (!name || products.find((p) => p.product === name)) return;
+
+    try {
+      const res = await productAPI.get(`/compare/${name}`);
+      setProducts((prev) => [...prev, res.data]);
+      setQuery("");
+      setSuggestions([]);
+      setShowCompare(false);
+    } catch {
+      Swal.fire("Error", "Producto no encontrado", "error");
+    }
   };
 
-  /* =============================
-     COMPARE LOGIC (FIXED)
-  ============================= */
+  /* =======================
+     COMPARE
+  ======================= */
   const totals = {};
-  products.forEach((p) => {
-    if (!p.supermarkets) return;
+  products.forEach((p) =>
     p.supermarkets.forEach((s) => {
       totals[s.supermarket] =
-        (totals[s.supermarket] || 0) + Number(s.price || 0);
-    });
-  });
+        (totals[s.supermarket] || 0) + Number(s.price);
+    })
+  );
 
   const cheapestMarket =
     Object.keys(totals).length > 0
@@ -97,11 +89,19 @@ const ShoppingListCompare = () => {
         )
       : null;
 
-  /* =============================
-     SAVE LIST TO PROFILE
-  ============================= */
+  /* =======================
+     SAVE LIST (FIXED)
+  ======================= */
   const saveListToProfile = async () => {
-    if (!products.length || !cheapestMarket) return;
+    if (!products.length) {
+      Swal.fire("Error", "La lista está vacía", "error");
+      return;
+    }
+
+    if (!listName.trim()) {
+      Swal.fire("Error", "Pon un nombre a tu lista", "error");
+      return;
+    }
 
     const items = products.map((p) => {
       const cheapest = p.supermarkets.find(
@@ -116,7 +116,7 @@ const ShoppingListCompare = () => {
       await axios.post(
         "https://auth-service-a73r.onrender.com/shopping-lists",
         {
-          name: selectedList.name,
+          name: listName,
           items,
         },
         {
@@ -124,22 +124,19 @@ const ShoppingListCompare = () => {
         }
       );
 
-      Swal.fire("Guardado", "Lista añadida a tu perfil ❤️", "success");
-    } catch (err) {
-      console.error(err);
+      Swal.fire("Guardado", "Lista guardada correctamente ❤️", "success");
+    } catch {
       Swal.fire("Error", "No se pudo guardar la lista", "error");
     }
   };
 
-  /* =============================
+  /* =======================
      MAP
-  ============================= */
+  ======================= */
   useEffect(() => {
     if (!showCompare || !mapRef.current || !userLocation) return;
 
-    if (mapInstance.current) {
-      mapInstance.current.remove();
-    }
+    mapInstance.current?.remove();
 
     mapInstance.current = L.map(mapRef.current).setView(
       [userLocation.lat, userLocation.lng],
@@ -151,39 +148,50 @@ const ShoppingListCompare = () => {
     );
   }, [showCompare, userLocation]);
 
-  /* =============================
+  /* =======================
      UI
-  ============================= */
+  ======================= */
   return (
     <div className="sl-container">
-      <h2>🛒 Listas Recomendadas</h2>
+      <h2>🛒 Crear mi propia lista</h2>
 
-      {!selectedList && (
+      <button
+        className="create-btn"
+        onClick={() => {
+          setMode("custom");
+          setProducts([]);
+          setListName("");
+        }}
+      >
+        ➕ Create My Own List
+      </button>
+
+      {mode === "custom" && (
         <>
-          <h3>🧑‍🎓 Listas para Estudiantes</h3>
-          <div className="sl-cards">
-            {recommendedLists.student.map((list, i) => (
-              <div
-                key={i}
-                className="sl-card"
-                onClick={() => selectRecommendedList(list)}
-              >
-                {list.name}
-              </div>
-            ))}
-          </div>
+          <input
+            className="list-name-input"
+            placeholder="Nombre de la lista"
+            value={listName}
+            onChange={(e) => setListName(e.target.value)}
+          />
 
-          <h3>👨‍👩‍👧 Listas para Familias</h3>
-          <div className="sl-cards">
-            {recommendedLists.family.map((list, i) => (
-              <div
-                key={i}
-                className="sl-card"
-                onClick={() => selectRecommendedList(list)}
-              >
-                {list.name}
-              </div>
-            ))}
+          <div className="sl-search">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar productos..."
+            />
+            <button onClick={() => addProduct(query)}>Add</button>
+
+            {suggestions.length > 0 && (
+              <ul className="sl-suggestions">
+                {suggestions.map((s, i) => (
+                  <li key={i} onClick={() => addProduct(s)}>
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </>
       )}
@@ -206,17 +214,14 @@ const ShoppingListCompare = () => {
 
       {showCompare && (
         <div className="sl-results">
-          <h3>Resultados</h3>
-
-          {Object.keys(totals).map((market) => (
+          {Object.keys(totals).map((m) => (
             <div
-              key={market}
+              key={m}
               className={`sl-total ${
-                market === cheapestMarket ? "best" : ""
+                m === cheapestMarket ? "best" : ""
               }`}
             >
-              {market}: €{totals[market].toFixed(2)}
-              {market === cheapestMarket && " ❤️"}
+              {m}: €{totals[m].toFixed(2)}
             </div>
           ))}
 
