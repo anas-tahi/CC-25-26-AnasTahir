@@ -65,42 +65,46 @@ const Profile = () => {
 
   return (
     <div className="profile-container">
-      <div className="profile-header">
-        <img
-          src={avatarPreview || "/default-avatar.png"}
-          alt="avatar"
-          className="profile-avatar"
-        />
-        <label className="upload-btn">
-          Change Photo
-          <input type="file" hidden onChange={handleAvatarChange} />
-        </label>
-        <h2>Welcome back, {user?.name} 👋</h2>
+      {/* WELCOME SECTION */}
+      <div className="profile-welcome-section">
+        <div className="profile-avatar-box">
+          <img
+            src={avatarPreview || "/default-avatar.png"}
+            alt="avatar"
+            className="profile-avatar"
+          />
+          <label className="upload-btn">
+            Change Photo
+            <input type="file" hidden onChange={handleAvatarChange} />
+          </label>
+        </div>
+        <div className="profile-welcome-text">
+          <h1>Welcome back, {user?.name} 👋</h1>
+          <p>Glad to see you! Here's your shopping dashboard.</p>
+        </div>
       </div>
 
-      <h3>My Shopping Lists</h3>
+      {/* SHOPPING LISTS */}
+      <h2 className="profile-lists-title">My Shopping Lists</h2>
+      {lists.length === 0 && <p className="profile-empty">No lists saved yet.</p>}
 
-      {lists.length === 0 && <p>No lists saved yet.</p>}
-
-      <div className="profile-lists">
+      <div className="profile-lists-grid">
         {lists.map((list) => (
           <div key={list._id} className="profile-list-card">
-            <h4>{list.name}</h4>
+            <h3>{list.name}</h3>
             <p>Items: {list.items.length}</p>
             <p>Created: {new Date(list.createdAt).toLocaleDateString()}</p>
-
-            <div className="profile-actions">
+            <div className="profile-list-actions">
               <button
+                className="profile-list-btn"
                 onClick={() =>
-                  window.location.assign(
-                    `/shopping-list?load=${list._id}`
-                  )
+                  window.location.assign(`/shopping-list?load=${list._id}`)
                 }
               >
                 Edit
               </button>
               <button
-                className="danger"
+                className="profile-list-btn profile-list-delete"
                 onClick={() => deleteList(list._id)}
               >
                 Delete
@@ -110,8 +114,9 @@ const Profile = () => {
         ))}
       </div>
 
+      {/* LOGOUT BUTTON */}
       <button
-        className="logout-btn"
+        className="profile-logout"
         onClick={() => {
           localStorage.removeItem("token");
           window.location.href = "/login";
