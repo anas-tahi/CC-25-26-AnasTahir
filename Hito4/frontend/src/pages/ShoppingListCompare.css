@@ -1,186 +1,166 @@
 .sl-container {
   max-width: 1000px;
-  margin: 0 auto;
+  margin: 40px auto;
   padding: 20px;
-  font-family: 'Arial', sans-serif;
-  color: #333;
 }
 
 .sl-container h2 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  font-size: 26px;
 }
 
-/* ===== MODE BUTTONS ===== */
-.sl-modes {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 20px;
+/* ===== Sections ===== */
+.sl-section {
+  margin-bottom: 40px;
 }
 
-.sl-modes button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  background-color: #4caf50;
-  color: #fff;
+.sl-section h3 {
+  margin-bottom: 15px;
+  font-size: 20px;
+}
+
+/* ===== Recommended Lists ===== */
+.sl-recommended {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.sl-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid #e5e5e5;
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sl-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.sl-card h4 {
+  margin-bottom: 8px;
+  font-size: 17px;
+}
+
+.sl-card p {
   font-size: 14px;
-  transition: background-color 0.2s;
+  color: #666;
 }
 
-.sl-modes button:hover {
-  background-color: #388e3c;
-}
-
-/* ===== RECOMMENDED LISTS ===== */
-.sl-recommended-lists {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.sl-recommended-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #e8f5e9;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-weight: 500;
-}
-
-.sl-recommended-item button {
-  background-color: #4caf50;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.sl-recommended-item button:hover {
-  background-color: #388e3c;
-}
-
-/* ===== SEARCH ===== */
+/* ===== Create List ===== */
 .sl-search {
   display: flex;
-  justify-content: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .sl-search input {
-  padding: 8px 12px;
-  border-radius: 6px;
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
   border: 1px solid #ccc;
-  width: 250px;
 }
 
 .sl-search button {
-  padding: 8px 14px;
-  border-radius: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
   border: none;
-  background-color: #4caf50;
-  color: #fff;
+  background: #2563eb;
+  color: white;
   cursor: pointer;
-  font-size: 14px;
 }
 
 .sl-search button:hover {
-  background-color: #388e3c;
+  background: #1e4fd8;
 }
 
-/* ===== AUTOCOMPLETE SUGGESTIONS ===== */
+/* ===== Suggestions ===== */
 .sl-suggestions {
-  position: absolute;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  max-width: 270px;
-  margin-top: 4px;
   list-style: none;
-  padding: 0;
-  z-index: 100;
+  margin-top: 5px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .sl-suggestions li {
-  padding: 6px 10px;
+  padding: 8px 12px;
   cursor: pointer;
+  background: #fff;
 }
 
 .sl-suggestions li:hover {
-  background-color: #e8f5e9;
+  background: #f3f4f6;
 }
 
-/* ===== PRODUCTS LIST ===== */
+/* ===== Product List ===== */
 .sl-products {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 600px;
-  margin: 0 auto 20px auto;
+  margin-top: 20px;
 }
 
 .sl-item {
-  padding: 10px 12px;
-  background-color: #f1f8e9;
+  padding: 10px 14px;
+  background: #f9fafb;
   border-radius: 6px;
-  font-weight: 500;
+  margin-bottom: 8px;
+  border: 1px solid #e5e7eb;
 }
 
-/* ===== COMPARE & SAVE BUTTON ===== */
-.compare-btn,
-.save-btn {
-  margin-top: 10px;
-  padding: 8px 16px;
-  border-radius: 6px;
+/* ===== Compare ===== */
+.compare-btn {
+  margin-top: 15px;
+  padding: 10px 18px;
+  background: #16a34a;
+  color: white;
   border: none;
-  background-color: #4caf50;
-  color: #fff;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
-  width: fit-content;
 }
 
-.compare-btn:hover,
-.save-btn:hover {
-  background-color: #388e3c;
+.compare-btn:hover {
+  background: #15803d;
 }
 
-/* ===== RESULTS ===== */
+/* ===== Results ===== */
 .sl-results {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 16px;
-  background-color: #e8f5e9;
-  border-radius: 10px;
+  margin-top: 30px;
 }
 
 .sl-total {
-  padding: 6px 10px;
-  margin-bottom: 6px;
-  border-radius: 6px;
-  background-color: #c8e6c9;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  margin-bottom: 10px;
   font-weight: 500;
 }
 
 .sl-total.best {
-  background-color: #ffeb3b;
+  background: #dcfce7;
+  border: 1px solid #16a34a;
 }
 
-/* ===== MAP ===== */
+.save-btn {
+  margin-top: 15px;
+  padding: 10px 18px;
+  background: #ec4899;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background: #db2777;
+}
+
+/* ===== Map ===== */
 .sl-map {
-  height: 250px;
-  margin-top: 12px;
+  height: 300px;
+  margin-top: 20px;
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #ccc;
 }
