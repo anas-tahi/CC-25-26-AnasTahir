@@ -19,13 +19,12 @@ import { UserContext } from "../context/UserContext";
 import { FavoritesContext } from "../context/FavoritesContext";
 import { LanguageContext } from "../context/LanguageContext";
 import { ThemeContext } from "../context/ThemeContext";
-
 import "./navbar.css";
 
 const Navbar = () => {
   const { user } = useContext(UserContext);
   const { favoritesCount } = useContext(FavoritesContext);
-  const { language, toggleLanguage, t } = useContext(LanguageContext);
+  const { lang, toggleLanguage, t } = useContext(LanguageContext);
   const { theme, toggleTheme } = useContext(ThemeContext);
 
   const navigate = useNavigate();
@@ -51,18 +50,16 @@ const Navbar = () => {
 
   return (
     <nav className={`navbar ${theme}`}>
-      {/* LEFT */}
       <Link to="/home" className="logo">
         <img src={mainLogo} alt="logo" />
         <span>CompraSmart</span>
       </Link>
 
-      {/* CENTER */}
       <div className="nav-links">
-        <Link to="/home"><AiOutlineHome /> {t("Home", "Inicio")}</Link>
-        <Link to="/products"><AiOutlineShoppingCart /> {t("Products", "Productos")}</Link>
-        <Link to="/compare"><MdCompareArrows /> {t("Compare", "Comparar")}</Link>
-        <Link to="/shopping-list"><AiOutlineShoppingCart /> {t("Shopping List", "Lista")}</Link>
+        <Link to="/home"><AiOutlineHome /> {t("home")}</Link>
+        <Link to="/products"><AiOutlineShoppingCart /> Products</Link>
+        <Link to="/compare"><MdCompareArrows /> Compare</Link>
+        <Link to="/shopping-list"><AiOutlineShoppingCart /> List</Link>
 
         {token && (
           <Link to="/favorites" className="fav-link">
@@ -72,42 +69,32 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* RIGHT */}
       <div className="nav-right">
-        {/* LANGUAGE TOGGLE */}
         <button className="lang-btn" onClick={toggleLanguage}>
-          {language === "en" ? "EN" : "ES"}
+          {lang === "en" ? "ES" : "EN"}
         </button>
 
-        {/* THEME TOGGLE */}
         <button className="theme-btn" onClick={toggleTheme}>
           {theme === "dark" ? <FiSun /> : <FiMoon />}
         </button>
 
-        {/* PROFILE DROPDOWN */}
         {token && user && (
           <div className="profile-nav" ref={ref}>
-            <div
-              className="profile-trigger"
-              onClick={() => setOpen(!open)}
-            >
-              <img
-                src={user.avatar || "/default-avatar.png"}
-                alt="avatar"
-              />
+            <div className="profile-trigger" onClick={() => setOpen(!open)}>
+              <img src={user.avatar || "/default-avatar.png"} alt="avatar" />
               <span>{user.name}</span>
             </div>
 
             {open && (
               <div className="dropdown">
                 <button onClick={() => navigate("/profile")}>
-                  <FiUser /> {t("Profile", "Perfil")}
+                  <FiUser /> {t("profile")}
                 </button>
                 <button onClick={() => navigate("/settings")}>
-                  <FiSettings /> {t("Settings", "Ajustes")}
+                  <FiSettings /> {t("settings")}
                 </button>
                 <button onClick={logout}>
-                  <FiLogOut /> {t("Logout", "Salir")}
+                  <FiLogOut /> {t("logout")}
                 </button>
               </div>
             )}
