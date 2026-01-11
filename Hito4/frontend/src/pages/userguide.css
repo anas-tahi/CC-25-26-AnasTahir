@@ -1,10 +1,10 @@
 /* ==============================
-   USER GUIDE CONTAINER
+   CONTAINER
 ============================== */
 .guide-container {
   max-width: 900px;
   margin: 40px auto;
-  padding: 20px 25px;
+  padding: 25px 30px;
   font-family: 'Inter', sans-serif;
   color: #1f2937;
   background-color: #f9fafb;
@@ -74,7 +74,6 @@
   font-size: 15px;
 }
 
-/* CODE ELEMENTS */
 .guide-list code {
   background-color: #f3f4f6;
   color: #b91c1c;
@@ -103,7 +102,7 @@
 }
 
 /* ==============================
-   LINKS (if any)
+   LINKS
 ============================== */
 .guide-container a {
   color: #2563eb;
@@ -115,28 +114,73 @@
 }
 
 /* ==============================
+   DOWNLOAD BUTTON
+============================== */
+.download-btn {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin-top: 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+.download-btn:hover {
+  background-color: #1e40af;
+}
+
+/* ==============================
    RESPONSIVE
 ============================== */
 @media (max-width: 768px) {
   .guide-container {
     margin: 20px 15px;
-    padding: 15px 20px;
+    padding: 20px 20px;
   }
 
-  .guide-title {
-    font-size: 28px;
-  }
+  .guide-title { font-size: 28px; }
+  .guide-section-title { font-size: 20px; }
+  .guide-subtitle { font-size: 16px; }
+  .guide-text, .guide-list li { font-size: 14px; }
+}
+/* ==============================
+   FLOWCHART
+============================== */
+.flowchart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0 30px;
+}
 
-  .guide-section-title {
-    font-size: 20px;
-  }
+.flow-node {
+  background-color: #2563eb;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-align: center;
+  min-width: 200px;
+  margin: 5px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
 
-  .guide-subtitle {
-    font-size: 16px;
-  }
+.flow-connector {
+  font-size: 24px;
+  margin: 0;
+  color: #1e40af;
+}
 
-  .guide-text,
-  .guide-list li {
-    font-size: 14px;
-  }
+/* DARK MODE FLOW */
+.guide-container.dark .flow-node {
+  background-color: #1e3a8a;
+  color: #e0e0e0;
+}
+
+.guide-container.dark .flow-connector {
+  color: #93c5fd;
 }

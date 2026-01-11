@@ -77,9 +77,11 @@ const Home = () => {
       {/* HERO */}
       <div className="home-hero">
         <h1 className="home-title">
-          {t("welcomeUser", user?.name || t("shopper"))}
+          {t("welcomeUser", { name: user?.name || t("shopper") })}
         </h1>
-        <p className="home-subtitle">{t("homeSubtitle")}</p>
+        <p className="home-subtitle">
+          {t("homeSubtitle", { name: user?.name || t("shopper") })}
+        </p>
         <Link to="/compare" className="home-hero-btn">
           {t("startComparing")} →
         </Link>
