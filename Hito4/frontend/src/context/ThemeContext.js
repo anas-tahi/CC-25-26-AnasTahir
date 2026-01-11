@@ -14,7 +14,9 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem("theme", theme);
-    document.body.className = theme; // global CSS class
+
+    // 🔥 THIS IS THE IMPORTANT PART
+    document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
   return (

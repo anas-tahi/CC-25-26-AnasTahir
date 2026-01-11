@@ -3,7 +3,6 @@ import { createContext, useState, useEffect } from "react";
 
 export const LanguageContext = createContext();
 
-// All translation keys used in your app
 const translations = {
   en: {
     welcome: "Welcome",
@@ -54,31 +53,27 @@ const translations = {
 };
 
 export const LanguageProvider = ({ children }) => {
-  const [lang, setLang] = useState("es"); // default language
+  const [language, setLanguage] = useState("es");
 
-  // Load saved language on first render
   useEffect(() => {
-    const savedLang = localStorage.getItem("app-language");
-    if (savedLang) setLang(savedLang);
+    const saved = localStorage.getItem("app-language");
+    if (saved) setLanguage(saved);
   }, []);
 
-  // Save language whenever it changes
   useEffect(() => {
-    localStorage.setItem("app-language", lang);
-  }, [lang]);
+    localStorage.setItem("app-language", language);
+  }, [language]);
 
-  // Toggle between English and Spanish
   const toggleLanguage = () => {
-    setLang((prev) => (prev === "en" ? "es" : "en"));
+    setLanguage((prev) => (prev === "en" ? "es" : "en"));
   };
 
-  // Translation function
   const t = (key) => {
-    return translations[lang][key] || key;
+    return translations[language]?.[key] || key;
   };
 
   return (
-    <LanguageContext.Provider value={{ lang, toggleLanguage, t }}>
+    <LanguageContext.Provider value={{ language, toggleLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );

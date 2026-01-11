@@ -12,7 +12,7 @@ import { LanguageContext } from "../context/LanguageContext";
 import "./home.css";
 
 const Home = () => {
-  const { lang } = useContext(LanguageContext);
+  const { t } = useContext(LanguageContext);
 
   const [recommended, setRecommended] = useState([]);
   const [user, setUser] = useState(null);
@@ -31,7 +31,7 @@ const Home = () => {
         setUser(res.data);
         setComment((prev) => ({ ...prev, name: res.data.name }));
       } catch (err) {
-        console.error("❌ Failed to fetch user:", err);
+        console.error("Failed to fetch user:", err);
       }
     };
 
@@ -40,7 +40,7 @@ const Home = () => {
         const res = await productAPI.get("/recommendations");
         setRecommended(res.data);
       } catch (err) {
-        console.error("❌ Failed to fetch recommendations:", err);
+        console.error("Failed to fetch recommendations:", err);
       }
     };
 
@@ -49,123 +49,75 @@ const Home = () => {
   }, [token]);
 
   // ============================
-  // NAVIGATE TO COMPARE
-  // ============================
-  const handleCompare = (name) => {
-    navigate(`/compare?query=${encodeURIComponent(name)}`);
-  };
-
-  // ============================
-  // SUBMIT COMMENT (Optimistic, instant UX)
+  // SUBMIT COMMENT
   // ============================
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
 
-    const newComment = {
-      name: comment.name,
-      message: comment.message,
-      createdAt: new Date().toISOString(),
-    };
+    alert(t("commentSent"));
 
-    // ⭐ 1) INSTANT FEEDBACK – no waiting for backend
-    alert(lang === "es" ? "✅ Comentario enviado!" : "✅ Comment submitted!");
-
-    // ⭐ 2) CLEAR INPUT IMMEDIATELY
     setComment({ name: user?.name || "", message: "" });
 
-    // ⭐ 3) SEND TO BACKEND IN BACKGROUND
     try {
-      await commentAPI.post("/", newComment);
+      await commentAPI.post("/", {
+        name: comment.name,
+        message: comment.message,
+        createdAt: new Date().toISOString(),
+      });
     } catch (err) {
-      console.error("❌ Failed to submit comment:", err);
-      // No need to block UX; backend failure is logged
+      console.error("Failed to submit comment:", err);
     }
   };
 
-  // ============================
-  // TEXTS
-  // ============================
-  const texts = {
-    en: {
-      welcome: `Welcome back, ${user?.name || "Shopper"} 🛒`,
-      subtitle:
-        "Compare supermarket prices in Granada and across Spain. Save money, shop smart, and stay informed.",
-      searchProducts: "Search Products",
-      recommendedProducts: "Recommended Products",
-      userGuide: "User Guide",
-      leaveComment: "Leave a Comment",
-      sendFeedback: "🚀 Send Feedback",
-    },
-    es: {
-      welcome: `¡Bienvenido, ${user?.name || "Comprador"} 🛒`,
-      subtitle:
-        "Compara precios de supermercados en Granada y toda España. Ahorra dinero, compra inteligente y mantente informado.",
-      searchProducts: "Buscar Productos",
-      recommendedProducts: "Productos Recomendados",
-      userGuide: "Guía de Usuario",
-      leaveComment: "Deja un Comentario",
-      sendFeedback: "🚀 Enviar Comentario",
-    },
-  };
-
-  const t = texts[lang];
-
-  // ============================
-  // RENDER
-  // ============================
   return (
     <div className="home-page">
       {/* HERO */}
       <div className="home-hero">
-        <h1 className="home-title">{t.welcome}</h1>
-        <p className="home-subtitle">{t.subtitle}</p>
+        <h1 className="home-title">
+          {t("welcomeUser", user?.name || t("shopper"))}
+        </h1>
+
+        <p className="home-subtitle">
+          {t("homeSubtitle")}
+        </p>
 
         <Link to="/compare" className="home-hero-btn">
-          Start Comparing →
+          {t("startComparing")} →
         </Link>
       </div>
 
-      {/* LOGO MARQUEE */}
+      {/* LOGOS */}
       <div className="logo-wrapper">
         <div className="logo-track">
-          {[
-            mercadonaLogo,
-            carrefourLogo,
-            lidlLogo,
-            diaLogo,
-            mercadonaLogo,
-            carrefourLogo,
-            lidlLogo,
-            diaLogo,
-          ].map((logo, i) => (
+          {[mercadonaLogo, carrefourLogo, lidlLogo, diaLogo].map((logo, i) => (
             <div key={i} className="logo-container">
-              <img src={logo} alt={`Logo ${i}`} className="logo-img" />
+              <img src={logo} alt="logo" className="logo-img" />
             </div>
           ))}
         </div>
       </div>
 
-      {/* FEATURE GRID */}
+      {/* FEATURES */}
       <div className="home-grid">
         <Link to="/compare" className="home-card">
-          <h3>🔍 {t.searchProducts}</h3>
-          <p>Find any item and instantly compare prices across supermarkets.</p>
+          <h3>🔍 {t("searchProducts")}</h3>
+          <p>{t("searchProductsDesc")}</p>
         </Link>
 
         <Link to="/products" className="home-card">
-          <h3>⭐ {t.recommendedProducts}</h3>
-          <p>See top picks and trending deals curated just for you.</p>
+          <h3>⭐ {t("recommendedProducts")}</h3>
+          <p>{t("recommendedProductsDesc")}</p>
         </Link>
 
         <Link to="/user-guide" className="home-card">
-          <h3>📘 {t.userGuide}</h3>
-          <p>Learn how to use CompraSmart like a pro.</p>
+          <h3>📘 {t("userGuide")}</h3>
+          <p>{t("userGuideDesc")}</p>
         </Link>
       </div>
 
-      {/* COMMENT SECTION */}
+      {/* COMMENTS */}
       <div className="comment-section">
-        <h3>💬 {t.leaveComment}</h3>
+        <h3>💬 {t("leaveComment")}</h3>
 
         <form onSubmit={handleCommentSubmit} className="comment-form">
           <input
@@ -174,7 +126,7 @@ const Home = () => {
             onChange={(e) =>
               setComment({ ...comment, name: e.target.value })
             }
-            placeholder="Your name"
+            placeholder={t("yourName")}
             required
             className="comment-input"
           />
@@ -184,14 +136,14 @@ const Home = () => {
             onChange={(e) =>
               setComment({ ...comment, message: e.target.value })
             }
-            placeholder="Your comment"
+            placeholder={t("yourComment")}
             required
             rows={4}
             className="comment-textarea"
           />
 
           <button type="submit" className="comment-submit">
-            {t.sendFeedback}
+            {t("sendFeedback")}
           </button>
         </form>
       </div>
