@@ -2,10 +2,15 @@ import { useEffect, useState, useContext } from "react";
 import Swal from "sweetalert2";
 import { authAPI } from "../services/api";
 import { UserContext } from "../context/UserContext";
+import { LanguageContext } from "../context/LanguageContext";
+import { ThemeContext } from "../context/ThemeContext";
 import "./profile.css";
 
 const Profile = () => {
   const { user, setUser } = useContext(UserContext);
+  const { language, t } = useContext(LanguageContext);
+  const { theme } = useContext(ThemeContext);
+
   const token = localStorage.getItem("token");
 
   const [lists, setLists] = useState([]);
@@ -18,7 +23,7 @@ const Profile = () => {
       setLists(res.data);
     } catch (err) {
       console.error(err);
-      Swal.fire("Error", "Error loading your shopping lists", "error");
+      Swal.fire(t("Error", "Error"), t("Error loading your shopping lists", "Error al cargar tus listas"), "error");
     }
   };
 
@@ -32,7 +37,7 @@ const Profile = () => {
       await authAPI.delete(`/../shopping-lists/${id}`);
       loadLists();
     } catch {
-      Swal.fire("Error", "Error deleting list", "error");
+      Swal.fire(t("Error", "Error"), t("Error deleting list", "Error al eliminar la lista"), "error");
     }
   };
 
@@ -42,32 +47,27 @@ const Profile = () => {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      Swal.fire("Error", "Please upload an image file", "error");
+      Swal.fire(t("Error", "Error"), t("Please upload an image file", "Por favor sube una imagen"), "error");
       return;
     }
 
     const reader = new FileReader();
     reader.onloadend = async () => {
       try {
-        const res = await authAPI.put("/avatar", {
-          avatar: reader.result,
-        });
-
+        const res = await authAPI.put("/avatar", { avatar: reader.result });
         setUser(res.data);
         setAvatarPreview(res.data.avatar);
-
-        Swal.fire("Success", "Profile photo updated!", "success");
+        Swal.fire(t("Success", "Éxito"), t("Profile photo updated!", "Foto de perfil actualizada"), "success");
       } catch (err) {
         console.error("Avatar upload error:", err);
-        Swal.fire("Error", "Failed to update avatar", "error");
+        Swal.fire(t("Error", "Error"), t("Failed to update avatar", "Error al actualizar avatar"), "error");
       }
     };
-
     reader.readAsDataURL(file);
   };
 
   return (
-    <div className="profile-container">
+    <div className={`profile-container ${theme}`}>
       {/* ===== WELCOME ===== */}
       <div className="profile-welcome-section">
         <div className="profile-avatar-box">
@@ -77,45 +77,43 @@ const Profile = () => {
             className="profile-avatar"
           />
           <label className="upload-btn">
-            Change Photo
+            {t("Change Photo", "Cambiar foto")}
             <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
           </label>
         </div>
 
         <div className="profile-welcome-text">
-          <h1>Welcome back, {user?.name} 👋</h1>
-          <p>Manage your shopping lists and profile settings</p>
+          <h1>{t(`Welcome back, ${user?.name} 👋`, `¡Bienvenido de nuevo, ${user?.name} 👋`)}</h1>
+          <p>{t("Manage your shopping lists and profile settings", "Gestiona tus listas y ajustes")}</p>
         </div>
       </div>
 
-      {/* ===== LISTS ===== */}
-      <h2 className="profile-lists-title">My Shopping Lists</h2>
+      {/* ===== SHOPPING LISTS ===== */}
+      <h2 className="profile-lists-title">{t("My Shopping Lists", "Mis listas")}</h2>
 
       {lists.length === 0 && (
-        <p className="profile-empty">No lists saved yet.</p>
+        <p className="profile-empty">{t("No lists saved yet.", "Aún no hay listas guardadas.")}</p>
       )}
 
       <div className="profile-lists-grid">
         {lists.map((list) => (
           <div key={list._id} className="profile-list-card">
             <h3>{list.name}</h3>
-            <p>Items: {list.items.length}</p>
-            <p>Created: {new Date(list.createdAt).toLocaleDateString()}</p>
+            <p>{t("Items", "Artículos")}: {list.items.length}</p>
+            <p>{t("Created", "Creado")}: {new Date(list.createdAt).toLocaleDateString()}</p>
 
             <div className="profile-list-actions">
               <button
                 className="profile-list-btn"
-                onClick={() =>
-                  window.location.assign(`/shopping-list?load=${list._id}`)
-                }
+                onClick={() => window.location.assign(`/shopping-list?load=${list._id}`)}
               >
-                Edit
+                {t("Edit", "Editar")}
               </button>
               <button
                 className="profile-list-btn profile-list-delete"
                 onClick={() => deleteList(list._id)}
               >
-                Delete
+                {t("Delete", "Eliminar")}
               </button>
             </div>
           </div>
@@ -130,7 +128,7 @@ const Profile = () => {
           window.location.href = "/login";
         }}
       >
-        Logout
+        {t("Logout", "Salir")}
       </button>
     </div>
   );
