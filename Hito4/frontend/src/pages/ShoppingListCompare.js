@@ -163,16 +163,20 @@ const ShoppingListCompare = () => {
 
       {/* SEARCH PRODUCTS */}
       {(mode === "custom" || products.length > 0) && (
-        <div className="sl-search">
+        <div className="search-container">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("searchProduct")}
+            className="search-input"
+            onKeyDown={(e) => e.key === "Enter" && addProduct(query)}
           />
-          <button onClick={() => addProduct(query)}>{t("add")}</button>
+          <button className="search-btn" onClick={() => addProduct(query)}>
+            {t("add")}
+          </button>
 
           {suggestions.length > 0 && (
-            <ul className="sl-suggestions">
+            <ul className="suggestions-list">
               {suggestions.map((s, i) => (
                 <li key={i} onClick={() => addProduct(s)}>
                   {s}

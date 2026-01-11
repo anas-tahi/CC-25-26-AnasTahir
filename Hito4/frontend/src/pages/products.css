@@ -2,10 +2,11 @@
    CONTAINER
 ========================= */
 .products-container {
-  padding: 40px 20px;
+  padding: 50px 20px;
   max-width: 1200px;
   margin: auto;
-  animation: fadeIn 0.4s ease;
+  animation: fadeIn 0.45s ease;
+  font-family: "Inter", sans-serif;
 }
 
 @keyframes fadeIn {
@@ -17,11 +18,12 @@
    HEADING
 ========================= */
 .products-heading {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 25px;
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 35px;
   text-align: center;
   color: var(--text-primary);
+  letter-spacing: -0.5px;
 }
 
 /* =========================
@@ -30,29 +32,37 @@
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 25px;
+  gap: 28px;
 }
 
 /* =========================
-   PRODUCT CARD
+   PRODUCT CARD - GLASS EFFECT
 ========================= */
 .product-card {
-  background: var(--card-bg);
-  border-radius: 14px;
-  padding: 20px;
-  box-shadow: var(--shadow-md);
+  background: rgba(255, 255, 255, 0.85); /* translucent background */
+  backdrop-filter: blur(12px) saturate(180%); /* glass effect */
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  padding: 25px 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   position: relative;
   overflow: hidden;
-  transform: translateY(10px);
+  transform: translateY(12px);
   opacity: 0;
   animation: fadeInUp 0.6s ease forwards;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
 .product-card:hover {
-  transform: translateY(-4px);
-  transition: 0.3s ease;
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.95);
 }
 
+/* =========================
+   FADE IN ANIMATION
+========================= */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -63,15 +73,17 @@
 ========================= */
 .product-badge {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 14px;
+  right: 14px;
   background: linear-gradient(45deg, #ff6b6b, #ff8e53);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
   animation: pulseBadge 1.8s infinite ease-in-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 @keyframes pulseBadge {
@@ -83,9 +95,9 @@
    TITLE
 ========================= */
 .product-title {
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin-bottom: 15px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  margin-bottom: 18px;
   color: var(--text-primary);
 }
 
@@ -102,12 +114,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-light);
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  transition: background 0.25s ease, transform 0.2s ease;
+  border-radius: 10px;
 }
 
 .product-item:last-child {
   border-bottom: none;
+}
+
+.product-item:hover {
+  background: rgba(0, 123, 255, 0.08);
+  transform: translateY(-1px);
 }
 
 /* =========================
@@ -116,13 +135,14 @@
 .product-left {
   display: flex;
   align-items: center;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--text-secondary);
 }
 
 .product-icon {
-  margin-right: 6px;
+  margin-right: 8px;
   color: var(--accent);
+  font-size: 1.1rem;
 }
 
 /* =========================
@@ -131,34 +151,49 @@
 .product-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .price-badge {
-  background: var(--accent-light);
-  color: var(--accent-dark);
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  background: linear-gradient(135deg, #e0f7ff, #ccefff);
+  color: #007bff;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.price-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 123, 255, 0.25);
 }
 
 .price-icon {
-  margin-right: 5px;
+  margin-right: 6px;
+  font-size: 1.1rem;
 }
 
+/* =========================
+   WISHLIST BUTTON
+========================= */
 .wishlist-btn {
-  background: transparent;
+  background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+  color: white;
+  border-radius: 12px;
   border: none;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   cursor: pointer;
-  transition: 0.2s ease;
+  padding: 4px 10px;
+  font-weight: 700;
+  transition: transform 0.2s ease, box-shadow 0.25s ease;
 }
 
 .wishlist-btn:hover {
-  transform: scale(1.2);
+  transform: scale(1.15);
+  box-shadow: 0 6px 18px rgba(255, 107, 107, 0.35);
 }
 
 /* =========================
@@ -167,8 +202,8 @@
 :root {
   --text-primary: #222;
   --text-secondary: #555;
-  --card-bg: #ffffff;
-  --border-light: #e5e5e5;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --border-light: rgba(0,0,0,0.08);
   --accent: #ff6b6b;
   --accent-light: #ffe3e3;
   --accent-dark: #b83232;
@@ -178,8 +213,8 @@
 [data-theme="dark"] {
   --text-primary: #f1f1f1;
   --text-secondary: #cfcfcf;
-  --card-bg: #1e1e1e;
-  --border-light: #333;
+  --card-bg: rgba(30,30,30,0.85);
+  --border-light: rgba(255,255,255,0.1);
   --accent: #ff8e53;
   --accent-light: #3a2b2b;
   --accent-dark: #ffb38a;
