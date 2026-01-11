@@ -1,0 +1,142 @@
+/* ==============================
+   USER GUIDE CONTAINER
+============================== */
+.guide-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px 25px;
+  font-family: 'Inter', sans-serif;
+  color: #1f2937;
+  background-color: #f9fafb;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  transition: background 0.3s, color 0.3s;
+}
+
+/* DARK MODE */
+.guide-container.dark {
+  background-color: #1e1e2f;
+  color: #e0e0e0;
+}
+
+/* ==============================
+   TITLES
+============================== */
+.guide-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 25px;
+  text-align: center;
+  color: #2563eb;
+}
+
+.guide-section-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  color: #1e40af;
+}
+
+.guide-subtitle {
+  font-size: 18px;
+  font-weight: 500;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  color: #2563eb;
+}
+
+/* ==============================
+   TEXT
+============================== */
+.guide-text {
+  font-size: 16px;
+  line-height: 1.65;
+  margin-bottom: 16px;
+}
+
+.guide-text strong {
+  color: #1e3a8a;
+  font-weight: 600;
+}
+
+/* ==============================
+   LISTS
+============================== */
+.guide-list {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin-bottom: 16px;
+}
+
+.guide-list li {
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+/* CODE ELEMENTS */
+.guide-list code {
+  background-color: #f3f4f6;
+  color: #b91c1c;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 14px;
+}
+
+.guide-container.dark .guide-list code {
+  background-color: #2c2c3a;
+  color: #f87171;
+}
+
+/* ==============================
+   DIVIDERS
+============================== */
+.guide-divider {
+  border: none;
+  border-top: 2px solid #e5e7eb;
+  margin: 25px 0;
+}
+
+.guide-container.dark .guide-divider {
+  border-top-color: #3b3b4f;
+}
+
+/* ==============================
+   LINKS (if any)
+============================== */
+.guide-container a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.guide-container a:hover {
+  color: #1d4ed8;
+}
+
+/* ==============================
+   RESPONSIVE
+============================== */
+@media (max-width: 768px) {
+  .guide-container {
+    margin: 20px 15px;
+    padding: 15px 20px;
+  }
+
+  .guide-title {
+    font-size: 28px;
+  }
+
+  .guide-section-title {
+    font-size: 20px;
+  }
+
+  .guide-subtitle {
+    font-size: 16px;
+  }
+
+  .guide-text,
+  .guide-list li {
+    font-size: 14px;
+  }
+}

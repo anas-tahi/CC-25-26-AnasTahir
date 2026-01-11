@@ -1,34 +1,45 @@
-import { useState, useEffect, useContext } from 'react';
-import { productAPI } from '../services/api';
-import { FiTag } from 'react-icons/fi';
-import { FaStore } from 'react-icons/fa';
-import axios from 'axios';
-import Swal from 'sweetalert2';
-import { FavoritesContext } from '../context/FavoritesContext';
-import { ThemeContext } from '../context/ThemeContext';
+// src/pages/Products.jsx
+import { useState, useEffect, useContext } from "react";
+import { productAPI } from "../services/api";
+import { FiTag } from "react-icons/fi";
+import { FaStore } from "react-icons/fa";
+import axios from "axios";
+import Swal from "sweetalert2";
+
+import { FavoritesContext } from "../context/FavoritesContext";
+import { ThemeContext } from "../context/ThemeContext";
+import { LanguageContext } from "../context/LanguageContext";
+
 import "./products.css";
 
 const Products = () => {
   const [recommended, setRecommended] = useState([]);
   const { fetchFavoritesCount } = useContext(FavoritesContext);
   const { theme } = useContext(ThemeContext);
+  const { t } = useContext(LanguageContext);
 
+  // =========================
+  // FETCH RECOMMENDED PRODUCTS
+  // =========================
   useEffect(() => {
     const fetchRecommended = async () => {
       try {
-        // CORRECT: backend route is /products/recommended
-        const res = await productAPI.get('/recommended');
+        const res = await productAPI.get("/recommended");
         const grouped = groupByName(res.data);
         const limited = Object.entries(grouped).slice(0, 6);
         setRecommended(limited);
       } catch (err) {
-        console.error('Failed to load recommended products:', err);
+        console.error("❌ Failed to load recommended products:", err);
+        Swal.fire(t("error", "Error"), t("failedLoadingProducts", "Failed to load products."), "error");
       }
     };
 
     fetchRecommended();
-  }, []);
+  }, [t]);
 
+  // =========================
+  // HELPERS
+  // =========================
   const groupByName = (products) => {
     const map = {};
     products.forEach((p) => {
@@ -44,6 +55,9 @@ const Products = () => {
     return items.reduce((min, item) => (item.price < min.price ? item : min)).id;
   };
 
+  // =========================
+  // ADD TO WISHLIST
+  // =========================
   const handleAddToWishlist = async (productId) => {
     const token = localStorage.getItem("token");
 
@@ -51,14 +65,12 @@ const Products = () => {
       await axios.post(
         "https://product-service-3lsh.onrender.com/wishlist",
         { productId },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       Swal.fire({
-        title: '❤️ Added to wishlist!',
-        icon: 'success',
+        title: t("addedToWishlist", "❤️ Added to wishlist!"),
+        icon: "success",
         timer: 1500,
         showConfirmButton: false,
       });
@@ -69,23 +81,26 @@ const Products = () => {
 
       if (err.response && err.response.data?.message) {
         Swal.fire({
-          title: '⚠️ Already added',
+          title: t("alreadyAdded", "⚠️ Already added"),
           text: err.response.data.message,
-          icon: 'info',
+          icon: "info",
         });
       } else {
         Swal.fire({
-          title: '❌ Error',
-          text: 'Failed to add to wishlist.',
-          icon: 'error',
+          title: t("error", "❌ Error"),
+          text: t("failedAddWishlist", "Failed to add to wishlist."),
+          icon: "error",
         });
       }
     }
   };
 
+  // =========================
+  // RENDER
+  // =========================
   return (
-    <div className="products-container">
-      <h2 className="products-heading">⭐ Recommended Products</h2>
+    <div className={`products-container ${theme}`}>
+      <h2 className="products-heading">⭐ {t("recommendedProducts", "Recommended Products")}</h2>
 
       <div className="products-grid">
         {recommended.map(([name, items], index) => {
@@ -93,7 +108,7 @@ const Products = () => {
 
           return (
             <div key={index} className="product-card">
-              <div className="product-badge">🔥 Recommended</div>
+              <div className="product-badge">{t("recommendedBadge", "🔥 Recommended")}</div>
 
               <h3 className="product-title">{name}</h3>
 
@@ -113,6 +128,7 @@ const Products = () => {
                         <button
                           onClick={() => handleAddToWishlist(item.id)}
                           className="wishlist-btn"
+                          title={t("addToWishlist", "Add to wishlist")}
                         >
                           ❤️
                         </button>

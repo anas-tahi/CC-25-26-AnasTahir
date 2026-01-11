@@ -14,7 +14,7 @@ const Profile = () => {
   const [lists, setLists] = useState([]);
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || "");
 
-  // LOAD LISTS
+  // Load shopping lists
   const loadLists = async () => {
     try {
       const res = await authAPI.get("/../shopping-lists");
@@ -28,7 +28,7 @@ const Profile = () => {
     loadLists();
   }, []);
 
-  // DELETE LIST
+  // Delete a shopping list
   const deleteList = async (id) => {
     try {
       await authAPI.delete(`/../shopping-lists/${id}`);
@@ -38,7 +38,7 @@ const Profile = () => {
     }
   };
 
-  // AVATAR UPLOAD
+  // Upload avatar
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -64,6 +64,7 @@ const Profile = () => {
 
   return (
     <div className={`profile-container ${theme}`}>
+      {/* ===== WELCOME SECTION ===== */}
       <div className="profile-welcome-section">
         <div className="profile-avatar-box">
           <img
@@ -73,28 +74,38 @@ const Profile = () => {
           />
           <label className="upload-btn">
             {t("changePhoto")}
-            <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              onChange={handleAvatarChange}
+            />
           </label>
         </div>
 
         <div className="profile-welcome-text">
-          <h1>{t("welcome")}, {user?.name} 👋</h1>
+          <h1>
+            {t("welcome")}, {user?.name} 👋
+          </h1>
           <p>{t("manageLists")}</p>
         </div>
       </div>
 
+      {/* ===== SHOPPING LISTS ===== */}
       <h2 className="profile-lists-title">{t("shoppingLists")}</h2>
 
-      {lists.length === 0 && (
-        <p className="profile-empty">{t("noLists")}</p>
-      )}
+      {lists.length === 0 && <p className="profile-empty">{t("noLists")}</p>}
 
       <div className="profile-lists-grid">
         {lists.map((list) => (
           <div key={list._id} className="profile-list-card">
             <h3>{list.name}</h3>
-            <p>{t("items")}: {list.items.length}</p>
-            <p>{t("created")}: {new Date(list.createdAt).toLocaleDateString()}</p>
+            <p>
+              {t("items")}: {list.items.length}
+            </p>
+            <p>
+              {t("created")}: {new Date(list.createdAt).toLocaleDateString()}
+            </p>
 
             <div className="profile-list-actions">
               <button
@@ -116,6 +127,7 @@ const Profile = () => {
         ))}
       </div>
 
+      {/* ===== LOGOUT ===== */}
       <button
         className="profile-logout"
         onClick={() => {

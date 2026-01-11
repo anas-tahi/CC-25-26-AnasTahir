@@ -1,33 +1,29 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { productAPI } from "../services/api";
+import { LanguageContext } from "../context/LanguageContext";
+import { ThemeContext } from "../context/ThemeContext";
+
 import "./ShoppingListCompare.css";
 
 const RECOMMENDED = {
   student: [
-    {
-      name: "Lista Básica Estudiante",
-      items: ["Leche", "Pan", "Huevos", "Arroz", "Pasta"],
-    },
-    {
-      name: "Snacks para Estudiantes",
-      items: ["Patatas", "Galletas", "Chocolate"],
-    },
+    { name: "Lista Básica Estudiante", items: ["Leche", "Pan", "Huevos", "Arroz", "Pasta"] },
+    { name: "Snacks para Estudiantes", items: ["Patatas", "Galletas", "Chocolate"] },
   ],
   family: [
-    {
-      name: "Lista Familiar Semanal",
-      items: ["Pollo", "Aceite", "Verduras", "Azúcar", "Harina"],
-    },
+    { name: "Lista Familiar Semanal", items: ["Pollo", "Aceite", "Verduras", "Azúcar", "Harina"] },
   ],
 };
 
 const ShoppingListCompare = () => {
-  const token = localStorage.getItem("token");
+  const { t } = useContext(LanguageContext);
+  const { theme } = useContext(ThemeContext);
 
+  const token = localStorage.getItem("token");
   const [mode, setMode] = useState("");
   const [listName, setListName] = useState("");
   const [products, setProducts] = useState([]);
@@ -42,21 +38,14 @@ const ShoppingListCompare = () => {
   // ================= LOCATION =================
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
-      (pos) =>
-        setUserLocation({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        }),
+      (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => setUserLocation(null)
     );
   }, []);
 
   // ================= AUTOCOMPLETE =================
   useEffect(() => {
-    if (!query.trim()) {
-      setSuggestions([]);
-      return;
-    }
+    if (!query.trim()) return setSuggestions([]);
     const load = async () => {
       try {
         const res = await productAPI.get(`/names/${query}`);
@@ -101,25 +90,16 @@ const ShoppingListCompare = () => {
   // ================= COMPARE TOTALS =================
   const totals = {};
   products.forEach((p) =>
-    p.supermarkets.forEach((s) => {
-      totals[s.supermarket] = (totals[s.supermarket] || 0) + s.price;
-    })
+    p.supermarkets.forEach((s) => (totals[s.supermarket] = (totals[s.supermarket] || 0) + s.price))
   );
-
   const cheapestMarket =
     Object.keys(totals).length > 0
-      ? Object.keys(totals).reduce((a, b) =>
-          totals[a] < totals[b] ? a : b
-        )
+      ? Object.keys(totals).reduce((a, b) => (totals[a] < totals[b] ? a : b))
       : null;
 
   // ================= SAVE LIST =================
   const saveList = async () => {
-    if (!listName.trim()) {
-      Swal.fire("Error", "Pon un nombre a la lista", "warning");
-      return;
-    }
-
+    if (!listName.trim()) return Swal.fire("Error", "Pon un nombre a la lista", "warning");
     const items = products.map((p) => p.product);
 
     try {
@@ -128,7 +108,6 @@ const ShoppingListCompare = () => {
         { name: listName, items },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       Swal.fire("Guardado", "Lista añadida a tu perfil ❤️", "success");
     } catch {
       Swal.fire("Error", "No se pudo guardar", "error");
@@ -141,65 +120,56 @@ const ShoppingListCompare = () => {
 
     mapInstance.current?.remove();
 
-    mapInstance.current = L.map(mapRef.current).setView(
-      [userLocation.lat, userLocation.lng],
-      13
-    );
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(
-      mapInstance.current
-    );
-
-    L.marker([userLocation.lat, userLocation.lng])
-      .addTo(mapInstance.current)
-      .bindPopup("Tú estás aquí");
+    mapInstance.current = L.map(mapRef.current).setView([userLocation.lat, userLocation.lng], 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(mapInstance.current);
+    L.marker([userLocation.lat, userLocation.lng]).addTo(mapInstance.current).bindPopup("Tú estás aquí");
 
     return () => mapInstance.current?.remove();
   }, [showCompare, userLocation]);
 
   return (
-    <div className="sl-container">
-      <h2>🛒 Lista de Compra</h2>
+    <div className={`sl-container ${theme}`}>
+      <h2>🛒 {t("shoppingLists")}</h2>
 
       {/* MODES */}
       <div className="sl-modes">
-        <button onClick={() => setMode("student")}>Estudiantes</button>
-        <button onClick={() => setMode("family")}>Familias</button>
-        <button onClick={() => setMode("custom")}>Crear Mi Propia Lista</button>
+        <button onClick={() => setMode("student")}>{t("students")}</button>
+        <button onClick={() => setMode("family")}>{t("families")}</button>
+        <button onClick={() => setMode("custom")}>{t("customList")}</button>
       </div>
 
-      {/* RECOMMENDED */}
+      {/* RECOMMENDED LISTS */}
       {(mode === "student" || mode === "family") && (
         <div className="sl-recommended">
           {RECOMMENDED[mode].map((l, i) => (
             <div key={i} className="sl-card">
               <h4>{l.name}</h4>
               <p>{l.items.join(", ")}</p>
-              <button onClick={() => loadRecommended(l)}>Usar</button>
+              <button onClick={() => loadRecommended(l)}>{t("useList")}</button>
             </div>
           ))}
         </div>
       )}
 
-      {/* CUSTOM LIST */}
+      {/* CUSTOM LIST INPUT */}
       {mode === "custom" && (
         <input
           className="list-name-input"
-          placeholder="Nombre de la lista"
+          placeholder={t("listName")}
           value={listName}
           onChange={(e) => setListName(e.target.value)}
         />
       )}
 
-      {/* SEARCH */}
+      {/* SEARCH PRODUCTS */}
       {(mode === "custom" || products.length > 0) && (
         <div className="sl-search">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar producto..."
+            placeholder={t("searchProduct")}
           />
-          <button onClick={() => addProduct(query)}>Añadir</button>
+          <button onClick={() => addProduct(query)}>{t("add")}</button>
 
           {suggestions.length > 0 && (
             <ul className="sl-suggestions">
@@ -217,26 +187,27 @@ const ShoppingListCompare = () => {
       {products.length > 0 && (
         <div className="sl-products">
           {products.map((p, i) => (
-            <div key={i}>{p.product}</div>
+            <div key={i} className="sl-item">
+              {p.product}
+            </div>
           ))}
-
           <button className="compare-btn" onClick={() => setShowCompare(true)}>
-            Comparar
+            {t("compare")}
           </button>
         </div>
       )}
 
-      {/* RESULTS */}
+      {/* RESULTS + MAP */}
       {showCompare && (
         <div className="sl-results">
           {Object.keys(totals).map((m) => (
-            <div key={m} className={m === cheapestMarket ? "best" : ""}>
+            <div key={m} className={`sl-total ${m === cheapestMarket ? "best" : ""}`}>
               {m}: €{totals[m].toFixed(2)}
             </div>
           ))}
 
           <button className="save-btn" onClick={saveList}>
-            Guardar en Perfil
+            {t("saveProfile")}
           </button>
 
           <div ref={mapRef} className="sl-map" />

@@ -1,6 +1,6 @@
-/* ===========================
-   GLOBAL CONTAINER
-=========================== */
+/* =========================
+   CONTAINER
+========================= */
 .products-container {
   padding: 40px 20px;
   max-width: 1200px;
@@ -13,9 +13,9 @@
   to { opacity: 1; }
 }
 
-/* ===========================
+/* =========================
    HEADING
-=========================== */
+========================= */
 .products-heading {
   font-size: 2rem;
   font-weight: 700;
@@ -24,18 +24,18 @@
   color: var(--text-primary);
 }
 
-/* ===========================
+/* =========================
    GRID LAYOUT
-=========================== */
+========================= */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 25px;
 }
 
-/* ===========================
+/* =========================
    PRODUCT CARD
-=========================== */
+========================= */
 .product-card {
   background: var(--card-bg);
   border-radius: 14px;
@@ -53,9 +53,14 @@
   transition: 0.3s ease;
 }
 
-/* ===========================
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================
    BADGE
-=========================== */
+========================= */
 .product-badge {
   position: absolute;
   top: 12px;
@@ -69,9 +74,14 @@
   animation: pulseBadge 1.8s infinite ease-in-out;
 }
 
-/* ===========================
+@keyframes pulseBadge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* =========================
    TITLE
-=========================== */
+========================= */
 .product-title {
   font-size: 1.3rem;
   font-weight: 700;
@@ -79,9 +89,9 @@
   color: var(--text-primary);
 }
 
-/* ===========================
+/* =========================
    PRODUCT LIST
-=========================== */
+========================= */
 .product-list {
   list-style: none;
   padding: 0;
@@ -100,9 +110,9 @@
   border-bottom: none;
 }
 
-/* ===========================
+/* =========================
    LEFT SIDE (STORE)
-=========================== */
+========================= */
 .product-left {
   display: flex;
   align-items: center;
@@ -115,9 +125,9 @@
   color: var(--accent);
 }
 
-/* ===========================
+/* =========================
    RIGHT SIDE (PRICE + WISHLIST)
-=========================== */
+========================= */
 .product-right {
   display: flex;
   align-items: center;
@@ -139,9 +149,6 @@
   margin-right: 5px;
 }
 
-/* ===========================
-   WISHLIST BUTTON
-=========================== */
 .wishlist-btn {
   background: transparent;
   border: none;
@@ -154,9 +161,9 @@
   transform: scale(1.2);
 }
 
-/* ===========================
-   DARK MODE SUPPORT
-=========================== */
+/* =========================
+   DARK MODE VARIABLES
+========================= */
 :root {
   --text-primary: #222;
   --text-secondary: #555;
