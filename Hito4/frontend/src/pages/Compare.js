@@ -1,3 +1,4 @@
+// src/pages/Compare.jsx
 import { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
 import { productAPI } from "../services/api";
@@ -9,6 +10,9 @@ import { FavoritesContext } from "../context/FavoritesContext";
 import "./compare.css";
 
 const Compare = () => {
+  // =========================
+  // STATES
+  // =========================
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [highlightIndex, setHighlightIndex] = useState(-1);
@@ -27,14 +31,15 @@ const Compare = () => {
 
   const token = localStorage.getItem("token");
   const mapRef = useRef(null);
+  const mapInstance = useRef(null);
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
   const modalRef = useRef(null);
   const { fetchFavoritesCount } = useContext(FavoritesContext);
 
-  // ============================
+  // =========================
   // GET USER LOCATION ON LOAD
-  // ============================
+  // =========================
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -51,9 +56,9 @@ const Compare = () => {
     }
   }, []);
 
-  // ============================
+  // =========================
   // MANUAL ADDRESS SUBMIT
-  // ============================
+  // =========================
   const handleManualAddressSubmit = async () => {
     setAddressError("");
     if (!manualAddress.trim()) {
@@ -82,44 +87,9 @@ const Compare = () => {
     }
   };
 
-  // ============================
-  // ADD TO WISHLIST
-  // ============================
-  const handleAddToWishlist = async (productId) => {
-    try {
-      await axios.post(
-        "https://product-service-3lsh.onrender.com/wishlist",
-        { productId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      Swal.fire({
-        title: "❤️ Added to wishlist!",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-      fetchFavoritesCount();
-    } catch (err) {
-      console.error("❌ Wishlist error:", err.response?.data || err);
-      if (err.response?.data?.message) {
-        Swal.fire({
-          title: "⚠️ Already added",
-          text: err.response.data.message,
-          icon: "info",
-        });
-      } else {
-        Swal.fire({
-          title: "❌ Error",
-          text: "Failed to add to wishlist.",
-          icon: "error",
-        });
-      }
-    }
-  };
-
-  // ============================
+  // =========================
   // FETCH SUGGESTIONS
-  // ============================
+  // =========================
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (!query.trim()) {
@@ -141,9 +111,9 @@ const Compare = () => {
     fetchSuggestions();
   }, [query]);
 
-  // ============================
+  // =========================
   // SEARCH HANDLER
-  // ============================
+  // =========================
   const handleSearch = async () => {
     if (!query.trim()) return;
 
@@ -181,9 +151,9 @@ const Compare = () => {
     }
   };
 
-  // ============================
+  // =========================
   // SELECT PRODUCT
-  // ============================
+  // =========================
   const handleSelectProduct = async (name) => {
     setMapLoading(true);
     setGoogleMapsLink("");
@@ -207,9 +177,44 @@ const Compare = () => {
     }
   };
 
-  // ============================
+  // =========================
+  // ADD TO WISHLIST
+  // =========================
+  const handleAddToWishlist = async (productId) => {
+    try {
+      await axios.post(
+        "https://product-service-3lsh.onrender.com/wishlist",
+        { productId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      Swal.fire({
+        title: "❤️ Added to wishlist!",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      fetchFavoritesCount();
+    } catch (err) {
+      console.error("❌ Wishlist error:", err.response?.data || err);
+      if (err.response?.data?.message) {
+        Swal.fire({
+          title: "⚠️ Already added",
+          text: err.response.data.message,
+          icon: "info",
+        });
+      } else {
+        Swal.fire({
+          title: "❌ Error",
+          text: "Failed to add to wishlist.",
+          icon: "error",
+        });
+      }
+    }
+  };
+
+  // =========================
   // KEYBOARD NAVIGATION
-  // ============================
+  // =========================
   const handleKeyDown = (e) => {
     if (suggestions.length === 0) return;
     if (e.key === "ArrowDown") {
@@ -239,9 +244,9 @@ const Compare = () => {
     if (item) item.scrollIntoView({ block: "nearest" });
   };
 
-  // ============================
+  // =========================
   // CLOSE DROPDOWN ON OUTSIDE CLICK
-  // ============================
+  // =========================
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -252,96 +257,95 @@ const Compare = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // ============================
-  // MAP LOGIC
-  // ============================
+  // =========================
+  // MAP LOGIC (FIXED)
+  // =========================
   useEffect(() => {
     if (!result || !userLocation || !mapRef.current) return;
 
     setMapLoading(true);
 
-    const map = L.map(mapRef.current);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap contributors",
-    }).addTo(map);
+    if (!mapInstance.current) {
+      mapInstance.current = L.map(mapRef.current, {
+        center: [userLocation.lat, userLocation.lng],
+        zoom: 13,
+      });
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors",
+      }).addTo(mapInstance.current);
+    }
+
+    const map = mapInstance.current;
+
+    // Remove old markers
+    map.eachLayer((layer) => {
+      if (layer instanceof L.Marker) map.removeLayer(layer);
+    });
 
     const storeName = result.cheapest.supermarket;
     const q = encodeURIComponent(storeName);
 
-    const addStoreMarker = ({ lat, lon }) => {
-      const storeLat = parseFloat(lat);
-      const storeLon = parseFloat(lon);
-
-      // Store marker
-      L.marker([storeLat, storeLon], {
-        icon: L.icon({
-          iconUrl: "https://cdn-icons-png.flaticon.com/512/190/190411.png",
-          iconSize: [35, 35],
-        }),
-      })
-        .addTo(map)
-        .bindPopup(`${storeName} ✅ Cheapest store`)
-        .openPopup();
-
-      // User marker
-      L.marker([userLocation.lat, userLocation.lng], {
-        icon: L.icon({
-          iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
-          iconSize: [35, 35],
-        }),
-      })
-        .addTo(map)
-        .bindPopup("You are here");
-
-      map.fitBounds(
-        [
-          [userLocation.lat, userLocation.lng],
-          [storeLat, storeLon],
-        ],
-        { padding: [50, 50] }
-      );
-
-      setGoogleMapsLink(
-        `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${storeLat},${storeLon}`
-      );
-      setMapLoading(false);
-    };
-
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.length > 0) addStoreMarker(data[0]);
-        else setMapLoading(false);
+        if (data.length > 0) {
+          const storeLat = parseFloat(data[0].lat);
+          const storeLon = parseFloat(data[0].lon);
+
+          // Store marker
+          L.marker([storeLat, storeLon], {
+            icon: L.icon({
+              iconUrl: "https://cdn-icons-png.flaticon.com/512/190/190411.png",
+              iconSize: [35, 35],
+            }),
+          })
+            .addTo(map)
+            .bindPopup(`${storeName} ✅ Cheapest store`);
+
+          // User marker
+          L.marker([userLocation.lat, userLocation.lng], {
+            icon: L.icon({
+              iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
+              iconSize: [35, 35],
+            }),
+          })
+            .addTo(map)
+            .bindPopup("You are here");
+
+          map.fitBounds([
+            [userLocation.lat, userLocation.lng],
+            [storeLat, storeLon],
+          ], { padding: [50, 50] });
+
+          setGoogleMapsLink(
+            `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${storeLat},${storeLon}`
+          );
+        }
+        setMapLoading(false);
       })
       .catch((err) => {
         console.error("Map error:", err);
         setMapLoading(false);
       });
 
-    return () => map.remove();
   }, [result, userLocation]);
 
-  // ============================
-  // DRAG LOGIC
-  // ============================
+  // =========================
+  // DRAG MODAL LOGIC
+  // =========================
   const startDrag = (e) => {
     setDragging(true);
     const clientX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
     const clientY = e.type.includes("touch") ? e.touches[0].clientY : e.clientY;
-    dragOffset.current = {
-      x: clientX - modalPosition.x,
-      y: clientY - modalPosition.y,
-    };
+    dragOffset.current = { x: clientX - modalPosition.x, y: clientY - modalPosition.y };
   };
 
   const onDrag = (e) => {
     if (dragging) {
       const clientX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
       const clientY = e.type.includes("touch") ? e.touches[0].clientY : e.clientY;
-      setModalPosition({
-        x: clientX - dragOffset.current.x,
-        y: clientY - dragOffset.current.y,
-      });
+      setModalPosition({ x: clientX - dragOffset.current.x, y: clientY - dragOffset.current.y });
     }
   };
 
@@ -360,9 +364,9 @@ const Compare = () => {
     };
   });
 
-  // ============================
+  // =========================
   // EXIT COMPARISON
-  // ============================
+  // =========================
   const exitComparison = () => {
     setResult(null);
     setGoogleMapsLink("");
@@ -372,9 +376,9 @@ const Compare = () => {
     setError("");
   };
 
-  // ============================
+  // =========================
   // RENDER
-  // ============================
+  // =========================
   return (
     <div className="compare-container">
       <h2 className="compare-heading">🔍 Compare Product Prices</h2>
@@ -422,11 +426,7 @@ const Compare = () => {
           <h4>Did you mean:</h4>
           <div className="did-you-mean-buttons">
             {matches.map((m, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSelectProduct(m)}
-                className="did-you-mean-button"
-              >
+              <button key={idx} onClick={() => handleSelectProduct(m)} className="did-you-mean-button">
                 {m}
               </button>
             ))}
@@ -449,12 +449,7 @@ const Compare = () => {
               style={{ cursor: "grab" }}
             >
               <span>Enter your address</span>
-              <button
-                className="modal-close"
-                onClick={() => setShowAddressModal(false)}
-              >
-                ×
-              </button>
+              <button className="modal-close" onClick={() => setShowAddressModal(false)}>×</button>
             </div>
             <input
               type="text"
@@ -472,9 +467,7 @@ const Compare = () => {
       {result && (
         <div className="result-box">
           <div className="exit-btn-wrapper">
-            <button className="exit-btn" onClick={exitComparison}>
-              × Exit Comparison
-            </button>
+            <button className="exit-btn" onClick={exitComparison}>× Exit Comparison</button>
           </div>
           <h3 className="result-title">
             Results for: <strong>{result.product}</strong>
@@ -482,10 +475,7 @@ const Compare = () => {
 
           <div className="result-grid">
             {result.supermarkets.map((p, i) => {
-              const isBest =
-                p.supermarket === result.cheapest.supermarket &&
-                p.price === result.cheapest.price;
-
+              const isBest = p.supermarket === result.cheapest.supermarket && p.price === result.cheapest.price;
               return (
                 <div key={i} className={`result-card ${isBest ? "best" : ""}`}>
                   <div className="result-supermarket">{p.supermarket}</div>
@@ -495,12 +485,7 @@ const Compare = () => {
                       {isBest && <div className="best-badge">✅ Cheapest</div>}
                     </div>
                     {isBest && (
-                      <button
-                        onClick={() => handleAddToWishlist(p.id)}
-                        className="wishlist-btn"
-                      >
-                        ❤️ Wishlist
-                      </button>
+                      <button onClick={() => handleAddToWishlist(p.id)} className="wishlist-btn">❤️ Wishlist</button>
                     )}
                   </div>
                 </div>
@@ -509,20 +494,14 @@ const Compare = () => {
           </div>
 
           <p className="cheapest">
-            ✅ Cheapest: <strong>{result.cheapest.supermarket}</strong> at{" "}
-            <strong>{result.cheapest.price.toFixed(2)} €</strong>
+            ✅ Cheapest: <strong>{result.cheapest.supermarket}</strong> at <strong>{result.cheapest.price.toFixed(2)} €</strong>
           </p>
 
           <div className="map-section">
             {mapLoading && <p className="map-loading">Loading map…</p>}
             <div id="map" ref={mapRef}></div>
             {googleMapsLink && (
-              <a
-                href={googleMapsLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="google-link"
-              >
+              <a href={googleMapsLink} target="_blank" rel="noopener noreferrer" className="google-link">
                 Go to Google Maps 🚀
               </a>
             )}

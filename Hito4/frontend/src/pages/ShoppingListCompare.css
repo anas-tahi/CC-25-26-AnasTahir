@@ -39,6 +39,8 @@
   margin: 40px auto;
   padding: 20px;
   color: var(--text);
+  background: var(--bg);
+  border-radius: 12px;
 }
 
 /* ==============================
@@ -49,6 +51,7 @@
   margin-bottom: 30px;
   font-size: 28px;
   font-weight: 700;
+  color: var(--text);
 }
 
 /* ==============================
@@ -58,12 +61,12 @@
   display: flex;
   gap: 12px;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .sl-modes button {
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
   border: none;
   background: var(--primary);
   color: #fff;
@@ -84,12 +87,12 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .sl-card {
   background: var(--card);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 16px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
@@ -105,21 +108,24 @@
 .sl-card h4 {
   margin-bottom: 8px;
   font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .sl-card p {
   font-size: 14px;
   color: var(--text-secondary);
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .sl-card button {
-  padding: 6px 12px;
+  padding: 8px 14px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--primary);
   color: #fff;
   cursor: pointer;
+  font-weight: 600;
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
@@ -133,83 +139,106 @@
 ============================== */
 .list-name-input {
   width: 100%;
-  padding: 10px 14px;
-  border-radius: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   font-size: 1rem;
   background: var(--card);
   color: var(--text);
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+.list-name-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.3);
 }
 
 /* ==============================
    SEARCH & SUGGESTIONS
 ============================== */
-.sl-search {
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto 25px auto;
   display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
+  flex-direction: column;
 }
 
-.sl-search input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 8px;
+.search-input {
+  padding: 12px 16px;
   border: 1px solid var(--border);
-  font-size: 1rem;
-  background: var(--card);
-  color: var(--text);
+  border-radius: 12px;
+  font-size: 16px;
+  width: 100%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: border 0.3s ease, box-shadow 0.3s ease;
 }
 
-.sl-search button {
-  padding: 10px 16px;
-  border-radius: 8px;
-  border: none;
-  background: var(--primary);
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.search-btn {
+  margin-top: 10px;
+  padding: 12px;
+  background-color: var(--primary);
   color: #fff;
+  border: none;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.2s ease;
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
-.sl-search button:hover {
-  background: var(--primary-hover);
+.search-btn:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
 }
 
-.sl-suggestions {
-  list-style: none;
-  margin-top: 5px;
+.suggestions-list {
+  position: absolute;
+  top: 50px;
+  width: 100%;
+  max-height: 180px;
+  overflow-y: auto;
+  background-color: var(--card);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 10;
 }
 
-.sl-suggestions li {
-  padding: 10px;
+.suggestions-list li {
+  padding: 10px 16px;
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
-.sl-suggestions li:hover {
-  background: var(--bg);
+.suggestions-list li:hover {
+  background-color: var(--bg);
 }
 
 /* ==============================
    PRODUCT LIST
 ============================== */
 .sl-products {
-  margin-top: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .sl-item {
-  padding: 10px 14px;
-  border-radius: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
   background: var(--card);
   border: 1px solid var(--border);
+  font-weight: 500;
   color: var(--text);
 }
 
@@ -219,8 +248,8 @@
 .compare-btn,
 .save-btn {
   margin-top: 16px;
-  padding: 10px 18px;
-  border-radius: 8px;
+  padding: 12px 18px;
+  border-radius: 12px;
   border: none;
   color: #fff;
   font-weight: 600;
@@ -234,6 +263,7 @@
 
 .compare-btn:hover {
   background: var(--success-hover);
+  transform: translateY(-2px);
 }
 
 .save-btn {
@@ -242,6 +272,7 @@
 
 .save-btn:hover {
   background: var(--accent-hover);
+  transform: translateY(-2px);
 }
 
 /* ==============================
@@ -249,14 +280,16 @@
 ============================== */
 .sl-results {
   margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .sl-total {
-  padding: 12px;
-  border-radius: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
   background: var(--bg);
-  margin-bottom: 10px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .sl-total.best {
@@ -268,81 +301,20 @@
    MAP
 ============================== */
 .sl-map {
-  height: 300px;
+  height: 350px;
   margin-top: 20px;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--border);
+  box-shadow: var(--shadow);
 }
 
 /* ==============================
    RESPONSIVE
 ============================== */
 @media (max-width: 640px) {
-  .sl-modes { flex-direction: column; gap: 8px; }
-  .sl-search { flex-direction: column; gap: 8px; }
-}
-.search-container {
-  position: relative;
-  width: 100%;
-  max-width: 400px;
-  margin: 20px auto;
-  display: flex;
-  flex-direction: column;
+  .sl-modes { flex-direction: column; gap: 10px; }
+  .search-container { max-width: 100%; }
 }
 
-.search-input {
-  padding: 10px 15px;
-  border: 1px solid #ccc;
-  border-radius: 12px;
-  font-size: 16px;
-  width: 100%;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: border 0.3s, box-shadow 0.3s;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #0077ff;
-  box-shadow: 0 4px 12px rgba(0, 119, 255, 0.2);
-}
-
-.search-btn {
-  margin-top: 10px;
-  padding: 10px;
-  background-color: #0077ff;
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s;
-}
-
-.search-btn:hover {
-  background-color: #005ecc;
-}
-
-.suggestions-list {
-  position: absolute;
-  top: 45px;
-  width: 100%;
-  max-height: 180px;
-  overflow-y: auto;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  z-index: 10;
-}
-
-.suggestions-list li {
-  padding: 10px 15px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.suggestions-list li:hover {
-  background-color: #f0f0f0;
-}
 

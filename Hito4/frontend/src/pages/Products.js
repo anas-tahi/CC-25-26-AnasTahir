@@ -1,4 +1,3 @@
-// src/pages/Products.jsx
 import { useState, useEffect, useContext } from "react";
 import { productAPI } from "../services/api";
 import { FiTag } from "react-icons/fi";
@@ -30,10 +29,13 @@ const Products = () => {
         setRecommended(limited);
       } catch (err) {
         console.error("❌ Failed to load recommended products:", err);
-        Swal.fire(t("error", "Error"), t("failedLoadingProducts", "Failed to load products."), "error");
+        Swal.fire(
+          t("error", "Error"),
+          t("failedLoadingProducts", "Failed to load products."),
+          "error"
+        );
       }
     };
-
     fetchRecommended();
   }, [t]);
 
@@ -71,7 +73,7 @@ const Products = () => {
       Swal.fire({
         title: t("addedToWishlist", "❤️ Added to wishlist!"),
         icon: "success",
-        timer: 1500,
+        timer: 1200,
         showConfirmButton: false,
       });
 
@@ -114,7 +116,10 @@ const Products = () => {
 
               <ul className="product-list">
                 {items.map((item, i) => (
-                  <li key={i} className="product-item">
+                  <li
+                    key={i}
+                    className={`product-item ${item.id === cheapestId ? "cheapest" : ""}`}
+                  >
                     <div className="product-left">
                       <FaStore className="product-icon" /> {item.supermarket}
                     </div>

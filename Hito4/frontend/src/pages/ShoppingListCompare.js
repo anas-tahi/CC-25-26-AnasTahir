@@ -1,3 +1,4 @@
+// src/pages/ShoppingListCompare.jsx
 import { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -34,6 +35,7 @@ const ShoppingListCompare = () => {
 
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
+  const markersRef = useRef([]);
 
   // ================= LOCATION =================
   useEffect(() => {
@@ -119,13 +121,44 @@ const ShoppingListCompare = () => {
     if (!showCompare || !userLocation || !mapRef.current) return;
 
     mapInstance.current?.remove();
+    markersRef.current = [];
 
     mapInstance.current = L.map(mapRef.current).setView([userLocation.lat, userLocation.lng], 13);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(mapInstance.current);
-    L.marker([userLocation.lat, userLocation.lng]).addTo(mapInstance.current).bindPopup("Tú estás aquí");
+
+    // USER LOCATION MARKER
+    const userMarker = L.marker([userLocation.lat, userLocation.lng], {
+      icon: L.icon({
+        iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+      }),
+    })
+      .addTo(mapInstance.current)
+      .bindPopup("Tú estás aquí");
+    markersRef.current.push(userMarker);
+
+    // CHEAPEST SUPERMARKET MARKERS
+    if (cheapestMarket) {
+      products.forEach((p) => {
+        const cheapestStore = p.supermarkets.find((s) => s.supermarket === cheapestMarket);
+        if (cheapestStore && cheapestStore.lat && cheapestStore.lng) {
+          const marker = L.marker([cheapestStore.lat, cheapestStore.lng], {
+            icon: L.icon({
+              iconUrl: "https://cdn-icons-png.flaticon.com/512/34/34568.png",
+              iconSize: [32, 32],
+              iconAnchor: [16, 32],
+            }),
+          })
+            .addTo(mapInstance.current)
+            .bindPopup(`${cheapestStore.supermarket}: €${cheapestStore.price.toFixed(2)}`);
+          markersRef.current.push(marker);
+        }
+      });
+    }
 
     return () => mapInstance.current?.remove();
-  }, [showCompare, userLocation]);
+  }, [showCompare, userLocation, products, cheapestMarket]);
 
   return (
     <div className={`sl-container ${theme}`}>
