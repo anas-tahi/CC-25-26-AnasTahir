@@ -1,26 +1,37 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useContext, useState, useRef, useEffect } from "react";
+import { useContext, useRef, useEffect, useState } from "react";
 import {
   AiOutlineHome,
   AiOutlineShoppingCart,
 } from "react-icons/ai";
 import { MdCompareArrows } from "react-icons/md";
-import { FiUser, FiHeart, FiLogOut, FiMoon, FiSun } from "react-icons/fi";
-import mainLogo from "./mainlogo.png";
+import {
+  FiUser,
+  FiHeart,
+  FiLogOut,
+  FiSettings,
+  FiMoon,
+  FiSun,
+} from "react-icons/fi";
 
+import mainLogo from "./mainlogo.png";
 import { UserContext } from "../context/UserContext";
 import { FavoritesContext } from "../context/FavoritesContext";
+import { LanguageContext } from "../context/LanguageContext";
+import { ThemeContext } from "../context/ThemeContext";
+
 import "./navbar.css";
 
 const Navbar = () => {
   const { user } = useContext(UserContext);
   const { favoritesCount } = useContext(FavoritesContext);
+  const { lang, changeLanguage } = useContext(LanguageContext);
+  const { theme, toggleTheme } = useContext(ThemeContext);
+
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
   const [open, setOpen] = useState(false);
-  const [dark, setDark] = useState(false);
-  const [lang, setLang] = useState("EN");
   const ref = useRef(null);
 
   useEffect(() => {
@@ -38,20 +49,15 @@ const Navbar = () => {
     navigate("/login");
   };
 
-  const toggleTheme = () => {
-    setDark(!dark);
-    document.body.classList.toggle("dark");
-  };
-
   return (
     <nav className="navbar">
-      {/* ===== LEFT ===== */}
+      {/* LEFT */}
       <Link to="/home" className="logo">
         <img src={mainLogo} alt="logo" />
         <span>CompraSmart</span>
       </Link>
 
-      {/* ===== CENTER ===== */}
+      {/* CENTER */}
       <div className="nav-links">
         <Link to="/home"><AiOutlineHome /> Inicio</Link>
         <Link to="/products"><AiOutlineShoppingCart /> Productos</Link>
@@ -66,21 +72,21 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* ===== RIGHT ===== */}
+      {/* RIGHT */}
       <div className="nav-right">
         {/* LANGUAGE */}
         <select
           className="lang-select"
           value={lang}
-          onChange={(e) => setLang(e.target.value)}
+          onChange={(e) => changeLanguage(e.target.value)}
         >
-          <option value="EN">EN</option>
-          <option value="ES">ES</option>
+          <option value="en">EN</option>
+          <option value="es">ES</option>
         </select>
 
         {/* THEME */}
         <button className="theme-btn" onClick={toggleTheme}>
-          {dark ? <FiSun /> : <FiMoon />}
+          {theme === "dark" ? <FiSun /> : <FiMoon />}
         </button>
 
         {/* PROFILE */}
@@ -101,6 +107,9 @@ const Navbar = () => {
               <div className="dropdown">
                 <button onClick={() => navigate("/profile")}>
                   <FiUser /> Perfil
+                </button>
+                <button onClick={() => navigate("/settings")}>
+                  <FiSettings /> Ajustes
                 </button>
                 <button onClick={logout}>
                   <FiLogOut /> Salir
