@@ -69,7 +69,7 @@ const App = () => (
     <FavoritesProvider>
       <LanguageProvider>
         <ThemeProvider>
-          <AppContent />
+          <App />
         </ThemeProvider>
       </LanguageProvider>
     </FavoritesProvider>
