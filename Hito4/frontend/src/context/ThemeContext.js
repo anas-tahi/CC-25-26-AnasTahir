@@ -1,27 +1,25 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useEffect, useState } from "react";
 
 export const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState("light");
 
-  // Load saved theme on startup
+  // load theme on start
   useEffect(() => {
-    const savedTheme = localStorage.getItem("app-theme");
-    if (savedTheme) {
-      setTheme(savedTheme);
+    const saved = localStorage.getItem("app-theme");
+    if (saved) {
+      setTheme(saved);
+      document.body.className = saved;
     }
   }, []);
 
-  // Apply theme + save it
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("app-theme", theme);
-  }, [theme]);
-
-  // Toggle function
+  // update theme
   const toggleTheme = () => {
-    setTheme(prev => (prev === "light" ? "dark" : "light"));
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    document.body.className = newTheme;
+    localStorage.setItem("app-theme", newTheme);
   };
 
   return (
