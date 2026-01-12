@@ -9,7 +9,8 @@ export const productAPI = axios.create({
 // AUTH SERVICE
 export const authAPI = axios.create({
   baseURL: "https://auth-service-a73r.onrender.com/auth",
-  timeout: 10000,
+  timeout: 30000, // longer timeout for cold starts
+  withCredentials: true
 });
 
 // COMMENT SERVICE

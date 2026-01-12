@@ -217,21 +217,40 @@ ab -n 200 -c 20 https://comment-service-f1r6.onrender.com/comments
 
 ## 5. Observability & Monitoring
 
-**Goal:** Detect anomalies, optimize performance, ensure resilience.
+**Goal:** Detect anomalies, optimize performance, and guarantee service resilience.
 
-**Current Implementation (via Render):**
+### Implemented Observability
 
-- Real-time logs for each service  
-- CPU & RAM metrics monitored  
-- Deployment history tracked  
+Each microservice includes:
 
-**Why it matters:**  
+- **HTTP request logging** using Morgan (request method, route, status, latency)
+- **Application-level logs** (custom logger for DB connections, errors, startup)
+- **Health check endpoints** (`/health`) exposing:
+  - Service status
+  - Uptime
+  - Timestamp
+- **Render-native monitoring**:
+  - Real-time logs
+  - CPU and RAM usage metrics
+  - Deployment status and history
 
-- Detect errors/failures early ✅  
-- Monitor resource usage & prevent bottlenecks ✅  
-- Provides confidence in stable deployment and uptime ✅  
+These mechanisms allow:
+- Fast detection of runtime errors
+- Validation of service availability
+- Monitoring resource consumption under load
 
-**Future Improvements:** Integrate Grafana/Prometheus for advanced metrics, tracing, and alerting.
+### Metrics, Events & Traces
+
+- **Metrics:** CPU/RAM and request performance via Render dashboard
+- **Events:** Deployments, restarts, failures tracked by Render
+- **Traces:** Request-level tracing is partially achieved through structured HTTP logs
+
+### Future Improvements
+
+- Integrate **Prometheus + Grafana** for advanced metrics
+- Distributed tracing with **OpenTelemetry**
+- Alerting rules for high latency or error rates
+
 
 ---
 
@@ -309,7 +328,22 @@ ab -n 200 -c 20 https://comment-service-f1r6.onrender.com/comments
 1. Developer pushes code to GitHub `main` branch  
 2. Render detects push & triggers Docker build  
 3. Microservices and frontend automatically deployed  
-4. Live URLs updated and accessible globally  
+4. Live URLs updated and accessible globally 
+
+## 7.8 Infrastructure as Code & Reproducibility
+
+The entire infrastructure is reproducible using configuration files stored in the repository:
+
+- Dockerfiles for each microservice and frontend
+- docker-compose.yml for local multi-service execution
+- GitHub repository connected directly to Render
+- Environment variables defined per service in Render
+
+A new developer can reproduce the deployment by:
+1. Cloning the repository
+2. Connecting the repo to Render
+3. Deploying services using the provided Dockerfiles
+
 
 ---
 

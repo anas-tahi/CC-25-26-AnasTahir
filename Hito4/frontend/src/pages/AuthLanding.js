@@ -16,6 +16,10 @@ const AuthLanding = () => {
   useEffect(() => {
     document.body.style.background = "transparent";
     document.documentElement.style.background = "transparent";
+
+    // 🔹 Pre-warm backend for fast first login
+    fetch("https://auth-service-a73r.onrender.com/health")
+      .catch(() => console.log("Backend pre-warm failed"));
   }, []);
 
   const handleChange = (e) =>
@@ -39,6 +43,7 @@ const AuthLanding = () => {
         setTimeout(() => navigate("/home"), 800);
       } else {
         await authAPI.post("/register", form);
+        alert("Account created! Please login.");
         setMode("login");
       }
     } catch (err) {
