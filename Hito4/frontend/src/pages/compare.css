@@ -37,6 +37,9 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 .input-wrapper {
@@ -48,12 +51,14 @@
   border: 1px solid var(--border-light);
   box-shadow: var(--shadow-md);
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 10;
 }
 
 .input-wrapper:focus-within {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-light);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .search-icon {
@@ -77,26 +82,27 @@
 ============================================================ */
 .dropdown {
   position: absolute;
-  top: calc(100% + 0.6rem);
+  top: 100%;
   left: 0;
   right: 0;
+  margin-top: 4px;
   background: var(--card-bg);
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid var(--border-light);
   box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-  max-height: 240px;
+  max-height: 250px;
   overflow-y: auto;
-  z-index: 50;
+  z-index: 20;
   animation: dropdownFade 0.25s ease;
 }
 
 @keyframes dropdownFade {
-  from { opacity: 0; transform: translateY(-6px); }
+  from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .suggestion {
-  padding: 0.8rem 1.2rem;
+  padding: 0.85rem 1.2rem;
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 1rem;
@@ -116,7 +122,29 @@
 }
 
 /* ============================================================
-   DID YOU MEAN
+   COMPARE BUTTON
+============================================================ */
+.compare-button {
+  align-self: flex-end;
+  padding: 0.65rem 1.6rem;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(90deg, #007bff, #00b4d8);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 0.6rem;
+  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.35);
+  transition: 0.25s ease;
+}
+
+.compare-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(0, 123, 255, 0.45);
+}
+
+/* ============================================================
+   DID YOU MEAN SUGGESTIONS
 ============================================================ */
 .did-you-mean {
   margin-top: 1.5rem;
@@ -169,6 +197,9 @@
   color: var(--text-primary);
 }
 
+/* ============================================================
+   RESULT GRID
+============================================================ */
 .result-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -238,6 +269,9 @@
   box-shadow: 0 6px 16px rgba(255, 64, 129, 0.45);
 }
 
+/* ============================================================
+   MAP SECTION
+============================================================ */
 .map-section {
   margin-top: 1.5rem;
 }
@@ -274,6 +308,9 @@
   transform: translateY(-2px);
 }
 
+/* ============================================================
+   MODAL / MANUAL ADDRESS
+============================================================ */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -345,12 +382,18 @@
   transform: scale(1.2);
 }
 
+/* ============================================================
+   ERROR TEXT
+============================================================ */
 .error-text {
   color: #ff4d4f;
   font-weight: 600;
   margin-top: 0.5rem;
 }
 
+/* ============================================================
+   EXIT BUTTON
+============================================================ */
 .exit-btn-wrapper {
   display: flex;
   justify-content: flex-end;
@@ -371,6 +414,9 @@
   transform: scale(1.2);
 }
 
+/* ============================================================
+   RESPONSIVE
+============================================================ */
 @media (max-width: 600px) {
   .compare-heading {
     font-size: 1.9rem;
