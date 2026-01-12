@@ -3,7 +3,7 @@ const router = express.Router();
 const Product = require("../models/Product");
 
 /* ============================
-   Helpers
+   HELPERS
 ============================ */
 const normalize = (str) =>
   str
@@ -32,6 +32,35 @@ router.get("/", async (req, res) => {
     }).limit(10);
 
     res.json({ products: products.map(sanitizeProduct) });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/* ============================
+   RECOMMENDED PRODUCTS
+   GET /products/recommended
+============================ */
+router.get("/recommended", async (req, res) => {
+  try {
+    const recommended = await Product.find({}).limit(6); // top 6
+    res.status(200).json(recommended.map(sanitizeProduct));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/* ============================
+   AUTOCOMPLETE BY FIRST LETTER
+   GET /products/names/:letter
+============================ */
+router.get("/names/:letter", async (req, res) => {
+  try {
+    const letter = req.params.letter.toLowerCase();
+    const products = await Product.find({
+      name: { $regex: `^${letter}`, $options: "i" },
+    }).limit(10);
+    res.status(200).json(products.map(sanitizeProduct));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -101,20 +130,6 @@ router.get("/compare/:name", async (req, res) => {
         price: cheapest.price,
       },
     });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-/* ============================
-   RECOMMENDED PRODUCTS
-   GET /products/recommended
-============================ */
-router.get("/recommended", async (req, res) => {
-  try {
-    // Example logic: return first 5 products
-    const recommended = await Product.find({}).limit(5);
-    res.status(200).json(recommended.map(sanitizeProduct));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

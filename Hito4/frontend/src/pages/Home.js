@@ -40,7 +40,7 @@ const Home = () => {
 
     const fetchRecommendations = async () => {
       try {
-        const res = await productAPI.get("/recommendations");
+        const res = await productAPI.get("/recommended");
         setRecommended(res.data.slice(0, 6)); // show top 6
       } catch (err) {
         console.error("❌ Failed to fetch recommendations:", err);
