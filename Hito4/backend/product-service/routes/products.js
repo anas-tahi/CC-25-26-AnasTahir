@@ -31,32 +31,43 @@ router.get("/", async (req, res) => {
       name: { $regex: search, $options: "i" },
     }).limit(10);
 
-    res.json({
-      products: products.map(sanitizeProduct),
-    });
+    res.json({ products: products.map(sanitizeProduct) });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
 /* ============================
-   GET PRODUCTS BY NAME
-   GET /products/:name
+   COMPARE ALL PRODUCTS
+   GET /products/compare-all
 ============================ */
-router.get("/:name", async (req, res) => {
+router.get("/compare-all", async (req, res) => {
   try {
-    const query = normalize(req.params.name);
     const products = await Product.find({});
+    const grouped = {};
 
-    const matches = products.filter(
-      (p) => normalize(p.name) === query
-    );
+    products.forEach((p) => {
+      const key = normalize(p.name);
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(p);
+    });
 
-    if (matches.length === 0) {
-      return res.status(404).json([]);
-    }
+    const result = Object.values(grouped).map((items) => {
+      const cheapest = items.reduce(
+        (min, p) => (p.price < min.price ? p : min),
+        items[0]
+      );
 
-    res.status(200).json(matches.map(sanitizeProduct));
+      return {
+        product: items[0].name,
+        cheapest: {
+          supermarket: cheapest.supermarket,
+          price: cheapest.price,
+        },
+      };
+    });
+
+    res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -93,42 +104,28 @@ router.get("/compare/:name", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Compare error:", err);
     res.status(500).json({ message: err.message });
   }
 });
 
 /* ============================
-   COMPARE ALL PRODUCTS
-   GET /products/compare-all
+   GET PRODUCTS BY NAME
+   GET /products/:name
 ============================ */
-router.get("/compare-all", async (req, res) => {
+router.get("/:name", async (req, res) => {
   try {
+    const query = normalize(req.params.name);
     const products = await Product.find({});
-    const grouped = {};
 
-    products.forEach((p) => {
-      const key = normalize(p.name);
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(p);
-    });
+    const matches = products.filter(
+      (p) => normalize(p.name) === query
+    );
 
-    const result = Object.values(grouped).map((items) => {
-      const cheapest = items.reduce(
-        (min, p) => (p.price < min.price ? p : min),
-        items[0]
-      );
+    if (matches.length === 0) {
+      return res.status(404).json([]);
+    }
 
-      return {
-        product: items[0].name,
-        cheapest: {
-          supermarket: cheapest.supermarket,
-          price: cheapest.price,
-        },
-      };
-    });
-
-    res.status(200).json(result);
+    res.status(200).json(matches.map(sanitizeProduct));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
