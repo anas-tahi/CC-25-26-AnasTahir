@@ -101,7 +101,9 @@ const Compare = () => {
       try {
         const res = await productAPI.get(`/names/${encodeURIComponent(query)}`);
         const names = (res.data || []).map((p) => p.name);
-        setSuggestions(names);
+        // remove duplicates
+        const uniqueNames = [...new Set(names)];
+        setSuggestions(uniqueNames);
         setHighlightIndex(-1);
       } catch (err) {
         console.error("Failed to load suggestions:", err);
@@ -140,9 +142,10 @@ const Compare = () => {
       try {
         const res = await productAPI.get(`/names/${encodeURIComponent(trimmed)}`);
         const names = (res.data || []).map((p) => p.name);
-        setMatches(names);
+        const uniqueNames = [...new Set(names)];
+        setMatches(uniqueNames);
         setResult(null);
-        setError(names.length ? "" : "No matching products found.");
+        setError(uniqueNames.length ? "" : "No matching products found.");
       } catch (err) {
         console.error("Prefix match error:", err);
         setMatches([]);
@@ -258,7 +261,7 @@ const Compare = () => {
   }, []);
 
   // =========================
-  // MAP LOGIC (FIXED)
+  // MAP LOGIC
   // =========================
   useEffect(() => {
     if (!result || !userLocation || !mapRef.current) return;
@@ -282,6 +285,11 @@ const Compare = () => {
     map.eachLayer((layer) => {
       if (layer instanceof L.Marker) map.removeLayer(layer);
     });
+
+    if (!result.cheapest) {
+      setMapLoading(false);
+      return;
+    }
 
     const storeName = result.cheapest.supermarket;
     const q = encodeURIComponent(storeName);
@@ -313,10 +321,13 @@ const Compare = () => {
             .addTo(map)
             .bindPopup("You are here");
 
-          map.fitBounds([
-            [userLocation.lat, userLocation.lng],
-            [storeLat, storeLon],
-          ], { padding: [50, 50] });
+          map.fitBounds(
+            [
+              [userLocation.lat, userLocation.lng],
+              [storeLat, storeLon],
+            ],
+            { padding: [50, 50] }
+          );
 
           setGoogleMapsLink(
             `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${storeLat},${storeLon}`
@@ -328,41 +339,7 @@ const Compare = () => {
         console.error("Map error:", err);
         setMapLoading(false);
       });
-
   }, [result, userLocation]);
-
-  // =========================
-  // DRAG MODAL LOGIC
-  // =========================
-  const startDrag = (e) => {
-    setDragging(true);
-    const clientX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
-    const clientY = e.type.includes("touch") ? e.touches[0].clientY : e.clientY;
-    dragOffset.current = { x: clientX - modalPosition.x, y: clientY - modalPosition.y };
-  };
-
-  const onDrag = (e) => {
-    if (dragging) {
-      const clientX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
-      const clientY = e.type.includes("touch") ? e.touches[0].clientY : e.clientY;
-      setModalPosition({ x: clientX - dragOffset.current.x, y: clientY - dragOffset.current.y });
-    }
-  };
-
-  const stopDrag = () => setDragging(false);
-
-  useEffect(() => {
-    window.addEventListener("mousemove", onDrag);
-    window.addEventListener("mouseup", stopDrag);
-    window.addEventListener("touchmove", onDrag);
-    window.addEventListener("touchend", stopDrag);
-    return () => {
-      window.removeEventListener("mousemove", onDrag);
-      window.removeEventListener("mouseup", stopDrag);
-      window.removeEventListener("touchmove", onDrag);
-      window.removeEventListener("touchend", stopDrag);
-    };
-  });
 
   // =========================
   // EXIT COMPARISON
@@ -426,39 +403,14 @@ const Compare = () => {
           <h4>Did you mean:</h4>
           <div className="did-you-mean-buttons">
             {matches.map((m, idx) => (
-              <button key={idx} onClick={() => handleSelectProduct(m)} className="did-you-mean-button">
+              <button
+                key={idx}
+                onClick={() => handleSelectProduct(m)}
+                className="did-you-mean-button"
+              >
                 {m}
               </button>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* DRAGGABLE MANUAL ADDRESS MODAL */}
-      {showAddressModal && (
-        <div className="modal-overlay">
-          <div
-            ref={modalRef}
-            className="modal-content"
-            style={{ left: modalPosition.x, top: modalPosition.y, position: "absolute" }}
-          >
-            <div
-              className="modal-header"
-              onMouseDown={startDrag}
-              onTouchStart={startDrag}
-              style={{ cursor: "grab" }}
-            >
-              <span>Enter your address</span>
-              <button className="modal-close" onClick={() => setShowAddressModal(false)}>×</button>
-            </div>
-            <input
-              type="text"
-              value={manualAddress}
-              onChange={(e) => setManualAddress(e.target.value)}
-              placeholder="Enter your address..."
-            />
-            {addressError && <p className="error-text">{addressError}</p>}
-            <button onClick={handleManualAddressSubmit}>Submit</button>
           </div>
         </div>
       )}
@@ -467,25 +419,33 @@ const Compare = () => {
       {result && (
         <div className="result-box">
           <div className="exit-btn-wrapper">
-            <button className="exit-btn" onClick={exitComparison}>× Exit Comparison</button>
+            <button className="exit-btn" onClick={exitComparison}>
+              × Exit Comparison
+            </button>
           </div>
           <h3 className="result-title">
-            Results for: <strong>{result.product}</strong>
+            Results for: <strong>{result.product || "N/A"}</strong>
           </h3>
 
           <div className="result-grid">
-            {result.supermarkets.map((p, i) => {
-              const isBest = p.supermarket === result.cheapest.supermarket && p.price === result.cheapest.price;
+            {(result.supermarkets || []).map((p, i) => {
+              const isBest =
+                p.supermarket === result.cheapest?.supermarket &&
+                p.price === result.cheapest?.price;
               return (
                 <div key={i} className={`result-card ${isBest ? "best" : ""}`}>
-                  <div className="result-supermarket">{p.supermarket}</div>
+                  <div className="result-supermarket">{p.supermarket || "N/A"}</div>
                   <div className="result-price-row">
                     <div>
-                      <div className="result-price">{p.price.toFixed(2)} €</div>
+                      <div className="result-price">
+                        {typeof p.price === "number" ? p.price.toFixed(2) : "N/A"} €
+                      </div>
                       {isBest && <div className="best-badge">✅ Cheapest</div>}
                     </div>
                     {isBest && (
-                      <button onClick={() => handleAddToWishlist(p.id)} className="wishlist-btn">❤️ Wishlist</button>
+                      <button onClick={() => handleAddToWishlist(p.id)} className="wishlist-btn">
+                        ❤️ Wishlist
+                      </button>
                     )}
                   </div>
                 </div>
@@ -494,7 +454,14 @@ const Compare = () => {
           </div>
 
           <p className="cheapest">
-            ✅ Cheapest: <strong>{result.cheapest.supermarket}</strong> at <strong>{result.cheapest.price.toFixed(2)} €</strong>
+            ✅ Cheapest:{" "}
+            <strong>{result.cheapest?.supermarket || "N/A"}</strong> at{" "}
+            <strong>
+              {typeof result.cheapest?.price === "number"
+                ? result.cheapest.price.toFixed(2)
+                : "N/A"}{" "}
+              €
+            </strong>
           </p>
 
           <div className="map-section">
