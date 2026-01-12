@@ -1,3 +1,4 @@
+// routes/products.js
 const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
@@ -43,8 +44,21 @@ router.get("/", async (req, res) => {
 ============================ */
 router.get("/recommended", async (req, res) => {
   try {
-    const recommended = await Product.find({}).limit(6); // top 6
-    res.status(200).json(recommended.map(sanitizeProduct));
+    // get all products, pick 6 unique names
+    const products = await Product.find({});
+    const seenNames = new Set();
+    const recommended = [];
+
+    for (const p of products) {
+      const normalizedName = normalize(p.name);
+      if (!seenNames.has(normalizedName)) {
+        seenNames.add(normalizedName);
+        recommended.push(sanitizeProduct(p));
+      }
+      if (recommended.length >= 6) break;
+    }
+
+    res.status(200).json(recommended);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -57,13 +71,23 @@ router.get("/recommended", async (req, res) => {
 router.get("/names/:letter", async (req, res) => {
   try {
     const letter = req.params.letter.toLowerCase();
-    
     const products = await Product.find({
       name: { $regex: `^${letter}`, $options: "i" },
-      price: { $exists: true },
-    }).limit(50); // return more suggestions
+    });
 
-    res.status(200).json(products.map(sanitizeProduct));
+    // remove duplicate names
+    const seen = new Set();
+    const uniqueProducts = [];
+    for (const p of products) {
+      const normalized = normalize(p.name);
+      if (!seen.has(normalized)) {
+        seen.add(normalized);
+        uniqueProducts.push(sanitizeProduct(p));
+      }
+      if (uniqueProducts.length >= 10) break;
+    }
+
+    res.status(200).json(uniqueProducts);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -126,7 +150,7 @@ router.get("/compare/:name", async (req, res) => {
     );
 
     res.status(200).json({
-      product: req.params.name,
+      product: matches[0].name,
       supermarkets: matches.map(sanitizeProduct),
       cheapest: {
         supermarket: cheapest.supermarket,

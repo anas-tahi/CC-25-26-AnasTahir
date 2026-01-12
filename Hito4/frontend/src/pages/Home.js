@@ -76,11 +76,12 @@ const Home = () => {
     <div className={`home-page ${theme}`}>
       {/* HERO */}
       <div className="home-hero">
+        {/* ✅ Updated hero section */}
         <h1 className="home-title">
-          {t("welcomeUser", { name: user?.name || t("shopper") })}
+          {user?.name ? `Welcome, ${user.name}` : "Welcome"}
         </h1>
         <p className="home-subtitle">
-          {t("homeSubtitle", { name: user?.name || t("shopper") })}
+          Compare products easily and save money!
         </p>
         <Link to="/compare" className="home-hero-btn">
           {t("startComparing")} →
