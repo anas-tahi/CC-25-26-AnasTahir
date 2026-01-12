@@ -1,4 +1,3 @@
-// routes/products.js
 const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
@@ -32,7 +31,18 @@ router.get("/", async (req, res) => {
       name: { $regex: search, $options: "i" },
     }).limit(10);
 
-    res.json({ products: products.map(sanitizeProduct) });
+    // remove duplicates by normalized name
+    const seen = new Set();
+    const unique = [];
+    products.forEach((p) => {
+      const n = normalize(p.name);
+      if (!seen.has(n)) {
+        seen.add(n);
+        unique.push(sanitizeProduct(p));
+      }
+    });
+
+    res.json({ products: unique });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -41,34 +51,30 @@ router.get("/", async (req, res) => {
 /* ============================
    RECOMMENDED PRODUCTS
    GET /products/recommended
-   SHOW ALL SUPERMARKETS + PRICES
 ============================ */
 router.get("/recommended", async (req, res) => {
   try {
-    const products = await Product.find({}).limit(6); // top 6 products
+    const products = await Product.find({});
+    const seen = new Set();
+    const recommended = [];
 
-    // group by product name
-    const grouped = {};
-    products.forEach((p) => {
-      const key = normalize(p.name);
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(p);
-    });
+    for (const p of products) {
+      const normalizedName = normalize(p.name);
+      if (!seen.has(normalizedName)) {
+        seen.add(normalizedName);
 
-    const recommended = Object.values(grouped).map((items) => {
-      const cheapest = items.reduce(
-        (min, p) => (p.price < min.price ? p : min),
-        items[0]
-      );
-      return {
-        product: items[0].name,
-        supermarkets: items.map(sanitizeProduct),
-        cheapest: {
-          supermarket: cheapest.supermarket,
-          price: cheapest.price ?? 0,
-        },
-      };
-    });
+        // get all supermarkets for this product
+        const allMatches = products
+          .filter((pr) => normalize(pr.name) === normalizedName)
+          .map(sanitizeProduct);
+
+        recommended.push({
+          name: p.name,
+          supermarkets: allMatches,
+        });
+      }
+      if (recommended.length >= 6) break;
+    }
 
     res.status(200).json(recommended);
   } catch (err) {
@@ -85,8 +91,53 @@ router.get("/names/:letter", async (req, res) => {
     const letter = req.params.letter.toLowerCase();
     const products = await Product.find({
       name: { $regex: `^${letter}`, $options: "i" },
-    }).limit(10);
-    res.status(200).json(products.map(sanitizeProduct));
+    }).limit(20);
+
+    // remove duplicates
+    const seen = new Set();
+    const unique = [];
+    products.forEach((p) => {
+      const n = normalize(p.name);
+      if (!seen.has(n)) {
+        seen.add(n);
+        unique.push(sanitizeProduct(p));
+      }
+    });
+
+    res.status(200).json(unique);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/* ============================
+   COMPARE SINGLE PRODUCT
+   GET /products/compare/:name
+============================ */
+router.get("/compare/:name", async (req, res) => {
+  try {
+    const query = normalize(req.params.name);
+    const products = await Product.find({});
+
+    const matches = products.filter((p) => normalize(p.name) === query);
+
+    if (matches.length === 0) {
+      return res.status(404).json({ message: "No products found" });
+    }
+
+    const cheapest = matches.reduce(
+      (min, p) => (p.price < min.price ? p : min),
+      matches[0]
+    );
+
+    res.status(200).json({
+      product: req.params.name,
+      supermarkets: matches.map(sanitizeProduct),
+      cheapest: {
+        supermarket: cheapest.supermarket,
+        price: cheapest.price ?? 0,
+      },
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -130,41 +181,6 @@ router.get("/compare-all", async (req, res) => {
 });
 
 /* ============================
-   SINGLE PRODUCT COMPARISON
-   GET /products/compare/:name
-============================ */
-router.get("/compare/:name", async (req, res) => {
-  try {
-    const query = normalize(req.params.name);
-    const products = await Product.find({});
-
-    const matches = products
-      .filter((p) => normalize(p.name) === query)
-      .map(sanitizeProduct);
-
-    if (matches.length === 0) {
-      return res.status(404).json({ message: "No products found" });
-    }
-
-    const cheapest = matches.reduce(
-      (min, p) => (p.price < min.price ? p : min),
-      matches[0]
-    );
-
-    res.status(200).json({
-      product: req.params.name,
-      supermarkets: matches,
-      cheapest: {
-        supermarket: cheapest.supermarket,
-        price: cheapest.price ?? 0,
-      },
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-/* ============================
    GET PRODUCTS BY NAME
    GET /products/:name
 ============================ */
@@ -173,15 +189,11 @@ router.get("/:name", async (req, res) => {
     const query = normalize(req.params.name);
     const products = await Product.find({});
 
-    const matches = products
-      .filter((p) => normalize(p.name) === query)
-      .map(sanitizeProduct);
+    const matches = products.filter((p) => normalize(p.name) === query);
 
-    if (matches.length === 0) {
-      return res.status(404).json([]);
-    }
+    if (matches.length === 0) return res.status(404).json([]);
 
-    res.status(200).json(matches);
+    res.status(200).json(matches.map(sanitizeProduct));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
