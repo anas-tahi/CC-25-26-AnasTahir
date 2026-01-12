@@ -2,8 +2,15 @@ const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
 
-// Sanitize helper
-const sanitizeProduct = (p) => p.toJSON();
+/* ============================
+   SAFE SANITIZER (NO toJSON)
+============================ */
+const sanitizeProduct = (p) => ({
+  id: p._id?.toString() || p.id,
+  name: p.name,
+  supermarket: p.supermarket,
+  price: p.price,
+});
 
 /* ============================
    AUTOCOMPLETE SEARCH (legacy)
@@ -22,12 +29,7 @@ router.get("/", async (req, res) => {
     }).limit(10);
 
     res.json({
-      products: products.map((p) => ({
-        id: p.id,
-        name: p.name,
-        supermarket: p.supermarket,
-        price: p.price,
-      })),
+      products: products.map(sanitizeProduct),
     });
   } catch (err) {
     console.error("Search error:", err);
@@ -41,7 +43,7 @@ router.get("/", async (req, res) => {
 router.get("/recommended", async (req, res) => {
   try {
     const products = await Product.find({}).limit(50);
-    res.json(products.map(sanitizeProduct));
+    res.status(200).json(products.map(sanitizeProduct));
   } catch (err) {
     console.error("Recommended error:", err);
     res.status(500).json({ message: err.message });
@@ -61,8 +63,7 @@ router.get("/names/:prefix", async (req, res) => {
     });
 
     const uniqueNames = [...new Set(products.map((p) => p.name))];
-
-    res.json(uniqueNames.map((name) => ({ name })));
+    res.status(200).json(uniqueNames.map((name) => ({ name })));
   } catch (err) {
     console.error("Prefix search error:", err);
     res.status(500).json({ message: err.message });
@@ -70,43 +71,56 @@ router.get("/names/:prefix", async (req, res) => {
 });
 
 /* ============================
+   COMPARE ALL PRODUCTS
+   GET /products/compare-all
+============================ */
+router.get("/compare-all", async (req, res) => {
+  try {
+    const products = await Product.find({});
+
+    const cheapestMap = {};
+
+    products.forEach((p) => {
+      const key = p.name.toLowerCase();
+      if (!cheapestMap[key] || p.price < cheapestMap[key].price) {
+        cheapestMap[key] = p;
+      }
+    });
+
+    res.status(200).json(
+      Object.values(cheapestMap).map(sanitizeProduct)
+    );
+  } catch (err) {
+    console.error("Compare all error:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/* ============================
    SINGLE PRODUCT COMPARISON
+   GET /products/compare/:name
 ============================ */
 router.get("/compare/:name", async (req, res) => {
   try {
-    const rawName = req.params.name;
+    const rawName = req.params.name.toLowerCase();
 
-    const normalizedQuery = rawName
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase();
-
-    const products = await Product.find({});
-
-    const filtered = products.filter((p) => {
-      const normalizedName = p.name
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-      return normalizedName.includes(normalizedQuery);
+    const products = await Product.find({
+      name: new RegExp(`^${rawName}$`, "i"),
     });
 
-    if (filtered.length === 0) {
+    if (!products.length) {
       return res.status(404).json({ message: "No matching products found." });
     }
 
-    const cheapest = filtered.reduce(
-      (min, p) => (p.price < min.price ? p : min),
-      filtered[0]
-    );
+    let cheapest = products[0];
+    products.forEach((p) => {
+      if (p.price < cheapest.price) cheapest = p;
+    });
 
-    res.json({
+    res.status(200).json({
       product: rawName,
-      supermarkets: filtered.map(sanitizeProduct),
-      cheapest: {
-        supermarket: cheapest.supermarket,
-        price: cheapest.price,
-      },
+      supermarkets: products.map(sanitizeProduct),
+      cheapest: sanitizeProduct(cheapest),
     });
   } catch (err) {
     console.error("Compare error:", err);
@@ -120,7 +134,7 @@ router.get("/compare/:name", async (req, res) => {
 router.get("/all", async (req, res) => {
   try {
     const products = await Product.find({});
-    res.json(products.map(sanitizeProduct));
+    res.status(200).json(products.map(sanitizeProduct));
   } catch (err) {
     console.error("Get all products error:", err);
     res.status(500).json({ message: err.message });
