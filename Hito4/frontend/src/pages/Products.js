@@ -24,9 +24,7 @@ const Products = () => {
     const fetchRecommended = async () => {
       try {
         const res = await productAPI.get("/recommended");
-        const grouped = groupByName(res.data);
-        const limited = Object.entries(grouped).slice(0, 6);
-        setRecommended(limited);
+        setRecommended(res.data || []);
       } catch (err) {
         console.error("❌ Failed to load recommended products:", err);
         Swal.fire(
@@ -36,25 +34,19 @@ const Products = () => {
         );
       }
     };
+
     fetchRecommended();
   }, [t]);
 
   // =========================
   // HELPERS
   // =========================
-  const groupByName = (products) => {
-    const map = {};
-    products.forEach((p) => {
-      const name = p.name;
-      if (!map[name]) map[name] = [];
-      map[name].push(p);
-    });
-    return map;
-  };
-
   const getCheapestProductId = (items) => {
-    if (!items.length) return null;
-    return items.reduce((min, item) => (item.price < min.price ? item : min)).id;
+    if (!items || !items.length) return null;
+
+    return items.reduce((min, item) =>
+      item.price < min.price ? item : min
+    ).id;
   };
 
   // =========================
@@ -81,19 +73,11 @@ const Products = () => {
     } catch (err) {
       console.error("❌ Wishlist error:", err.response?.data || err);
 
-      if (err.response && err.response.data?.message) {
-        Swal.fire({
-          title: t("alreadyAdded", "⚠️ Already added"),
-          text: err.response.data.message,
-          icon: "info",
-        });
-      } else {
-        Swal.fire({
-          title: t("error", "❌ Error"),
-          text: t("failedAddWishlist", "Failed to add to wishlist."),
-          icon: "error",
-        });
-      }
+      Swal.fire({
+        title: t("error", "❌ Error"),
+        text: err.response?.data?.message || t("failedAddWishlist"),
+        icon: "error",
+      });
     }
   };
 
@@ -102,31 +86,41 @@ const Products = () => {
   // =========================
   return (
     <div className={`products-container ${theme}`}>
-      <h2 className="products-heading">⭐ {t("recommendedProducts", "Recommended Products")}</h2>
+      <h2 className="products-heading">
+        ⭐ {t("recommendedProducts", "Recommended Products")}
+      </h2>
 
       <div className="products-grid">
-        {recommended.map(([name, items], index) => {
-          const cheapestId = getCheapestProductId(items);
+        {recommended.map((product, index) => {
+          const cheapestId = getCheapestProductId(product.supermarkets);
 
           return (
             <div key={index} className="product-card">
-              <div className="product-badge">{t("recommendedBadge", "🔥 Recommended")}</div>
+              <div className="product-badge">
+                {t("recommendedBadge", "🔥 Recommended")}
+              </div>
 
-              <h3 className="product-title">{name}</h3>
+              <h3 className="product-title">{product.name}</h3>
 
               <ul className="product-list">
-                {items.map((item, i) => (
+                {product.supermarkets.map((item, i) => (
                   <li
                     key={i}
-                    className={`product-item ${item.id === cheapestId ? "cheapest" : ""}`}
+                    className={`product-item ${
+                      item.id === cheapestId ? "cheapest" : ""
+                    }`}
                   >
                     <div className="product-left">
-                      <FaStore className="product-icon" /> {item.supermarket}
+                      <FaStore className="product-icon" />
+                      {item.supermarket}
                     </div>
 
                     <div className="product-right">
                       <span className="price-badge">
-                        <FiTag className="price-icon" /> {item.price.toFixed(2)}€
+                        <FiTag className="price-icon" />
+                        {typeof item.price === "number"
+                          ? `${item.price.toFixed(2)}€`
+                          : "-"}
                       </span>
 
                       {item.id === cheapestId && (
