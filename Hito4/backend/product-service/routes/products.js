@@ -57,9 +57,12 @@ router.get("/recommended", async (req, res) => {
 router.get("/names/:letter", async (req, res) => {
   try {
     const letter = req.params.letter.toLowerCase();
+    
     const products = await Product.find({
       name: { $regex: `^${letter}`, $options: "i" },
-    }).limit(10);
+      price: { $exists: true },
+    }).limit(50); // return more suggestions
+
     res.status(200).json(products.map(sanitizeProduct));
   } catch (err) {
     res.status(500).json({ message: err.message });
