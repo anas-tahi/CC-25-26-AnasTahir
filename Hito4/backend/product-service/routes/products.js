@@ -1,4 +1,3 @@
-// routes/products.js
 const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
@@ -32,7 +31,18 @@ router.get("/", async (req, res) => {
       name: { $regex: search, $options: "i" },
     }).limit(10);
 
-    res.json({ products: products.map(sanitizeProduct) });
+    // avoid repeated names
+    const seen = new Set();
+    const unique = [];
+    products.forEach(p => {
+      const n = normalize(p.name);
+      if (!seen.has(n)) {
+        seen.add(n);
+        unique.push(sanitizeProduct(p));
+      }
+    });
+
+    res.json({ products: unique });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -44,16 +54,23 @@ router.get("/", async (req, res) => {
 ============================ */
 router.get("/recommended", async (req, res) => {
   try {
-    // get all products, pick 6 unique names
     const products = await Product.find({});
-    const seenNames = new Set();
+    const seen = new Set();
     const recommended = [];
 
     for (const p of products) {
       const normalizedName = normalize(p.name);
-      if (!seenNames.has(normalizedName)) {
-        seenNames.add(normalizedName);
-        recommended.push(sanitizeProduct(p));
+      if (!seen.has(normalizedName)) {
+        seen.add(normalizedName);
+        // get all supermarkets for this product
+        const allMatches = products
+          .filter(pr => normalize(pr.name) === normalizedName)
+          .map(sanitizeProduct);
+
+        recommended.push({
+          name: p.name,
+          supermarkets: allMatches,
+        });
       }
       if (recommended.length >= 6) break;
     }
@@ -73,21 +90,20 @@ router.get("/names/:letter", async (req, res) => {
     const letter = req.params.letter.toLowerCase();
     const products = await Product.find({
       name: { $regex: `^${letter}`, $options: "i" },
+    }).limit(20);
+
+    // remove duplicates
+    const seen = new Set();
+    const unique = [];
+    products.forEach(p => {
+      const n = normalize(p.name);
+      if (!seen.has(n)) {
+        seen.add(n);
+        unique.push(sanitizeProduct(p));
+      }
     });
 
-    // remove duplicate names
-    const seen = new Set();
-    const uniqueProducts = [];
-    for (const p of products) {
-      const normalized = normalize(p.name);
-      if (!seen.has(normalized)) {
-        seen.add(normalized);
-        uniqueProducts.push(sanitizeProduct(p));
-      }
-      if (uniqueProducts.length >= 10) break;
-    }
-
-    res.status(200).json(uniqueProducts);
+    res.status(200).json(unique);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -150,7 +166,7 @@ router.get("/compare/:name", async (req, res) => {
     );
 
     res.status(200).json({
-      product: matches[0].name,
+      product: req.params.name,
       supermarkets: matches.map(sanitizeProduct),
       cheapest: {
         supermarket: cheapest.supermarket,

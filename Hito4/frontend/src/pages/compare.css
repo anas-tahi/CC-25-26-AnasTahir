@@ -73,27 +73,6 @@
 }
 
 /* ============================================================
-   COMPARE BUTTON
-============================================================ */
-.compare-button {
-  align-self: flex-start;
-  padding: 0.65rem 1.6rem;
-  border-radius: 12px;
-  border: none;
-  background: linear-gradient(90deg, #007bff, #00b4d8);
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.35);
-  transition: 0.25s ease;
-}
-
-.compare-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 26px rgba(0, 123, 255, 0.45);
-}
-
-/* ============================================================
    DROPDOWN SUGGESTIONS
 ============================================================ */
 .dropdown {
@@ -102,13 +81,13 @@
   left: 0;
   right: 0;
   background: var(--card-bg);
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   max-height: 240px;
   overflow-y: auto;
-  animation: dropdownFade 0.25s ease;
   z-index: 50;
+  animation: dropdownFade 0.25s ease;
 }
 
 @keyframes dropdownFade {
@@ -117,10 +96,15 @@
 }
 
 .suggestion {
-  padding: 0.75rem 1rem;
+  padding: 0.8rem 1.2rem;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: all 0.2s ease;
   font-size: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.suggestion:last-child {
+  border-bottom: none;
 }
 
 .suggestion:hover,
@@ -128,6 +112,7 @@
   background: var(--accent-light);
   color: var(--accent-dark);
   font-weight: 600;
+  transform: translateX(2px);
 }
 
 /* ============================================================
@@ -184,9 +169,6 @@
   color: var(--text-primary);
 }
 
-/* ============================================================
-   RESULT GRID
-============================================================ */
 .result-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -240,9 +222,6 @@
   font-weight: 700;
 }
 
-/* ============================================================
-   WISHLIST BUTTON
-============================================================ */
 .wishlist-btn {
   padding: 0.4rem 0.8rem;
   background: #ff4081;
@@ -259,9 +238,6 @@
   box-shadow: 0 6px 16px rgba(255, 64, 129, 0.45);
 }
 
-/* ============================================================
-   MAP SECTION
-============================================================ */
 .map-section {
   margin-top: 1.5rem;
 }
@@ -281,9 +257,6 @@
   color: var(--text-secondary);
 }
 
-/* ============================================================
-   GOOGLE MAPS LINK
-============================================================ */
 .google-link {
   display: inline-block;
   margin-top: 0.8rem;
@@ -301,9 +274,6 @@
   transform: translateY(-2px);
 }
 
-/* ============================================================
-   MODAL / MANUAL ADDRESS
-============================================================ */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -375,18 +345,12 @@
   transform: scale(1.2);
 }
 
-/* ============================================================
-   ERROR TEXT
-============================================================ */
 .error-text {
   color: #ff4d4f;
   font-weight: 600;
   margin-top: 0.5rem;
 }
 
-/* ============================================================
-   EXIT BUTTON
-============================================================ */
 .exit-btn-wrapper {
   display: flex;
   justify-content: flex-end;
@@ -407,9 +371,6 @@
   transform: scale(1.2);
 }
 
-/* ============================================================
-   RESPONSIVE
-============================================================ */
 @media (max-width: 600px) {
   .compare-heading {
     font-size: 1.9rem;
