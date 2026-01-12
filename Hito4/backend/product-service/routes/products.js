@@ -82,9 +82,7 @@ router.get("/compare/:name", async (req, res) => {
     const query = normalize(req.params.name);
     const products = await Product.find({});
 
-    const matches = products.filter(
-      (p) => normalize(p.name) === query
-    );
+    const matches = products.filter((p) => normalize(p.name) === query);
 
     if (matches.length === 0) {
       return res.status(404).json({ message: "No products found" });
@@ -109,6 +107,20 @@ router.get("/compare/:name", async (req, res) => {
 });
 
 /* ============================
+   RECOMMENDED PRODUCTS
+   GET /products/recommended
+============================ */
+router.get("/recommended", async (req, res) => {
+  try {
+    // Example logic: return first 5 products
+    const recommended = await Product.find({}).limit(5);
+    res.status(200).json(recommended.map(sanitizeProduct));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/* ============================
    GET PRODUCTS BY NAME
    GET /products/:name
 ============================ */
@@ -117,9 +129,7 @@ router.get("/:name", async (req, res) => {
     const query = normalize(req.params.name);
     const products = await Product.find({});
 
-    const matches = products.filter(
-      (p) => normalize(p.name) === query
-    );
+    const matches = products.filter((p) => normalize(p.name) === query);
 
     if (matches.length === 0) {
       return res.status(404).json([]);
