@@ -25,12 +25,35 @@ const AuthLanding = () => {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  // 🔥 BEST FIX: Wait for backend to fully wake up before login
+  const waitForBackend = async () => {
+    for (let i = 0; i < 6; i++) {
+      try {
+        const res = await fetch("https://auth-service-a73r.onrender.com/health");
+        if (res.ok) return true;
+      } catch (err) {}
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // wait 1s
+    }
+    return false;
+  };
+
   const handleSubmit = async () => {
     if (loading) return;
     setLoading(true);
 
     try {
+      // ============================
+      // LOGIN MODE
+      // ============================
       if (mode === "login") {
+        // Wait for backend to be fully awake
+        const backendReady = await waitForBackend();
+        if (!backendReady) {
+          alert("Backend is waking up. Please try again in a moment.");
+          setLoading(false);
+          return;
+        }
+
         const res = await authAPI.post("/login", form);
 
         localStorage.setItem("token", res.data.token);
@@ -38,20 +61,24 @@ const AuthLanding = () => {
 
         setSuccessGlow(true);
         setTimeout(() => navigate("/home"), 800);
-      } else {
-        // REGISTER MODE
-        await authAPI.post("/register", form);
-
-        alert("Account created! Preparing login...");
-
-        // Show spinner while backend wakes up
-        setLoading(true);
-
-        setTimeout(() => {
-          setMode("login");
-          setLoading(false);
-        }, 2500); // 2.5 seconds delay
+        return;
       }
+
+      // ============================
+      // REGISTER MODE
+      // ============================
+      await authAPI.post("/register", form);
+
+      alert("Account created! Preparing login...");
+
+      // Show spinner while backend wakes up
+      setLoading(true);
+
+      setTimeout(() => {
+        setMode("login");
+        setLoading(false);
+      }, 2500);
+
     } catch (err) {
       console.error("❌ Auth error:", err.response?.data || err.message);
       alert(err.response?.data?.message || err.message);
