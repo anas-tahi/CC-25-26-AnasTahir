@@ -17,7 +17,7 @@ const AuthLanding = () => {
     document.body.style.background = "transparent";
     document.documentElement.style.background = "transparent";
 
-    // 🔹 Pre-warm backend for fast first login
+    // Pre-warm backend
     fetch("https://auth-service-a73r.onrender.com/health")
       .catch(() => console.log("Backend pre-warm failed"));
   }, []);
@@ -33,24 +33,30 @@ const AuthLanding = () => {
       if (mode === "login") {
         const res = await authAPI.post("/login", form);
 
-        // ✅ Save token
         localStorage.setItem("token", res.data.token);
-
-        // ✅ Load user into context
         await fetchUser();
 
         setSuccessGlow(true);
         setTimeout(() => navigate("/home"), 800);
       } else {
+        // REGISTER MODE
         await authAPI.post("/register", form);
-        alert("Account created! Please login.");
-        setMode("login");
+
+        alert("Account created! Preparing login...");
+
+        // Show spinner while backend wakes up
+        setLoading(true);
+
+        setTimeout(() => {
+          setMode("login");
+          setLoading(false);
+        }, 2500); // 2.5 seconds delay
       }
     } catch (err) {
       console.error("❌ Auth error:", err.response?.data || err.message);
       alert(err.response?.data?.message || err.message);
     } finally {
-      setLoading(false);
+      if (mode === "login") setLoading(false);
     }
   };
 
