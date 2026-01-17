@@ -4,8 +4,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { productAPI } from "../services/api";
-import { authAPI } from "../services/api";
+import { productAPI, authAPI } from "../services/api";
 import { LanguageContext } from "../context/LanguageContext";
 import { ThemeContext } from "../context/ThemeContext";
 
@@ -46,41 +45,48 @@ const ShoppingListCompare = () => {
       () => setUserLocation(null)
     );
   }, []);
-  
+
   // ================= LOAD LIST FOR EDIT =================
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const loadId = params.get('load');
-    console.log('loadId from URL:', loadId);  // Add this
-    if (loadId) {
-      setLoadedListId(loadId);
-      authAPI.get(`/../shopping-lists/${loadId}`).then(async (res) => {
+    const loadId = params.get("load");
+
+    if (!loadId) return;
+
+    setLoadedListId(loadId);
+    setProducts([]);
+
+    authAPI
+      .get(`/../shopping-lists/${loadId}`)
+      .then(async (res) => {
         const list = res.data;
-        console.log('Loaded list:', list);  // Add this
         setListName(list.name);
-        setMode('custom');
-        setProducts([]);
+        setMode("custom");
+
         const fetched = [];
+
         for (const item of list.items) {
           try {
             const res = await productAPI.get(`/compare/${item}`);
-            fetched.push(res.data);
+            if (!fetched.find((p) => p.product === res.data.product)) {
+              fetched.push(res.data);
+            }
           } catch (err) {
-            console.error('Failed to load product', item, err);
+            console.error("Failed to load product:", item, err);
           }
         }
+
         setProducts(fetched);
-        console.log('Products loaded:', fetched);  // Add this
-      }).catch((err) => {
-        console.error('Failed to load list', err);  // Already there
+      })
+      .catch((err) => {
+        console.error("Failed to load shopping list:", err);
         Swal.fire("Error", "Failed to load list", "error");
       });
-    }
   }, []);
 
   // ================= DELETE PRODUCT =================
   const deleteProduct = (index) => {
-    setProducts(prev => prev.filter((_, i) => i !== index));
+    setProducts((prev) => prev.filter((_, i) => i !== index));
   };
 
   // ================= AUTOCOMPLETE =================
@@ -121,7 +127,9 @@ const ShoppingListCompare = () => {
     for (const item of list.items) {
       try {
         const res = await productAPI.get(`/compare/${item}`);
-        fetched.push(res.data);
+        if (!fetched.find((p) => p.product === res.data.product)) {
+          fetched.push(res.data);
+        }
       } catch {}
     }
     setProducts(fetched);
@@ -130,7 +138,7 @@ const ShoppingListCompare = () => {
   // ================= COMPARE TOTALS =================
   const totals = {};
   products.forEach((p) =>
-    p.supermarkets.forEach((s) => (totals[s.supermarket] = (totals[s.supermarket] || 0) + s.price))
+    p.supermarkets.forEach((s) => (totals[s.supermarket] = (totals[s.supermarket] || 0) + (s.price ?? 0)))
   );
   const cheapestMarket =
     Object.keys(totals).length > 0
@@ -189,7 +197,7 @@ const ShoppingListCompare = () => {
             }),
           })
             .addTo(mapInstance.current)
-            .bindPopup(`${cheapestStore.supermarket}: €${cheapestStore.price.toFixed(2)}`);
+            .bindPopup(`${cheapestStore.supermarket}: €${(cheapestStore.price ?? 0).toFixed(2)}`);
           markersRef.current.push(marker);
         }
       });
@@ -278,7 +286,7 @@ const ShoppingListCompare = () => {
         <div className="sl-results">
           {Object.keys(totals).map((m) => (
             <div key={m} className={`sl-total ${m === cheapestMarket ? "best" : ""}`}>
-              {m}: €{totals[m].toFixed(2)}
+              {m}: €{(totals[m] ?? 0).toFixed(2)}
             </div>
           ))}
 
