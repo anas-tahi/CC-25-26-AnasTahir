@@ -53,7 +53,7 @@ const ShoppingListCompare = () => {
     const loadId = params.get('load');
     if (loadId) {
       setLoadedListId(loadId);
-      authAPI.get(`/shopping-lists/${loadId}`).then(async (res) => {
+      authAPI.get(`/../shopping-lists/${loadId}`).then(async (res) => {
         const list = res.data;
         setListName(list.name);
         setMode('custom');
