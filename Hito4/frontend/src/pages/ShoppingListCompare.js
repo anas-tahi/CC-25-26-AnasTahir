@@ -51,10 +51,12 @@ const ShoppingListCompare = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const loadId = params.get('load');
+    console.log('loadId from URL:', loadId);  // Add this
     if (loadId) {
       setLoadedListId(loadId);
       authAPI.get(`/../shopping-lists/${loadId}`).then(async (res) => {
         const list = res.data;
+        console.log('Loaded list:', list);  // Add this
         setListName(list.name);
         setMode('custom');
         setProducts([]);
@@ -68,8 +70,9 @@ const ShoppingListCompare = () => {
           }
         }
         setProducts(fetched);
+        console.log('Products loaded:', fetched);  // Add this
       }).catch((err) => {
-        console.error('Failed to load list', err);
+        console.error('Failed to load list', err);  // Already there
         Swal.fire("Error", "Failed to load list", "error");
       });
     }
