@@ -110,9 +110,10 @@ const Profile = () => {
             <div className="profile-list-actions">
               <button
                 className="profile-list-btn"
-                onClick={() =>
+                onClick={() => {
+                  console.log('Edit clicked for list:', list._id);
                   window.location.assign(`/shopping-list?load=${list._id}`)
-                }
+                }}
               >
                 {t("edit")}
               </button>
