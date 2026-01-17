@@ -1,3 +1,4 @@
+// src/pages/AuthLanding.js
 import { useState, useContext, useEffect } from "react";
 import { authAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
@@ -35,11 +36,11 @@ const AuthLanding = () => {
         // ✅ Save token
         localStorage.setItem("token", res.data.token);
 
-        // ✅ Navigate immediately
-        navigate("/home", { replace: true });
+        // ✅ Fetch user BEFORE navigating
+        await fetchUser();
 
-        // ✅ Fetch user AFTER navigation
-        fetchUser();
+        // ✅ Navigate after user is set
+        navigate("/home", { replace: true });
 
         return;
       }
@@ -91,7 +92,10 @@ const AuthLanding = () => {
 
                 <p style={styles.switchText}>
                   New here?{" "}
-                  <span onClick={() => setMode("register")} style={styles.switchLink}>
+                  <span
+                    onClick={() => setMode("register")}
+                    style={styles.switchLink}
+                  >
                     Create account
                   </span>
                 </p>
@@ -136,7 +140,10 @@ const AuthLanding = () => {
 
                 <p style={styles.switchText}>
                   Already have an account?{" "}
-                  <span onClick={() => setMode("login")} style={styles.switchLink}>
+                  <span
+                    onClick={() => setMode("login")}
+                    style={styles.switchLink}
+                  >
                     Login
                   </span>
                 </p>
@@ -152,8 +159,18 @@ const AuthLanding = () => {
 };
 
 const styles = {
-  wrapper: { minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center" },
-  card: { width: "900px", height: "520px", background: "#baa3f0", borderRadius: "20px" },
+  wrapper: {
+    minHeight: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  card: {
+    width: "900px",
+    height: "520px",
+    background: "#baa3f0",
+    borderRadius: "20px",
+  },
   inner: { display: "flex", height: "100%" },
   side: { width: "50%", display: "flex", justifyContent: "center", alignItems: "center" },
   formContainer: { width: "80%", display: "flex", flexDirection: "column", gap: "1rem" },

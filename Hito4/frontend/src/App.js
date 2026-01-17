@@ -29,7 +29,6 @@ import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
 /* ================= APP CONTENT ================= */
-
 const AppContent = () => {
   const { user } = useContext(UserContext);
   const { theme } = useContext(ThemeContext);
@@ -43,12 +42,15 @@ const AppContent = () => {
 
   /* ===== GLOBAL WELCOME TOAST ===== */
   useEffect(() => {
+    // Only show toast if user is loaded
+    if (!user) return;
+
     toast.info(t("welcomeToast"), {
       position: "top-right",
       autoClose: 3000,
       theme: theme === "dark" ? "dark" : "light",
     });
-  }, [language, theme]);
+  }, [language, theme, user]);
 
   return (
     <div className="app-wrapper">
@@ -107,7 +109,6 @@ const AppContent = () => {
 };
 
 /* ================= ROOT APP ================= */
-
 const App = () => {
   return (
     <UserProvider>

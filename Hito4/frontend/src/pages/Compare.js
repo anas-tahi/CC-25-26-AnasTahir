@@ -117,15 +117,12 @@ const Compare = () => {
   // =========================
   const handleSearch = async () => {
     if (!query.trim()) return;
-
     if (!userLocation) {
       setShowAddressModal(true);
       return;
     }
-
     const trimmed = query.trim();
     const isExact = suggestions.includes(trimmed);
-
     if (isExact) {
       try {
         const res = await productAPI.get(`/compare/${encodeURIComponent(trimmed)}`);
@@ -260,7 +257,7 @@ const Compare = () => {
   }, []);
 
   // =========================
-  // MAP LOGIC (FRONTEND ONLY)
+  // MAP LOGIC (FRONTEND GEOCODE SUPERMARKETS)
   // =========================
   useEffect(() => {
     if (!result || !userLocation || !mapRef.current) return;
@@ -285,59 +282,57 @@ const Compare = () => {
       if (layer instanceof L.Marker) map.removeLayer(layer);
     });
 
-    if (!result.cheapest) {
-      setMapLoading(false);
-      return;
+    // User marker
+    const userMarker = L.marker([userLocation.lat, userLocation.lng], {
+      icon: L.icon({
+        iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
+        iconSize: [35, 35],
+      }),
+    }).addTo(map)
+      .bindPopup("You are here");
+
+    // Add markers for cheapest supermarkets
+    if (result.cheapest) {
+      const cheapestStores = result.supermarkets.filter(
+        (s) => s.supermarket === result.cheapest.supermarket
+      );
+
+      cheapestStores.forEach((store) => {
+        const q = encodeURIComponent(`${store.supermarket} near me`);
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.length > 0) {
+              const lat = parseFloat(data[0].lat);
+              const lon = parseFloat(data[0].lon);
+
+              L.marker([lat, lon], {
+                icon: L.icon({
+                  iconUrl: "https://cdn-icons-png.flaticon.com/512/190/190411.png",
+                  iconSize: [35, 35],
+                }),
+              })
+                .addTo(map)
+                .bindPopup(`${store.supermarket}: €${(store.price ?? 0).toFixed(2)}`);
+
+              map.fitBounds(
+                [
+                  [userLocation.lat, userLocation.lng],
+                  [lat, lon],
+                ],
+                { padding: [50, 50] }
+              );
+
+              setGoogleMapsLink(
+                `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${lat},${lon}`
+              );
+            }
+          })
+          .catch((err) => console.error("Map supermarket geocode error:", err));
+      });
     }
 
-    const cheapestStoreName = result.cheapest.supermarket;
-    const q = encodeURIComponent(cheapestStoreName);
-
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.length > 0) {
-          const storeLat = parseFloat(data[0].lat);
-          const storeLon = parseFloat(data[0].lon);
-
-          // Store marker
-          L.marker([storeLat, storeLon], {
-            icon: L.icon({
-              iconUrl: "https://cdn-icons-png.flaticon.com/512/190/190411.png",
-              iconSize: [35, 35],
-            }),
-          })
-            .addTo(map)
-            .bindPopup(`${cheapestStoreName} ✅ Cheapest store`);
-
-          // User marker
-          L.marker([userLocation.lat, userLocation.lng], {
-            icon: L.icon({
-              iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
-              iconSize: [35, 35],
-            }),
-          })
-            .addTo(map)
-            .bindPopup("You are here");
-
-          map.fitBounds(
-            [
-              [userLocation.lat, userLocation.lng],
-              [storeLat, storeLon],
-            ],
-            { padding: [50, 50] }
-          );
-
-          setGoogleMapsLink(
-            `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${storeLat},${storeLon}`
-          );
-        }
-        setMapLoading(false);
-      })
-      .catch((err) => {
-        console.error("Map error:", err);
-        setMapLoading(false);
-      });
+    setMapLoading(false);
   }, [result, userLocation]);
 
   // =========================
