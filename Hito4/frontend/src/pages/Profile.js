@@ -1,5 +1,6 @@
 import { useEffect, useState, useContext } from "react";
 import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom"; // ✅ import useNavigate
 import { authAPI } from "../services/api";
 import { UserContext } from "../context/UserContext";
 import { LanguageContext } from "../context/LanguageContext";
@@ -10,6 +11,7 @@ const Profile = () => {
   const { user, setUser } = useContext(UserContext);
   const { t } = useContext(LanguageContext);
   const { theme } = useContext(ThemeContext);
+  const navigate = useNavigate(); // ✅ initialize navigate
 
   const [lists, setLists] = useState([]);
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || "");
@@ -111,8 +113,8 @@ const Profile = () => {
               <button
                 className="profile-list-btn"
                 onClick={() => {
-                  console.log('Edit clicked for list:', list._id);
-                  window.location.assign(`/shopping-list?load=${list._id}`)
+                  // ✅ navigate inside React instead of hard reload
+                  navigate(`/shopping-list?load=${list._id}`);
                 }}
               >
                 {t("edit")}
@@ -133,7 +135,7 @@ const Profile = () => {
         className="profile-logout"
         onClick={() => {
           localStorage.removeItem("token");
-          window.location.href = "/login";
+          navigate("/login"); // ✅ also use navigate here
         }}
       >
         {t("logout")}
