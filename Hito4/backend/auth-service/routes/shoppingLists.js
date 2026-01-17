@@ -12,6 +12,19 @@ router.get("/", auth, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+// GET single list
+router.get("/:id", auth, async (req, res) => {
+  try {
+    const list = await ShoppingList.findOne({
+      _id: req.params.id,
+      user: req.user.id,
+    });
+    if (!list) return res.status(404).json({ error: "Shopping list not found" });
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 // POST new list
 router.post("/", auth, async (req, res) => {

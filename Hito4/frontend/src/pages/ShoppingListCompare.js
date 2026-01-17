@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { productAPI } from "../services/api";
+import { authAPI } from "../services/api";
 import { LanguageContext } from "../context/LanguageContext";
 import { ThemeContext } from "../context/ThemeContext";
 
@@ -27,6 +28,7 @@ const ShoppingListCompare = () => {
   const token = localStorage.getItem("token");
   const [mode, setMode] = useState("");
   const [listName, setListName] = useState("");
+  const [loadedListId, setLoadedListId] = useState(null);
   const [products, setProducts] = useState([]);
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -44,6 +46,39 @@ const ShoppingListCompare = () => {
       () => setUserLocation(null)
     );
   }, []);
+  
+  // ================= LOAD LIST FOR EDIT =================
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const loadId = params.get('load');
+    if (loadId) {
+      setLoadedListId(loadId);
+      authAPI.get(`/shopping-lists/${loadId}`).then(async (res) => {
+        const list = res.data;
+        setListName(list.name);
+        setMode('custom');
+        setProducts([]);
+        const fetched = [];
+        for (const item of list.items) {
+          try {
+            const res = await productAPI.get(`/compare/${item}`);
+            fetched.push(res.data);
+          } catch (err) {
+            console.error('Failed to load product', item, err);
+          }
+        }
+        setProducts(fetched);
+      }).catch((err) => {
+        console.error('Failed to load list', err);
+        Swal.fire("Error", "Failed to load list", "error");
+      });
+    }
+  }, []);
+
+  // ================= DELETE PRODUCT =================
+  const deleteProduct = (index) => {
+    setProducts(prev => prev.filter((_, i) => i !== index));
+  };
 
   // ================= AUTOCOMPLETE =================
   useEffect(() => {
@@ -226,6 +261,7 @@ const ShoppingListCompare = () => {
           {products.map((p, i) => (
             <div key={i} className="sl-item">
               {p.product}
+              <button onClick={() => deleteProduct(i)} className="delete-btn">🗑️</button>
             </div>
           ))}
           <button className="compare-btn" onClick={() => setShowCompare(true)}>
