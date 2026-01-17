@@ -33,6 +33,7 @@ const ShoppingListCompare = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [loadingMap, setLoadingMap] = useState(false);
 
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
@@ -50,7 +51,6 @@ const ShoppingListCompare = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const loadId = params.get("load");
-
     if (!loadId) return;
 
     setLoadedListId(loadId);
@@ -64,7 +64,6 @@ const ShoppingListCompare = () => {
         setMode("custom");
 
         const fetched = [];
-
         for (const item of list.items) {
           try {
             const res = await productAPI.get(`/compare/${item}`);
@@ -75,7 +74,6 @@ const ShoppingListCompare = () => {
             console.error("Failed to load product:", item, err);
           }
         }
-
         setProducts(fetched);
       })
       .catch((err) => {
@@ -166,42 +164,76 @@ const ShoppingListCompare = () => {
   useEffect(() => {
     if (!showCompare || !userLocation || !mapRef.current) return;
 
-    mapInstance.current?.remove();
-    markersRef.current = [];
+    const loadMap = async () => {
+      setLoadingMap(true);
+      mapInstance.current?.remove();
+      markersRef.current = [];
 
-    mapInstance.current = L.map(mapRef.current).setView([userLocation.lat, userLocation.lng], 13);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(mapInstance.current);
+      mapInstance.current = L.map(mapRef.current).setView([userLocation.lat, userLocation.lng], 13);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(mapInstance.current);
 
-    // USER LOCATION MARKER
-    const userMarker = L.marker([userLocation.lat, userLocation.lng], {
-      icon: L.icon({
-        iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-      }),
-    })
-      .addTo(mapInstance.current)
-      .bindPopup("Tú estás aquí");
-    markersRef.current.push(userMarker);
+      // USER LOCATION MARKER
+      const userMarker = L.marker([userLocation.lat, userLocation.lng], {
+        icon: L.icon({
+          iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
+          iconSize: [32, 32],
+          iconAnchor: [16, 32],
+        }),
+      })
+        .addTo(mapInstance.current)
+        .bindPopup("Tú estás aquí");
+      markersRef.current.push(userMarker);
 
-    // CHEAPEST SUPERMARKET MARKERS
-    if (cheapestMarket) {
-      products.forEach((p) => {
-        const cheapestStore = p.supermarkets.find((s) => s.supermarket === cheapestMarket);
-        if (cheapestStore && cheapestStore.lat && cheapestStore.lng) {
-          const marker = L.marker([cheapestStore.lat, cheapestStore.lng], {
-            icon: L.icon({
-              iconUrl: "https://cdn-icons-png.flaticon.com/512/34/34568.png",
-              iconSize: [32, 32],
-              iconAnchor: [16, 32],
-            }),
-          })
-            .addTo(mapInstance.current)
-            .bindPopup(`${cheapestStore.supermarket}: €${(cheapestStore.price ?? 0).toFixed(2)}`);
-          markersRef.current.push(marker);
+      // CHEAPEST SUPERMARKET MARKERS USING NOMINATIM
+      if (cheapestMarket) {
+        const geocode = async (name) => {
+          try {
+            const response = await axios.get(
+              `https://nominatim.openstreetmap.org/search`,
+              {
+                params: {
+                  q: name,
+                  format: "json",
+                  limit: 1,
+                },
+              }
+            );
+            if (response.data.length > 0) {
+              return {
+                lat: parseFloat(response.data[0].lat),
+                lng: parseFloat(response.data[0].lon),
+              };
+            }
+            return null;
+          } catch {
+            return null;
+          }
+        };
+
+        for (const p of products) {
+          const cheapestStore = p.supermarkets.find((s) => s.supermarket === cheapestMarket);
+          if (!cheapestStore) continue;
+
+          const coords = await geocode(cheapestStore.supermarket);
+          if (coords) {
+            const marker = L.marker([coords.lat, coords.lng], {
+              icon: L.icon({
+                iconUrl: "https://cdn-icons-png.flaticon.com/512/34/34568.png",
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+              }),
+            })
+              .addTo(mapInstance.current)
+              .bindPopup(`${cheapestStore.supermarket}: €${(cheapestStore.price ?? 0).toFixed(2)}`);
+            markersRef.current.push(marker);
+          }
         }
-      });
-    }
+      }
+
+      setLoadingMap(false);
+    };
+
+    loadMap();
 
     return () => mapInstance.current?.remove();
   }, [showCompare, userLocation, products, cheapestMarket]);
@@ -272,7 +304,9 @@ const ShoppingListCompare = () => {
           {products.map((p, i) => (
             <div key={i} className="sl-item">
               {p.product}
-              <button onClick={() => deleteProduct(i)} className="delete-btn">🗑️</button>
+              <button onClick={() => deleteProduct(i)} className="delete-btn">
+                🗑️
+              </button>
             </div>
           ))}
           <button className="compare-btn" onClick={() => setShowCompare(true)}>
@@ -284,6 +318,7 @@ const ShoppingListCompare = () => {
       {/* RESULTS + MAP */}
       {showCompare && (
         <div className="sl-results">
+          {loadingMap && <p>Cargando mapa...</p>}
           {Object.keys(totals).map((m) => (
             <div key={m} className={`sl-total ${m === cheapestMarket ? "best" : ""}`}>
               {m}: €{(totals[m] ?? 0).toFixed(2)}

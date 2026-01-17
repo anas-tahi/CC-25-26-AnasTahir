@@ -101,7 +101,6 @@ const Compare = () => {
       try {
         const res = await productAPI.get(`/names/${encodeURIComponent(query)}`);
         const names = (res.data || []).map((p) => p.name);
-        // remove duplicates
         const uniqueNames = [...new Set(names)];
         setSuggestions(uniqueNames);
         setHighlightIndex(-1);
@@ -261,7 +260,7 @@ const Compare = () => {
   }, []);
 
   // =========================
-  // MAP LOGIC
+  // MAP LOGIC (FRONTEND ONLY)
   // =========================
   useEffect(() => {
     if (!result || !userLocation || !mapRef.current) return;
@@ -291,8 +290,8 @@ const Compare = () => {
       return;
     }
 
-    const storeName = result.cheapest.supermarket;
-    const q = encodeURIComponent(storeName);
+    const cheapestStoreName = result.cheapest.supermarket;
+    const q = encodeURIComponent(cheapestStoreName);
 
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`)
       .then((res) => res.json())
@@ -309,7 +308,7 @@ const Compare = () => {
             }),
           })
             .addTo(map)
-            .bindPopup(`${storeName} ✅ Cheapest store`);
+            .bindPopup(`${cheapestStoreName} ✅ Cheapest store`);
 
           // User marker
           L.marker([userLocation.lat, userLocation.lng], {
